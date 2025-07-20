@@ -4,9 +4,12 @@ import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
-const Line = lazy(() => 
+const Line = lazy(() =>
   import('react-chartjs-2').then(module => ({ default: module.Line }))
 );
+
+// Type for chart ref
+type ChartRef = React.ComponentRef<typeof Line>;
 
 // Lazy load Chart.js registration
 const ChartRegistration = lazy(() => 
@@ -79,13 +82,13 @@ const RefreshButton = ({
   </div>
 );
 
-export default function RefreshableChart({ 
-  data: initialData, 
-  title, 
+export default function RefreshableChart({
+  data: initialData,
+  title,
   onRefresh,
-  refreshInterval 
+  refreshInterval
 }: RefreshableChartProps) {
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<ChartRef>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chartData, setChartData] = useState(initialData);
   const [lastRefresh, setLastRefresh] = useState<Date>();
@@ -104,7 +107,7 @@ export default function RefreshableChart({
         }
       };
     }
-  }, [refreshInterval]);
+  }, [refreshInterval, handleRefresh]);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;

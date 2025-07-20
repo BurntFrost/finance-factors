@@ -8,6 +8,9 @@ const Line = lazy(() =>
   import('react-chartjs-2').then(module => ({ default: module.Line }))
 );
 
+// Type for chart ref
+type ChartRef = React.ComponentRef<typeof Line>;
+
 // Lazy load Chart.js registration
 const ChartRegistration = lazy(() =>
   import('./ChartRegistration').then(module => ({ default: module.default }))
@@ -63,7 +66,7 @@ const RefreshButton = ({ onClick, isRefreshing }: { onClick: () => void; isRefre
 
 // Chart component with refresh capability
 const RefreshableChart = ({ data, title }: LazyChartProps) => {
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<ChartRef>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = useCallback(async () => {
