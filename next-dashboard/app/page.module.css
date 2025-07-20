@@ -1,0 +1,9 @@
+.container {
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+}
+
+.chartContainer {
+  margin-bottom: 2rem;
+  max-width: 800px;
+}
