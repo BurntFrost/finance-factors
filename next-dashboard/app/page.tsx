@@ -1,25 +1,8 @@
-import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import styles from './page.module.css';
+'use client';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+import React from 'react';
+import LazyChart from './components/LazyChart';
+import styles from './page.module.css';
 
 const years = Array.from({ length: 30 }, (_, i) => 1994 + i);
 const housePrices = years.map((_, i) => 100000 + i * 10000);
@@ -54,10 +37,10 @@ export default function Home() {
     <div className={styles.container}>
       <h1>Finance Factor Dashboard</h1>
       <div className={styles.chartContainer}>
-        <Line data={priceData} />
+        <LazyChart data={priceData} title="Average House Price Over Time" />
       </div>
       <div className={styles.chartContainer}>
-        <Line data={incomeData} />
+        <LazyChart data={incomeData} title="Average Household Income Over Time" />
       </div>
     </div>
   );

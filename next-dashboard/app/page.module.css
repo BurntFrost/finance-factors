@@ -1,9 +1,25 @@
 .container {
   padding: 2rem;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .chartContainer {
   margin-bottom: 2rem;
   max-width: 800px;
+  /* Improve chart container performance */
+  contain: layout style;
+  will-change: transform;
+}
+
+/* Responsive design for better mobile performance */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .chartContainer {
+    max-width: 100%;
+  }
 }
