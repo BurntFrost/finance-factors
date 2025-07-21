@@ -9,9 +9,29 @@ export interface ChartData {
   }>;
 }
 
+// Data type categories for financial data
+export interface DataType {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: 'financial' | 'economic' | 'personal';
+}
+
+// Visualization type for dashboard elements
+export interface VisualizationType {
+  id: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart' | 'data-table' | 'summary-card';
+  name: string;
+  description: string;
+  icon: string;
+  category: 'chart' | 'data' | 'widget';
+  suitableFor: string[]; // Data types this visualization works well with
+}
+
 export interface DashboardElement {
   id: string;
   type: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart' | 'data-table' | 'summary-card';
+  dataType: string; // References DataType.id
   title: string;
   data?: ChartData | TableData | SummaryCardData[];
   config?: Record<string, unknown>;

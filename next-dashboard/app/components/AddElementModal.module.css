@@ -1,0 +1,340 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: var(--background);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 800px;
+  width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.modalTitle {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.closeButton:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+}
+
+.stepIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 32px;
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e9ecef;
+  color: #6c757d;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.step.active .stepNumber {
+  background: #007bff;
+  color: white;
+}
+
+.step.completed .stepNumber {
+  background: #28a745;
+  color: white;
+}
+
+.stepLabel {
+  font-weight: 500;
+  color: #6c757d;
+  transition: color 0.3s ease;
+}
+
+.step.active .stepLabel,
+.step.completed .stepLabel {
+  color: var(--foreground);
+}
+
+.stepConnector {
+  width: 60px;
+  height: 2px;
+  background: #e9ecef;
+  margin: 0 16px;
+}
+
+.modalBody {
+  padding: 32px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.categoryFilter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.categoryButton {
+  padding: 8px 16px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  color: var(--foreground);
+}
+
+.categoryButton:hover {
+  background: rgba(0, 123, 255, 0.1);
+  border-color: #007bff;
+}
+
+.categoryButton.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.optionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.optionCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: var(--background);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.optionCard:hover {
+  border-color: #007bff;
+  background: rgba(0, 123, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.optionIcon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.optionContent {
+  flex: 1;
+}
+
+.optionName {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.optionDescription {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.selectedDataType {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(0, 123, 255, 0.1);
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+.selectedIcon {
+  font-size: 32px;
+}
+
+.selectedName {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.selectedDescription {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.backButton {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+  margin-left: auto;
+}
+
+.backButton:hover {
+  background: #5a6268;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .modalHeader {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  
+  .closeButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ccc;
+  }
+  
+  .stepIndicator {
+    background: rgba(0, 123, 255, 0.1);
+  }
+  
+  .categoryButton {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .categoryButton:hover {
+    background: rgba(0, 123, 255, 0.2);
+  }
+  
+  .optionCard {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .optionCard:hover {
+    background: rgba(0, 123, 255, 0.1);
+  }
+  
+  .selectedDataType {
+    background: rgba(0, 123, 255, 0.15);
+  }
+  
+  .optionDescription {
+    color: #aaa;
+  }
+  
+  .selectedDescription {
+    color: #aaa;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95vw;
+    max-height: 90vh;
+  }
+  
+  .modalHeader,
+  .stepIndicator,
+  .modalBody {
+    padding: 16px;
+  }
+  
+  .optionsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .selectedDataType {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  
+  .backButton {
+    margin-left: 0;
+    margin-top: 12px;
+  }
+}
