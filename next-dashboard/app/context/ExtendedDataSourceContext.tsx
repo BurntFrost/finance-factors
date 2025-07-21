@@ -249,7 +249,7 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
         const mockLiveData = generateSampleDataByType(dataType, 'line-chart');
 
         // Add some variation to make it look different from sample data
-        if (mockLiveData && mockLiveData.datasets) {
+        if (mockLiveData && 'datasets' in mockLiveData && mockLiveData.datasets) {
           mockLiveData.datasets = mockLiveData.datasets.map(dataset => ({
             ...dataset,
             label: dataset.label + ' (Live)',
@@ -282,7 +282,7 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
       return {
-        data: null,
+        data: null as T,
         success: false,
         timestamp: new Date(),
         error: errorMessage,

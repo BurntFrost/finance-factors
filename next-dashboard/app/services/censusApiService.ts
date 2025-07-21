@@ -136,7 +136,7 @@ class CensusApiService {
       } = options;
 
       const allData: Array<{ date: string; value: number; label?: string }> = [];
-      const years = [];
+      const years: number[] = [];
 
       // Generate year range
       for (let year = startYear; year <= endYear; year++) {

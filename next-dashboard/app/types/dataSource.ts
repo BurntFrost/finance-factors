@@ -308,7 +308,8 @@ export type ExtendedDataSourceAction = DataSourceAction
   | { type: 'CLEAR_CHART_CONFIGS' };
 
 // Extended context type for per-chart management
-export interface ExtendedDataSourceContextType extends DataSourceContextType {
+export interface ExtendedDataSourceContextType extends Omit<DataSourceContextType, 'fetchData'> {
+  fetchData: <T = unknown>(options: DataFetchOptions & { chartId?: string }) => Promise<ApiResponse<T>>;
   setChartDataSource: (chartId: string, dataType: string, source: DataSourceType) => Promise<void>;
   getChartDataSource: (chartId: string) => DataSourceType;
   removeChartConfig: (chartId: string) => void;
