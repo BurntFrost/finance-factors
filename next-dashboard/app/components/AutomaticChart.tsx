@@ -220,7 +220,6 @@ export function CompactAutomaticChart({
   const {
     data,
     isLoading,
-    error,
     status,
     forceRetryLive,
   } = useAutomaticDataSource<ChartData>({

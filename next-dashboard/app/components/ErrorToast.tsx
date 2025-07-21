@@ -84,7 +84,7 @@ export default function ErrorToast({
               <div className={styles.corsHelp}>
                 <p>This is expected for GitHub Pages deployment.</p>
                 <p>
-                  <strong>Solution:</strong> Switch to "Sample Data" mode or 
+                  <strong>Solution:</strong> Switch to &quot;Sample Data&quot; mode or
                   deploy with proper server support.
                 </p>
                 <p>

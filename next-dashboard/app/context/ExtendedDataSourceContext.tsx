@@ -7,7 +7,7 @@
  * It allows individual charts to have their own data sources while maintaining global state consistency.
  */
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useState } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
 import {
   DataSourceType,
   ExtendedDataSourceState,
@@ -124,13 +124,9 @@ export function useExtendedDataSourceContext(): ExtendedDataSourceContextType {
 // Provider component
 export function ExtendedDataSourceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(extendedDataSourceReducer, initialState);
-  const [isHydrated, setIsHydrated] = useState(false);
 
   // Initialize storage and handle hydration
   useEffect(() => {
-    // Mark as hydrated to prevent SSR mismatches
-    setIsHydrated(true);
-
     initializeStorage();
 
     // Load saved preference only after hydration
@@ -138,7 +134,7 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
     if (savedSource && savedSource !== state.currentSource) {
       dispatch({ type: 'SET_SOURCE', payload: savedSource });
     }
-  }, []); // Remove state.currentSource dependency to prevent loops
+  }, [state.currentSource]);
 
   // Check if a data source is available
   const isSourceAvailable = useCallback((source: DataSourceType): boolean => {
