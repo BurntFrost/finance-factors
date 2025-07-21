@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DashboardProvider } from "./context/DashboardContext";
+import { DataSourceProvider } from "./context/DataSourceContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,9 +51,13 @@ export default function RootLayout({
         <meta httpEquiv="x-dns-prefetch-control" content="on" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <DashboardProvider>
-          {children}
-        </DashboardProvider>
+        <ErrorBoundary>
+          <DataSourceProvider>
+            <DashboardProvider>
+              {children}
+            </DashboardProvider>
+          </DataSourceProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

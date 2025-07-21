@@ -14,6 +14,13 @@
   gap: 1rem;
 }
 
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
 .header h1 {
   margin: 0;
   color: var(--foreground);
@@ -25,6 +32,77 @@
   /* Improve chart container performance */
   contain: layout style;
   will-change: transform;
+}
+
+/* Loading and error states */
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e9ecef);
+}
+
+.loadingSpinner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary, #6c757d);
+  font-size: 0.875rem;
+}
+
+.loadingSpinner::before {
+  content: '⟳';
+  animation: spin 1s linear infinite;
+  font-size: 1.25rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.errorContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  background: var(--error-background, #fef2f2);
+  border-radius: 8px;
+  border: 1px solid var(--error-border, #fecaca);
+}
+
+.errorMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: var(--error-text, #dc2626);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.retryButton {
+  padding: 0.5rem 1rem;
+  background: var(--primary-color, #007bff);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background: var(--primary-color-hover, #0056b3);
+}
+
+.retryButton:focus {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
 }
 
 /* Responsive design for better mobile performance */
@@ -39,11 +117,21 @@
     text-align: center;
   }
 
+  .headerContent {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
   .header h1 {
     font-size: 1.5rem;
   }
 
   .chartContainer {
     max-width: 100%;
+  }
+
+  .loadingContainer,
+  .errorContainer {
+    min-height: 150px;
   }
 }

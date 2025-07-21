@@ -1,0 +1,254 @@
+/**
+ * Error Boundary Styles
+ * 
+ * Styles for the error boundary component that provides fallback UI
+ * when JavaScript errors occur in the component tree.
+ */
+
+.errorBoundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 2rem;
+  background: var(--error-background, #fef2f2);
+  border: 1px solid var(--error-border, #fecaca);
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.errorContent {
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.errorIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.errorTitle {
+  color: var(--error-text, #dc2626);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+}
+
+.errorMessage {
+  color: var(--text-secondary, #6b7280);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0 0 1.5rem 0;
+}
+
+.errorDetails {
+  margin: 1.5rem 0;
+  text-align: left;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e9ecef);
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-primary, #374151);
+  margin-bottom: 0.5rem;
+}
+
+.errorDetails summary:hover {
+  color: var(--primary-color, #007bff);
+}
+
+.errorStack {
+  background: var(--background-code, #1f2937);
+  color: var(--text-code, #f9fafb);
+  padding: 1rem;
+  border-radius: 4px;
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+}
+
+.errorActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.retryButton,
+.reloadButton {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 120px;
+}
+
+.retryButton {
+  background: var(--primary-color, #007bff);
+  color: white;
+}
+
+.retryButton:hover {
+  background: var(--primary-color-hover, #0056b3);
+  transform: translateY(-1px);
+}
+
+.retryButton:active {
+  transform: translateY(0);
+}
+
+.retryButton:focus {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.reloadButton {
+  background: var(--background-secondary, #f8f9fa);
+  color: var(--text-primary, #374151);
+  border: 1px solid var(--border-color, #d1d5db);
+}
+
+.reloadButton:hover {
+  background: var(--background-hover, #e5e7eb);
+  border-color: var(--border-color-hover, #9ca3af);
+  transform: translateY(-1px);
+}
+
+.reloadButton:active {
+  transform: translateY(0);
+}
+
+.reloadButton:focus {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.retryInfo {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.875rem;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .errorBoundary {
+    min-height: 300px;
+    padding: 1rem;
+  }
+
+  .errorContent {
+    max-width: 100%;
+  }
+
+  .errorTitle {
+    font-size: 1.25rem;
+  }
+
+  .errorActions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .retryButton,
+  .reloadButton {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .errorStack {
+    font-size: 0.75rem;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .errorBoundary {
+    background: var(--error-background-dark, #2d1b1b);
+    border-color: var(--error-border-dark, #5c2626);
+  }
+
+  .errorTitle {
+    color: var(--error-text-dark, #f87171);
+  }
+
+  .errorMessage {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .errorDetails {
+    background: var(--background-secondary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .errorDetails summary {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .errorDetails summary:hover {
+    color: var(--primary-color-dark, #60a5fa);
+  }
+
+  .reloadButton {
+    background: var(--background-secondary-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+    border-color: var(--border-color-dark, #4b5563);
+  }
+
+  .reloadButton:hover {
+    background: var(--background-hover-dark, #4b5563);
+    border-color: var(--border-color-hover-dark, #6b7280);
+  }
+
+  .retryInfo {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .errorBoundary {
+    border-width: 2px;
+  }
+
+  .retryButton,
+  .reloadButton {
+    border-width: 2px;
+  }
+
+  .errorStack {
+    border: 2px solid var(--border-color, #d1d5db);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .retryButton,
+  .reloadButton {
+    transition: none;
+  }
+
+  .retryButton:hover,
+  .reloadButton:hover {
+    transform: none;
+  }
+
+  .retryButton:active,
+  .reloadButton:active {
+    transform: none;
+  }
+}

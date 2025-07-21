@@ -4,47 +4,19 @@ import React from 'react';
 import LazyChart from './components/LazyChart';
 import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
+import DataSourceSelector from './components/DataSourceSelector';
 import { useDashboard } from './context/DashboardContext';
+import { useHousePricesData, useIncomeData } from './hooks/useDataSource';
 import { generateSampleData, generateElementTitle, generateSampleDataByType, generateElementTitleByType } from './utils/sampleDataGenerators';
-import { DataType, VisualizationType } from './types/dashboard';
+import { DataType, VisualizationType, ChartData } from './types/dashboard';
 import styles from './page.module.css';
-
-const years = Array.from({ length: 30 }, (_, i) => 1994 + i);
-const housePrices = years.map((_, i) => 100000 + i * 10000);
-const householdIncome = years.map((_, i) => 30000 + i * 1500);
-
-const priceData = {
-  labels: years,
-  datasets: [
-    {
-      label: 'Average House Price (USD)',
-      data: housePrices,
-      borderColor: 'rgba(75,192,192,1)',
-      backgroundColor: 'rgba(75,192,192,0.2)',
-    },
-  ],
-  // Mark as sample data
-  isRealData: false,
-  dataSource: 'Static Sample Data'
-};
-
-const incomeData = {
-  labels: years,
-  datasets: [
-    {
-      label: 'Average Household Income (USD)',
-      data: householdIncome,
-      borderColor: 'rgba(255,99,132,1)',
-      backgroundColor: 'rgba(255,99,132,0.2)',
-    },
-  ],
-  // Mark as sample data
-  isRealData: false,
-  dataSource: 'Static Sample Data'
-};
 
 export default function Home() {
   const { state, addElement, removeElement } = useDashboard();
+
+  // Use data source hooks for house prices and income data
+  const housePricesResult = useHousePricesData();
+  const incomeResult = useIncomeData();
 
   // Legacy handler for backward compatibility
   const handleElementSelect = (elementType: ElementType) => {
@@ -81,19 +53,65 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>Finance Factor Dashboard</h1>
+        <div className={styles.headerContent}>
+          <h1>Finance Factor Dashboard</h1>
+          <DataSourceSelector />
+        </div>
         <AddElementDropdown
           onElementSelect={handleElementSelect}
           onElementCreate={handleElementCreate}
         />
       </div>
 
-      {/* Original static charts */}
+      {/* Data source aware charts */}
       <div className={styles.chartContainer}>
-        <LazyChart data={priceData} title="Average House Price Over Time" />
+        {housePricesResult.data ? (
+          <LazyChart
+            data={housePricesResult.data as ChartData}
+            title="Average House Price Over Time"
+          />
+        ) : housePricesResult.isLoading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}>Loading house prices data...</div>
+          </div>
+        ) : housePricesResult.error ? (
+          <div className={styles.errorContainer}>
+            <div className={styles.errorMessage}>
+              Error loading house prices: {housePricesResult.error.message}
+              <button
+                onClick={housePricesResult.refresh}
+                className={styles.retryButton}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
+
       <div className={styles.chartContainer}>
-        <LazyChart data={incomeData} title="Average Household Income Over Time" />
+        {incomeResult.data ? (
+          <LazyChart
+            data={incomeResult.data as ChartData}
+            title="Average Household Income Over Time"
+          />
+        ) : incomeResult.isLoading ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.loadingSpinner}>Loading income data...</div>
+          </div>
+        ) : incomeResult.error ? (
+          <div className={styles.errorContainer}>
+            <div className={styles.errorMessage}>
+              Error loading income data: {incomeResult.error.message}
+              <button
+                onClick={incomeResult.refresh}
+                className={styles.retryButton}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {/* Dynamic elements */}

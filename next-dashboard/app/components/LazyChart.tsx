@@ -17,19 +17,7 @@ const ChartRegistration = lazy(() =>
   import('./ChartRegistration').then(module => ({ default: module.default }))
 );
 
-interface ChartData {
-  labels: number[];
-  datasets: Array<{
-    label: string;
-    data: number[];
-    borderColor: string;
-    backgroundColor: string;
-  }>;
-  // Data status metadata
-  isRealData?: boolean;
-  lastUpdated?: Date;
-  dataSource?: string;
-}
+import { ChartData } from '../types/dashboard';
 
 interface LazyChartProps {
   data: ChartData;
