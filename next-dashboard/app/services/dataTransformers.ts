@@ -182,7 +182,7 @@ class MultiSeriesChartDataTransformer extends BaseTransformer<Record<string, Api
     };
   }
   
-  private createEmptyMultiSeriesChartData(dataType: string): ChartData {
+  private createEmptyMultiSeriesChartData(_dataType: string): ChartData {
     return {
       labels: [],
       datasets: [],

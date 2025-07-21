@@ -13,7 +13,7 @@ import {
 } from '../types/dataSource';
 
 // Request cache for deduplication
-const requestCache = new Map<string, Promise<ApiResponse>>();
+const requestCache = new Map<string, Promise<ApiResponse<unknown>>>();
 
 // Rate limiting tracker
 const rateLimitTracker = new Map<string, {
@@ -126,7 +126,7 @@ function shouldRetry(error: unknown): boolean {
 }
 
 // Create error object from various error types
-function createDataSourceError(error: unknown, endpoint: string): DataSourceError {
+function createDataSourceError(error: unknown, _endpoint: string): DataSourceError {
   if (error instanceof Error) {
     if (error.name === 'AbortError') {
       return {
@@ -233,7 +233,7 @@ export class ApiDataService {
     
     // Check if request is already in progress
     if (useCache && requestCache.has(requestKey)) {
-      return requestCache.get(requestKey)!;
+      return requestCache.get(requestKey)! as Promise<ApiResponse<T>>;
     }
     
     // Create the request promise

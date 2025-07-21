@@ -17,7 +17,6 @@ import {
   DATA_SOURCE_CONFIGS,
   DataFetchOptions,
   ApiResponse,
-  DataSourceError,
 } from '../types/dataSource';
 import { dataSourcePreference, apiCache, initializeStorage } from '../utils/localStorage';
 
@@ -111,6 +110,11 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
     dispatch({ type: 'SET_SOURCE', payload: savedSource });
   }, []);
 
+  // Check if a data source is available
+  const isSourceAvailable = useCallback((source: DataSourceType): boolean => {
+    return source in DATA_SOURCE_CONFIGS;
+  }, []);
+
   // Switch data source
   const switchDataSource = useCallback(async (source: DataSourceType): Promise<void> => {
     try {
@@ -142,7 +146,7 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.currentSource]);
+  }, [state.currentSource, isSourceAvailable]);
 
   // Fetch data based on current source
   const fetchData = useCallback(async <T = unknown>(
@@ -188,7 +192,7 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
         if (apiResponse.success && apiResponse.data) {
           // Transform API data to ChartData format
           const transformedData = transformers.chartData.transform(
-            apiResponse.data as any,
+            apiResponse.data as Array<{ date: string; value: number; label?: string }>,
             dataType
           );
 
@@ -244,11 +248,6 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
     const targetSource = source || state.currentSource;
     return DATA_SOURCE_CONFIGS[targetSource];
   }, [state.currentSource]);
-
-  // Check if a data source is available
-  const isSourceAvailable = useCallback((source: DataSourceType): boolean => {
-    return source in DATA_SOURCE_CONFIGS;
-  }, []);
 
   // Context value
   const contextValue: DataSourceContextType = {

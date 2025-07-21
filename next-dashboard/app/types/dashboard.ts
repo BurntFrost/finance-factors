@@ -2,7 +2,7 @@ export interface ChartData {
   labels: (string | number)[];
   datasets: Array<{
     label: string;
-    data: number[];
+    data: (number | null)[];
     borderColor?: string | string[];
     backgroundColor?: string | string[];
     [key: string]: unknown;

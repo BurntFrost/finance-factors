@@ -53,7 +53,7 @@ function generateTimeSeriesData(
 // Mock API endpoints
 const mockEndpoints = {
   // House prices data
-  housing: async (options: DataFetchOptions) => {
+  housing: async (_options: DataFetchOptions) => {
     await delay(randomInRange(500, 1500)); // Simulate network delay
     
     const currentYear = new Date().getFullYear();
@@ -84,7 +84,7 @@ const mockEndpoints = {
   },
 
   // Income data
-  income: async (options: DataFetchOptions) => {
+  income: async (_options: DataFetchOptions) => {
     await delay(randomInRange(300, 1200));
     
     const currentYear = new Date().getFullYear();
@@ -115,7 +115,7 @@ const mockEndpoints = {
   },
 
   // Cost of living data
-  economic: async (options: DataFetchOptions) => {
+  economic: async (_options: DataFetchOptions) => {
     await delay(randomInRange(400, 1000));
     
     const currentYear = new Date().getFullYear();
@@ -146,7 +146,7 @@ const mockEndpoints = {
   },
 
   // Education costs
-  education: async (options: DataFetchOptions) => {
+  education: async (_options: DataFetchOptions) => {
     await delay(randomInRange(600, 1400));
     
     const currentYear = new Date().getFullYear();
@@ -177,7 +177,7 @@ const mockEndpoints = {
   },
 
   // Healthcare costs
-  healthcare: async (options: DataFetchOptions) => {
+  healthcare: async (_options: DataFetchOptions) => {
     await delay(randomInRange(500, 1300));
     
     const currentYear = new Date().getFullYear();
@@ -208,7 +208,7 @@ const mockEndpoints = {
   },
 
   // Investment returns
-  investments: async (options: DataFetchOptions) => {
+  investments: async (_options: DataFetchOptions) => {
     await delay(randomInRange(400, 1100));
     
     const currentYear = new Date().getFullYear();

@@ -62,7 +62,7 @@ export async function testDataSourceSwitching() {
     if (apiHousePrices.success && apiHousePrices.data) {
       console.log('🔄 Testing data transformation...');
       const transformedData = transformers.chartData.transform(
-        apiHousePrices.data as any,
+        apiHousePrices.data as Array<{ date: string; value: number; label?: string }>,
         'house-prices'
       );
 
@@ -138,12 +138,12 @@ export function testDataConsistency() {
 }
 
 // Test localStorage functionality
-export function testLocalStorage() {
+export async function testLocalStorage() {
   console.log('💾 Testing localStorage functionality...');
   
   try {
     // Test data source preference
-    const { dataSourcePreference } = require('../utils/localStorage');
+    const { dataSourcePreference } = await import('../utils/localStorage');
     
     // Save preference
     dataSourcePreference.save('live-api');
@@ -194,7 +194,7 @@ export async function runAllTests() {
 
 // Export for use in browser console
 if (typeof window !== 'undefined') {
-  (window as any).dataSourceTests = {
+  (window as unknown as Record<string, unknown>).dataSourceTests = {
     runAllTests,
     testDataSourceSwitching,
     testDataConsistency,
