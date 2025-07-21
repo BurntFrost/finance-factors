@@ -5,7 +5,7 @@ A high-performance Next.js dashboard application that visualizes financial data 
 ## 🚀 Features
 
 - **Interactive Charts**: Dynamic line charts showing financial trends using Chart.js
-- **Performance Optimized**: Lazy loading, code splitting, and Web Vitals monitoring
+- **Performance Optimized**: Lazy loading and code splitting
 - **Responsive Design**: Mobile-first approach with optimized layouts
 - **Static Export**: Configured for GitHub Pages deployment
 - **Modern Stack**: Next.js 15, React 18, TypeScript, and Chart.js
@@ -22,7 +22,6 @@ The dashboard currently displays:
 - **Language**: TypeScript
 - **Charts**: Chart.js 4.5.0 with react-chartjs-2
 - **Styling**: CSS Modules with responsive design
-- **Performance**: Web Vitals monitoring and analytics
 - **Deployment**: GitHub Pages with automated CI/CD
 
 ## 🏗 Architecture
@@ -31,7 +30,6 @@ The dashboard currently displays:
 - **Lazy Loading**: Chart components are loaded on-demand
 - **Code Splitting**: Separate chunks for React, Chart.js, and application code
 - **Bundle Analysis**: Built-in webpack bundle analyzer
-- **Web Vitals**: Real-time performance monitoring
 - **Font Optimization**: Geist fonts with display swap
 
 ### Project Structure
@@ -40,10 +38,7 @@ next-dashboard/
 ├── app/
 │   ├── components/
 │   │   ├── LazyChart.tsx       # Lazy-loaded chart component
-│   │   ├── ChartRegistration.tsx # Chart.js registration
-│   │   └── WebVitals.tsx       # Performance monitoring
-│   ├── lib/
-│   │   └── analytics.ts        # Web Vitals and performance tracking
+│   │   └── ChartRegistration.tsx # Chart.js registration
 │   ├── layout.tsx              # Root layout with optimizations
 │   ├── page.tsx                # Main dashboard page
 │   └── globals.css             # Global styles
@@ -95,14 +90,6 @@ pnpm dev
 
 ## 📈 Performance Features
 
-### Web Vitals Monitoring
-The application tracks Core Web Vitals:
-- **CLS** (Cumulative Layout Shift)
-- **INP** (Interaction to Next Paint)
-- **FCP** (First Contentful Paint)
-- **LCP** (Largest Contentful Paint)
-- **TTFB** (Time to First Byte)
-
 ### Bundle Optimization
 - Chart.js components are lazy-loaded to reduce initial bundle size
 - Separate chunks for React and Chart.js libraries
@@ -139,11 +126,6 @@ Live demo: [https://burntfrost.github.io/finance-factors/](https://burntfrost.gi
 2. Use the `LazyChart` component for optimal performance
 3. Ensure Chart.js components are registered in `ChartRegistration.tsx`
 
-### Performance Monitoring
-- Web Vitals are logged to console in development
-- Production analytics can be configured in `lib/analytics.ts`
-- Performance Observer tracks navigation timing
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -160,5 +142,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Chart.js Documentation](https://www.chartjs.org/docs/)
-- [Web Vitals](https://web.dev/vitals/)
 - [GitHub Pages](https://pages.github.com/)

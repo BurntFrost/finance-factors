@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import WebVitals from "./components/WebVitals";
 import { DashboardProvider } from "./context/DashboardContext";
 
 const geistSans = Geist({
@@ -50,7 +49,6 @@ export default function RootLayout({
         <meta httpEquiv="x-dns-prefetch-control" content="on" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <WebVitals />
         <DashboardProvider>
           {children}
         </DashboardProvider>
