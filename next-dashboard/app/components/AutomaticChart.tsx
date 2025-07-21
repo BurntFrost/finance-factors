@@ -16,7 +16,7 @@ import ChartSkeleton from './ChartSkeleton';
 import styles from './AutomaticChart.module.css';
 
 // Lazy load the chart component for better performance
-const LazyChart = React.lazy(() => import('./LazyChart'));
+const DynamicChart = React.lazy(() => import('./DynamicChart'));
 
 export interface AutomaticChartProps {
   dataType: string;
@@ -150,11 +150,10 @@ export default function AutomaticChart({
         ) : displayData ? (
           <Suspense fallback={<ChartSkeleton height={height} />}>
             <div className={styles.chartContainer}>
-              <LazyChart
+              <DynamicChart
                 data={displayData}
                 title=""
-                height={height}
-                type={chartType}
+                type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
               />
               
               {/* Loading overlay for refresh */}
@@ -267,11 +266,10 @@ export function CompactAutomaticChart({
           <ChartSkeleton height={height} />
         ) : displayData ? (
           <Suspense fallback={<ChartSkeleton height={height} />}>
-            <LazyChart
+            <DynamicChart
               data={displayData}
               title=""
-              height={height}
-              type={chartType}
+              type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
             />
           </Suspense>
         ) : (

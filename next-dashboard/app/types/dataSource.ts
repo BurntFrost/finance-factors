@@ -226,6 +226,10 @@ export interface ApiResponse<T = unknown> {
       remaining: number;
       resetTime: Date;
     };
+    // Additional metadata for fallback scenarios
+    isFallback?: boolean;
+    reason?: string;
+    fromCache?: boolean;
   };
 }
 
