@@ -84,7 +84,7 @@ class BlsApiService {
       // Check cache first
       if (this.requestCache.has(cacheKey)) {
         const cachedData = await this.requestCache.get(cacheKey);
-        return cachedData;
+        return cachedData as ApiResponse<Array<{ date: string; value: number; label?: string }>>;
       }
 
       const requestBody = {

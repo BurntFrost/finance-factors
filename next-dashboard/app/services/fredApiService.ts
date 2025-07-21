@@ -98,7 +98,7 @@ class FredApiService {
       // Check cache first
       if (this.requestCache.has(cacheKey)) {
         const cachedData = await this.requestCache.get(cacheKey);
-        return cachedData;
+        return cachedData as ApiResponse<Array<{ date: string; value: number; label?: string }>>;
       }
 
       const requestPromise = this.makeRequest(
@@ -108,7 +108,7 @@ class FredApiService {
       this.requestCache.set(cacheKey, requestPromise);
 
       const data = await requestPromise;
-      const transformedData = this.transformObservations(data.observations);
+      const transformedData = this.transformObservations((data as FredApiResponse).observations);
 
       const response: ApiResponse<Array<{ date: string; value: number; label?: string }>> = {
         data: transformedData,
@@ -116,7 +116,7 @@ class FredApiService {
         timestamp: new Date(),
         source: 'FRED API',
         metadata: {
-          totalRecords: data.count,
+          totalRecords: (data as FredApiResponse).count,
           rateLimit: {
             remaining: 120, // FRED allows 120 requests per minute
             resetTime: new Date(Date.now() + 60000),
@@ -159,7 +159,7 @@ class FredApiService {
         `${this.baseUrl}/series?${params}`
       );
 
-      return data.seriess?.[0] || null;
+      return (data as { seriess?: FredSeriesInfo[] }).seriess?.[0] || null;
     } catch (error) {
       console.error('Error fetching FRED series info:', error);
       return null;
@@ -197,7 +197,7 @@ class FredApiService {
         `${this.baseUrl}/series/search?${params}`
       );
 
-      return data.seriess || [];
+      return (data as { seriess?: FredSeriesInfo[] }).seriess || [];
     } catch (error) {
       console.error('Error searching FRED series:', error);
       return [];

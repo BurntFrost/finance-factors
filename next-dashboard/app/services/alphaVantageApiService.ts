@@ -87,14 +87,14 @@ class AlphaVantageApiService {
       // Check cache first
       if (this.requestCache.has(cacheKey)) {
         const cachedData = await this.requestCache.get(cacheKey);
-        return cachedData;
+        return cachedData as ApiResponse<Array<{ date: string; value: number; label?: string }>>;
       }
 
       const requestPromise = this.makeRequest(`${this.baseUrl}?${params}`);
       this.requestCache.set(cacheKey, requestPromise);
 
       const data = await requestPromise;
-      const transformedData = this.transformEconomicData(data);
+      const transformedData = this.transformEconomicData(data as AlphaVantageResponse);
 
       const response: ApiResponse<Array<{ date: string; value: number; label?: string }>> = {
         data: transformedData,
@@ -161,14 +161,14 @@ class AlphaVantageApiService {
       // Check cache first
       if (this.requestCache.has(cacheKey)) {
         const cachedData = await this.requestCache.get(cacheKey);
-        return cachedData;
+        return cachedData as ApiResponse<Array<{ date: string; value: number; label?: string }>>;
       }
 
       const requestPromise = this.makeRequest(`${this.baseUrl}?${params}`);
       this.requestCache.set(cacheKey, requestPromise);
 
       const data = await requestPromise;
-      const transformedData = this.transformTimeSeriesData(data, func);
+      const transformedData = this.transformTimeSeriesData(data as AlphaVantageTimeSeriesResponse, func);
 
       const response: ApiResponse<Array<{ date: string; value: number; label?: string }>> = {
         data: transformedData,
@@ -233,7 +233,7 @@ class AlphaVantageApiService {
       });
 
       const data = await this.makeRequest(`${this.baseUrl}?${params}`);
-      const transformedData = this.transformForexData(data, func);
+      const transformedData = this.transformForexData(data as ForexTimeSeriesResponse, func);
 
       return {
         data: transformedData,

@@ -71,7 +71,7 @@ class CensusApiService {
       // Check cache first
       if (this.requestCache.has(cacheKey)) {
         const cachedData = await this.requestCache.get(cacheKey);
-        return cachedData;
+        return cachedData as ApiResponse<Array<{ date: string; value: number; label?: string }>>;
       }
 
       const url = `${this.baseUrl}/${year}/acs/${survey}?${params}`;
@@ -79,7 +79,7 @@ class CensusApiService {
       this.requestCache.set(cacheKey, requestPromise);
 
       const data = await requestPromise;
-      const transformedData = this.transformCensusData(data, variables, year);
+      const transformedData = this.transformCensusData(data as string[][], variables, year);
 
       const response: ApiResponse<Array<{ date: string; value: number; label?: string }>> = {
         data: transformedData,
@@ -209,7 +209,7 @@ class CensusApiService {
     try {
       const url = `${this.baseUrl}/${year}/acs/${survey}/variables.json`;
       const data = await this.makeRequest(url);
-      return data.variables || {};
+      return (data as { variables?: Record<string, CensusVariable> }).variables || {};
     } catch (error) {
       console.error('Error fetching Census variables:', error);
       return {};
