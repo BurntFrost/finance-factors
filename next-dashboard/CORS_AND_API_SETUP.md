@@ -19,6 +19,11 @@ Error: Origin https://burntfrost.github.io is not allowed by Access-Control-Allo
 
 **For GitHub Pages deployment, the app now defaults to sample data** to avoid CORS issues.
 
+### Current Status
+- ✅ **GitHub Pages**: Configured to use sample data by default
+- ✅ **Fallback System**: Automatically switches to sample data when APIs fail
+- ✅ **User Control**: Users can manually switch between data sources
+
 ### Current Configuration
 - Default data source: `sample` (safe for GitHub Pages)
 - Live APIs: Available but require proper server setup
@@ -48,7 +53,7 @@ Error: Origin https://burntfrost.github.io is not allowed by Access-Control-Allo
 
 3. **Update environment**:
    ```bash
-   # .env.local
+   # .env.local (for server deployments only)
    NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
    ```
 

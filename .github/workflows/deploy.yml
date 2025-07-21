@@ -39,7 +39,7 @@ jobs:
           NEXT_PUBLIC_FRED_API_KEY=d45d9655ab79981088aa17b30a0c741b
           NEXT_PUBLIC_BLS_API_KEY=81277313b0e141148d59fa83125510de
           NEXT_PUBLIC_CENSUS_API_KEY=e0d9fd6f239294efa560fd5b8d382d6978439e7b
-          NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
+          NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample
           NEXT_PUBLIC_ENABLE_CACHING=true
           NEXT_PUBLIC_DEBUG_API=false
           NEXT_PUBLIC_BASE_PATH=${{ github.event.repository.name != github.repository_owner.name && format('/{0}', github.event.repository.name) || '' }}

@@ -106,7 +106,8 @@ NEXT_PUBLIC_CENSUS_API_KEY=your_census_key
 NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
 
 # Set default data source
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
+# Use 'sample' for GitHub Pages, 'live-api' for server deployments
+NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample
 ```
 
 ### Data Source Priority

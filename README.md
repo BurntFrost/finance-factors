@@ -287,7 +287,7 @@ NEXT_PUBLIC_DEBUG_API=true                      # Enable API debug logging
 ### Production Configuration
 ```bash
 # Environment variables for GitHub Pages (embedded in workflow)
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
+NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample          # Uses sample data to avoid CORS
 NEXT_PUBLIC_ENABLE_CACHING=true
 NEXT_PUBLIC_DEBUG_API=false
 ```
