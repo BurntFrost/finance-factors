@@ -1,149 +1,69 @@
-# Finance Factors Dashboard
+# Finance Factors Dashboard - Next.js Application
 
-A Next.js 15 dashboard application for visualizing financial and economic data with Chart.js, featuring real-time data from government APIs and interactive data source management.
+> **📖 For complete documentation, see the [main README](../README.md)**
 
-## 🌟 Features
-
-- **Real Financial Data**: Integration with FRED, BLS, Census Bureau, and Alpha Vantage APIs
-- **Interactive Charts**: Dynamic Chart.js visualizations with hover effects and animations
-- **Data Source Management**: Switch between sample data and live APIs with card flip animations
-- **Responsive Design**: Optimized for desktop and mobile viewing
-- **GitHub Pages Ready**: Optimized for static deployment
-- **Performance Monitoring**: Web Vitals tracking and lazy loading
+This directory contains the Next.js 15 dashboard application with interactive Chart.js visualizations and live API integration.
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- npm, yarn, or pnpm
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd next-dashboard
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Configure APIs (Optional)**
-   ```bash
-   # Copy environment template
-   cp .env.example .env.local
-
-   # Add your API keys for live data
-   # See API_INTEGRATION.md for detailed setup
-   ```
-
-4. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-## 📊 Data Sources
-
-### Live APIs (Free)
-- **FRED API**: Housing prices, interest rates, GDP, unemployment
-- **BLS API**: Employment data, wages, inflation statistics
-- **Census Bureau**: Demographics, housing, income data
-- **Alpha Vantage**: Additional economic indicators
-
-### Sample Data
-- Generated realistic financial data for demonstration
-- Includes trends, volatility, and seasonal patterns
-- Perfect for development and testing
-
-## 🔧 Configuration
-
-### API Setup
-See [API_INTEGRATION.md](./API_INTEGRATION.md) for detailed setup instructions.
-
-Quick setup for FRED API (recommended):
 ```bash
-# Get free API key at: https://fred.stlouisfed.org/docs/api/api_key.html
-NEXT_PUBLIC_FRED_API_KEY=your_key_here
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Open http://localhost:3000
 ```
 
-### Environment Variables
-```bash
-# Data source: 'sample' or 'live-api'
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample
+## 📁 Project Structure
 
-# API Keys (optional)
-NEXT_PUBLIC_FRED_API_KEY=your_fred_key
-NEXT_PUBLIC_BLS_API_KEY=your_bls_key
-NEXT_PUBLIC_CENSUS_API_KEY=your_census_key
-NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
+```
+next-dashboard/
+├── app/                    # Next.js App Router
+│   ├── components/         # React components
+│   ├── context/           # Global state management
+│   ├── hooks/             # Custom React hooks
+│   ├── services/          # API services
+│   └── utils/             # Utility functions
+├── .github/workflows/     # GitHub Actions
+├── scripts/               # Build and utility scripts
+└── public/                # Static assets
 ```
 
-## 🏗️ Architecture
+## 🔧 Available Scripts
 
-Built with modern web technologies:
-- **Next.js 15**: React framework with App Router
-- **TypeScript**: Type-safe development
-- **Chart.js**: Interactive data visualizations
-- **Tailwind CSS**: Utility-first styling
-- **Context API**: Global state management
+- `npm run dev` - Development server with Turbopack
+- `npm run build` - Production build
+- `npm run build:github` - Build for GitHub Pages
+- `npm run build:analyze` - Build with bundle analysis
+- `npm run deploy:local` - Test GitHub Pages build locally
+- `npm run lint` - ESLint code checking
+- `npm run test:apis` - Test API connectivity
 
-## 📈 Available Data Types
-
-| Data Type | Description | Primary Source |
-|-----------|-------------|----------------|
-| House Prices | Case-Shiller Home Price Index | FRED |
-| Salary Income | Average Hourly Earnings | BLS |
-| Cost of Living | Consumer Price Index | BLS |
-| Interest Rates | Federal Funds Rate | FRED |
-| Unemployment | Unemployment Rate | FRED |
-| GDP Growth | Gross Domestic Product | FRED |
-
-## 🚀 Deployment
+## 🌐 Deployment
 
 ### GitHub Pages (Recommended)
-**Super simple - no secrets needed!**
-
 1. Enable GitHub Pages in repository settings
 2. Push to main branch
-3. Your dashboard goes live automatically!
+3. Dashboard goes live automatically!
 
-See [SIMPLE_DEPLOY.md](./SIMPLE_DEPLOY.md) for 2-step deployment guide.
+See [SIMPLE_DEPLOY.md](./SIMPLE_DEPLOY.md) for the 2-step deployment guide.
 
-### Manual Build
-```bash
-npm run build        # Standard build
-npm run build:github # Build for GitHub Pages
-npm run deploy:local # Test locally
-```
+## 📚 Detailed Documentation
 
-The app is optimized for static deployment and works with GitHub Pages out of the box.
+- **[Main README](../README.md)** - Complete project documentation
+- **[API Integration](./API_INTEGRATION.md)** - API setup and configuration
+- **[Data Source Feature](./DATA_SOURCE_FEATURE.md)** - Dynamic data switching
+- **[Chart Refresh Feature](./CHART_REFRESH_FEATURE.md)** - Manual refresh functionality
+- **[Data Status Pills](./DATA_STATUS_PILLS_FEATURE.md)** - Status indicators
+- **[Deployment Guide](./GITHUB_DEPLOYMENT.md)** - Detailed deployment instructions
+- **[Simple Deploy](./SIMPLE_DEPLOY.md)** - Quick 2-step deployment
 
-## 📚 Documentation
+## 🔗 Live Demo
 
-- [API Integration Guide](./API_INTEGRATION.md) - Complete API setup and configuration
-- [Data Source Feature](./DATA_SOURCE_FEATURE.md) - Interactive data source management
-- [Environment Variables](./.env.example) - Configuration options
+**[View Live Dashboard](https://burntfrost.github.io/finance-factors/)**
 
-## 🤝 Contributing
+---
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🔗 Links
-
-- [Live Demo](https://your-username.github.io/finance-factors)
-- [API Documentation](./API_INTEGRATION.md)
-- [Next.js Documentation](https://nextjs.org/docs)
+Built with Next.js 15, Chart.js, and real government data APIs
