@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DashboardProvider } from "./context/DashboardContext";
-import { ExtendedDataSourceProvider } from "./context/ExtendedDataSourceContext";
+import { AutomaticDataSourceProvider } from "./context/AutomaticDataSourceContext";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/ToastManager";
@@ -56,11 +56,11 @@ export default function RootLayout({
         <ErrorBoundary>
           <ToastProvider>
             <ViewModeProvider>
-              <ExtendedDataSourceProvider>
+              <AutomaticDataSourceProvider>
                 <DashboardProvider>
                   {children}
                 </DashboardProvider>
-              </ExtendedDataSourceProvider>
+              </AutomaticDataSourceProvider>
             </ViewModeProvider>
           </ToastProvider>
         </ErrorBoundary>
