@@ -2,6 +2,10 @@
 
 import React from 'react';
 import LazyChart from './components/LazyChart';
+import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
+import DynamicElementRenderer from './components/DynamicElementRenderer';
+import { useDashboard } from './context/DashboardContext';
+import { generateSampleData, generateElementTitle } from './utils/sampleDataGenerators';
 import styles from './page.module.css';
 
 const years = Array.from({ length: 30 }, (_, i) => 1994 + i);
@@ -33,15 +37,46 @@ const incomeData = {
 };
 
 export default function Home() {
+  const { state, addElement, removeElement } = useDashboard();
+
+  const handleElementSelect = (elementType: ElementType) => {
+    const data = generateSampleData(elementType.id);
+    const title = generateElementTitle(elementType.id);
+
+    if (data) {
+      addElement({
+        type: elementType.id as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart' | 'data-table' | 'summary-card',
+        title,
+        data,
+        config: {}
+      });
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <h1>Finance Factor Dashboard</h1>
+      <div className={styles.header}>
+        <h1>Finance Factor Dashboard</h1>
+        <AddElementDropdown onElementSelect={handleElementSelect} />
+      </div>
+
+      {/* Original static charts */}
       <div className={styles.chartContainer}>
         <LazyChart data={priceData} title="Average House Price Over Time" />
       </div>
       <div className={styles.chartContainer}>
         <LazyChart data={incomeData} title="Average Household Income Over Time" />
       </div>
+
+      {/* Dynamic elements */}
+      {state.elements.map((element) => (
+        <div key={element.id} className={styles.chartContainer}>
+          <DynamicElementRenderer
+            element={element}
+            onRemove={removeElement}
+          />
+        </div>
+      ))}
     </div>
   );
 }

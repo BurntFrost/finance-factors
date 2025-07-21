@@ -5,6 +5,20 @@
   margin: 0 auto;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header h1 {
+  margin: 0;
+  color: var(--foreground);
+}
+
 .chartContainer {
   margin-bottom: 2rem;
   max-width: 800px;
@@ -17,6 +31,16 @@
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .header h1 {
+    font-size: 1.5rem;
   }
 
   .chartContainer {

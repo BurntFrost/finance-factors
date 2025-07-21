@@ -1,0 +1,226 @@
+.card {
+  background: var(--background);
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #007bff;
+  transition: all 0.2s ease;
+  position: relative;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.cardIcon {
+  font-size: 1.5rem;
+}
+
+.title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--foreground);
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  opacity: 0.6;
+}
+
+.removeButton:hover {
+  opacity: 1;
+  background: rgba(220, 53, 69, 0.1);
+}
+
+.cardBody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mainValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.changeContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.changeValue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.changeIcon {
+  font-size: 0.8rem;
+}
+
+.changeText {
+  font-weight: 600;
+}
+
+.changePeriod {
+  font-size: 0.8rem;
+  color: rgba(var(--foreground-rgb), 0.6);
+  font-weight: 500;
+}
+
+.cardFooter {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.cardSubtitle {
+  font-size: 0.8rem;
+  color: rgba(var(--foreground-rgb), 0.6);
+  font-weight: 500;
+}
+
+/* Grid container styles */
+.gridContainer {
+  margin-bottom: 2rem;
+}
+
+.gridHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.gridTitle {
+  font-size: 1.5rem;
+  margin: 0;
+  color: var(--foreground);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+  
+  .removeButton:hover {
+    background: rgba(220, 53, 69, 0.2);
+  }
+}
+
+/* Mobile responsive design */
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+    min-height: 120px;
+  }
+  
+  .cardIcon {
+    font-size: 1.25rem;
+  }
+  
+  .title {
+    font-size: 0.8rem;
+  }
+  
+  .mainValue {
+    font-size: 1.5rem;
+  }
+  
+  .changeValue {
+    font-size: 0.8rem;
+  }
+  
+  .changePeriod {
+    font-size: 0.7rem;
+  }
+  
+  .cardSubtitle {
+    font-size: 0.7rem;
+  }
+  
+  .gridTitle {
+    font-size: 1.25rem;
+  }
+  
+  .cardGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  .gridHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .card {
+    min-height: 100px;
+  }
+  
+  .mainValue {
+    font-size: 1.25rem;
+  }
+  
+  .changeContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}

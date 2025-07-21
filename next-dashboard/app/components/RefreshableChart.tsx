@@ -94,21 +94,6 @@ export default function RefreshableChart({
   const [lastRefresh, setLastRefresh] = useState<Date>();
   const intervalRef = useRef<NodeJS.Timeout>();
 
-  // Auto-refresh functionality
-  React.useEffect(() => {
-    if (refreshInterval && refreshInterval > 0) {
-      intervalRef.current = setInterval(() => {
-        handleRefresh();
-      }, refreshInterval * 1000);
-
-      return () => {
-        if (intervalRef.current) {
-          clearInterval(intervalRef.current);
-        }
-      };
-    }
-  }, [refreshInterval, handleRefresh]);
-
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;
 
@@ -136,6 +121,21 @@ export default function RefreshableChart({
       setIsRefreshing(false);
     }
   }, [isRefreshing, onRefresh]);
+
+  // Auto-refresh functionality
+  React.useEffect(() => {
+    if (refreshInterval && refreshInterval > 0) {
+      intervalRef.current = setInterval(() => {
+        handleRefresh();
+      }, refreshInterval * 1000);
+
+      return () => {
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
+      };
+    }
+  }, [refreshInterval, handleRefresh]);
 
   // Cleanup interval on unmount
   React.useEffect(() => {
