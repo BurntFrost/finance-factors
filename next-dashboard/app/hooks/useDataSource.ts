@@ -216,7 +216,7 @@ export function useDataSourceStatus() {
 
   const currentConfig = useMemo(() => getConfig(), [getConfig]);
 
-  const switchToSample = useCallback(() => switchDataSource('sample'), [switchDataSource]);
+  const switchToHistorical = useCallback(() => switchDataSource('historical'), [switchDataSource]);
   const switchToLive = useCallback(() => switchDataSource('live-api'), [switchDataSource]);
 
   return {
@@ -225,7 +225,7 @@ export function useDataSourceStatus() {
     error: state.error,
     lastUpdated: state.lastUpdated,
     config: currentConfig,
-    switchToSample,
+    switchToHistorical,
     switchToLive,
     switchDataSource,
     clearCache,

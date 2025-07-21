@@ -48,9 +48,9 @@ export function generateLineChartData(): ChartData {
   return {
     labels: years,
     datasets,
-    // Mark as sample data
+    // Mark as historical data
     isRealData: false,
-    dataSource: 'Sample Data Generator'
+    dataSource: 'Historical Data Generator'
   };
 }
 
@@ -74,9 +74,9 @@ export function generateBarChartData(): ChartData {
   return {
     labels: quarters,
     datasets,
-    // Mark as sample data
+    // Mark as historical data
     isRealData: false,
-    dataSource: 'Sample Data Generator'
+    dataSource: 'Historical Data Generator'
   };
 }
 
@@ -94,9 +94,9 @@ export function generatePieChartData(): ChartData {
         backgroundColor: CHART_COLORS.background,
       }
     ],
-    // Mark as sample data
+    // Mark as historical data
     isRealData: false,
-    dataSource: 'Sample Data Generator'
+    dataSource: 'Historical Data Generator'
   };
 }
 
@@ -114,9 +114,9 @@ export function generateDoughnutChartData(): ChartData {
         backgroundColor: CHART_COLORS.background,
       }
     ],
-    // Mark as sample data
+    // Mark as historical data
     isRealData: false,
-    dataSource: 'Sample Data Generator'
+    dataSource: 'Historical Data Generator'
   };
 }
 
@@ -146,9 +146,9 @@ export function generateTableData(): TableData {
   return {
     columns,
     rows,
-    // Mark as sample data
+    // Mark as historical data
     isRealData: false,
-    dataSource: 'Sample Data Generator'
+    dataSource: 'Historical Data Generator'
   };
 }
 
@@ -164,9 +164,9 @@ export function generateSummaryCards(): SummaryCardData[] {
       },
       icon: '💰',
       color: '#28a745',
-      // Mark as sample data
+      // Mark as historical data
       isRealData: false,
-      dataSource: 'Sample Data Generator'
+      dataSource: 'Historical Data Generator'
     },
     {
       title: 'Monthly Income',
@@ -178,9 +178,9 @@ export function generateSummaryCards(): SummaryCardData[] {
       },
       icon: '📈',
       color: '#007bff',
-      // Mark as sample data
+      // Mark as historical data
       isRealData: false,
-      dataSource: 'Sample Data Generator'
+      dataSource: 'Historical Data Generator'
     },
     {
       title: 'Monthly Expenses',
@@ -192,9 +192,9 @@ export function generateSummaryCards(): SummaryCardData[] {
       },
       icon: '💸',
       color: '#dc3545',
-      // Mark as sample data
+      // Mark as historical data
       isRealData: false,
-      dataSource: 'Sample Data Generator'
+      dataSource: 'Historical Data Generator'
     },
     {
       title: 'Savings Rate',
@@ -206,15 +206,15 @@ export function generateSummaryCards(): SummaryCardData[] {
       },
       icon: '🏦',
       color: '#ffc107',
-      // Mark as sample data
+      // Mark as historical data
       isRealData: false,
-      dataSource: 'Sample Data Generator'
+      dataSource: 'Historical Data Generator'
     }
   ];
 }
 
 // Generate data based on data type and visualization type
-export function generateSampleDataByType(
+export function generateHistoricalDataByType(
   dataTypeId: string,
   visualizationType: string
 ): ChartData | TableData | SummaryCardData[] | null {
@@ -237,7 +237,7 @@ export function generateSampleDataByType(
 }
 
 // Generate data based on element type (legacy support)
-export function generateSampleData(elementType: string): ChartData | TableData | SummaryCardData[] | null {
+export function generateHistoricalData(elementType: string): ChartData | TableData | SummaryCardData[] | null {
   switch (elementType) {
     case 'line-chart':
       return generateLineChartData();

@@ -62,7 +62,7 @@
   border-color: rgba(40, 167, 69, 0.3);
 }
 
-.sample {
+.historical {
   color: #856404;
   background-color: rgba(255, 193, 7, 0.1);
   border-color: rgba(255, 193, 7, 0.3);
@@ -127,7 +127,7 @@
     border-color: rgba(40, 167, 69, 0.4);
   }
 
-  .sample {
+  .historical {
     color: #fff3cd;
     background-color: rgba(255, 193, 7, 0.15);
     border-color: rgba(255, 193, 7, 0.4);
@@ -180,7 +180,7 @@
     border-color: #28a745;
   }
 
-  .sample {
+  .historical {
     background-color: rgba(255, 193, 7, 0.2);
     border-color: #ffc107;
   }

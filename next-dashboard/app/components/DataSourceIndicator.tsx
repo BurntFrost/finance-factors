@@ -2,8 +2,8 @@
 
 /**
  * Data Source Indicator Component
- * 
- * A subtle visual indicator that shows users when they're viewing sample data
+ *
+ * A subtle visual indicator that shows users when they're viewing historical data
  * instead of live data. Provides context about data source status and retry options.
  */
 
@@ -40,10 +40,10 @@ const STATUS_CONFIGS: Record<DataSourceStatus, StatusConfig> = {
     bgColor: '#f0fdf4',
     borderColor: '#bbf7d0',
   },
-  'sample-fallback': {
-    icon: '🟡',
-    label: 'Sample Data',
-    description: 'Live data unavailable, showing sample data instead',
+  'historical-fallback': {
+    icon: '📊',
+    label: 'Historical Data',
+    description: 'Live data unavailable, showing historical data instead',
     color: '#f59e0b',
     bgColor: '#fffbeb',
     borderColor: '#fed7aa',
@@ -171,13 +171,13 @@ export default function DataSourceIndicator({
               </div>
             )}
             
-            {status === 'sample-fallback' && lastLiveAttempt && (
+            {status === 'historical-fallback' && lastLiveAttempt && (
               <div className={styles.timestamp}>
                 <strong>Last live attempt:</strong> {formatTime(lastLiveAttempt)}
               </div>
             )}
             
-            {status === 'sample-fallback' && onRetry && (
+            {status === 'historical-fallback' && onRetry && (
               <button
                 className={styles.retryButton}
                 onClick={handleRetry}
@@ -252,7 +252,7 @@ export function CompactDataSourceIndicator({
         )}
       </span>
       
-      {status === 'sample-fallback' && onRetry && (
+      {status === 'historical-fallback' && onRetry && (
         <button
           className={styles.compactRetry}
           onClick={handleRetry}

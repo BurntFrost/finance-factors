@@ -3,7 +3,7 @@
 import React from 'react';
 import styles from './DataStatusPill.module.css';
 
-export type DataStatus = 'recent' | 'sample' | 'stale' | 'loading';
+export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading';
 
 interface DataStatusPillProps {
   status: DataStatus;
@@ -27,12 +27,12 @@ export default function DataStatusPill({
           color: '#28a745',
           description: 'Recently updated data'
         };
-      case 'sample':
+      case 'historical':
         return {
-          label: 'Sample Data',
-          icon: '🔶',
+          label: 'Historical Data',
+          icon: '📊',
           color: '#ffc107',
-          description: 'Demo/sample data for visualization'
+          description: 'Real historical financial data for analysis'
         };
       case 'stale':
         return {
@@ -104,13 +104,13 @@ export default function DataStatusPill({
 
 // Utility function to determine data status based on timestamp
 export function getDataStatus(lastUpdated?: Date, isRealData: boolean = false): DataStatus {
-  if (!isRealData) return 'sample';
+  if (!isRealData) return 'historical';
   if (!lastUpdated) return 'stale';
-  
+
   const now = new Date();
   const diffMs = now.getTime() - lastUpdated.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
-  
+
   if (diffHours < 1) return 'recent';
   if (diffHours < 24) return 'recent';
   return 'stale';

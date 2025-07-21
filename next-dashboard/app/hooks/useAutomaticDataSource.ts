@@ -2,8 +2,8 @@
 
 /**
  * Automatic Data Source Hook
- * 
- * A hook that provides automatic data fetching with live-first, sample-fallback behavior.
+ *
+ * A hook that provides automatic data fetching with live-first, historical-fallback behavior.
  * Eliminates the need for manual data source switching.
  */
 
@@ -23,7 +23,7 @@ export interface UseAutomaticDataSourceResult<T = unknown> {
   data: T | null;
   isLoading: boolean;
   error: Error | null;
-  status: 'live' | 'sample-fallback' | 'loading' | 'error';
+  status: 'live' | 'historical-fallback' | 'loading' | 'error';
   lastUpdated: Date | null;
   lastLiveAttempt: Date | null;
   refresh: () => Promise<void>;

@@ -2,9 +2,9 @@
 
 /**
  * Automatic Chart Component
- * 
+ *
  * A chart component that automatically attempts to load live data first,
- * then falls back to sample data if live data is unavailable. Includes
+ * then falls back to historical data if live data is unavailable. Includes
  * visual indicators and retry functionality.
  */
 
@@ -120,9 +120,9 @@ export default function AutomaticChart({
           </button>
 
           {/* Status indicator in header */}
-          {status === 'sample-fallback' && (
-            <span className={styles.fallbackBadge} title="Showing sample data">
-              Sample Data
+          {status === 'historical-fallback' && (
+            <span className={styles.fallbackBadge} title="Showing historical data">
+              Historical Data
             </span>
           )}
         </div>
@@ -243,9 +243,9 @@ export function CompactAutomaticChart({
         <h4 className={styles.compactTitle}>{title}</h4>
         
         {/* Compact status indicator */}
-        {status === 'sample-fallback' && (
+        {status === 'historical-fallback' && (
           <div className={styles.compactIndicator}>
-            <span className={styles.compactBadge} title="Sample data">
+            <span className={styles.compactBadge} title="Historical data">
               📊
             </span>
             <button

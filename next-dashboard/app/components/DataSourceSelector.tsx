@@ -2,9 +2,9 @@
 
 /**
  * Data Source Selector Component
- * 
+ *
  * A segmented control component that allows users to switch between
- * Sample Data and Live API Data modes for the dashboard.
+ * Historical Data and Live API Data modes for the dashboard.
  */
 
 import React, { useState } from 'react';
@@ -52,7 +52,7 @@ export default function DataSourceSelector({
     }
   };
 
-  const sources: DataSourceType[] = ['sample', 'live-api'];
+  const sources: DataSourceType[] = ['historical', 'live-api'];
 
   return (
     <div className={`${styles.container} ${styles[size]} ${className}`}>

@@ -34,7 +34,7 @@ function DataSourceEditInterface({
   const [selectedSource, setSelectedSource] = useState<DataSourceType>(currentSource);
   const { isSourceAvailable } = useExtendedDataSourceContext();
 
-  const availableSources: DataSourceType[] = ['sample', 'live-api'];
+  const availableSources: DataSourceType[] = ['historical', 'live-api'];
 
   const handleSave = () => {
     if (selectedSource !== currentSource) {

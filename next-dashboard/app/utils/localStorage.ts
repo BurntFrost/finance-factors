@@ -54,9 +54,9 @@ export const dataSourcePreference = {
     return safeLocalStorageOperation(
       () => {
         const saved = localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_PREFERENCE);
-        return (saved === 'sample' || saved === 'live-api') ? saved : 'sample';
+        return (saved === 'historical' || saved === 'live-api') ? saved : 'historical';
       },
-      'sample'
+      'historical'
     );
   },
 
@@ -246,15 +246,15 @@ export const userPreferences = {
     return safeLocalStorageOperation(() => {
       const saved = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
       const defaults: UserPreferences = {
-        dataSource: 'sample',
+        dataSource: 'historical',
         autoRefresh: false,
         refreshInterval: 300000, // 5 minutes
         notifications: true,
       };
-      
+
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     }, {
-      dataSource: 'sample',
+      dataSource: 'historical',
       autoRefresh: false,
       refreshInterval: 300000,
       notifications: true,

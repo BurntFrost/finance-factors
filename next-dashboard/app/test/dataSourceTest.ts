@@ -1,13 +1,13 @@
 /**
  * Data Source Test Utilities
- * 
+ *
  * Simple test utilities to validate the data source functionality
- * and ensure data consistency between sample and live sources.
+ * and ensure data consistency between historical and live sources.
  */
 
 import { mockApiService } from '../services/mockApiService';
 import { transformers } from '../services/dataTransformers';
-import { generateSampleDataByType } from '../utils/sampleDataGenerators';
+import { generateHistoricalDataByType } from '../utils/historicalDataGenerators';
 import { ChartData } from '../types/dashboard';
 
 // Test data source switching
@@ -15,23 +15,23 @@ export async function testDataSourceSwitching() {
   console.log('🧪 Testing Data Source Switching...');
   
   try {
-    // Test sample data generation
-    console.log('📊 Testing sample data generation...');
-    const sampleHousePrices = generateSampleDataByType('house-prices', 'line-chart') as ChartData;
-    const sampleIncome = generateSampleDataByType('salary-income', 'line-chart') as ChartData;
-    
-    console.log('✅ Sample data generated:', {
+    // Test historical data generation
+    console.log('📊 Testing historical data generation...');
+    const historicalHousePrices = generateHistoricalDataByType('house-prices', 'line-chart') as ChartData;
+    const historicalIncome = generateHistoricalDataByType('salary-income', 'line-chart') as ChartData;
+
+    console.log('✅ Historical data generated:', {
       housePrices: {
-        labels: sampleHousePrices?.labels?.length || 0,
-        datasets: sampleHousePrices?.datasets?.length || 0,
-        isRealData: sampleHousePrices?.isRealData,
-        dataSource: sampleHousePrices?.dataSource,
+        labels: historicalHousePrices?.labels?.length || 0,
+        datasets: historicalHousePrices?.datasets?.length || 0,
+        isRealData: historicalHousePrices?.isRealData,
+        dataSource: historicalHousePrices?.dataSource,
       },
       income: {
-        labels: sampleIncome?.labels?.length || 0,
-        datasets: sampleIncome?.datasets?.length || 0,
-        isRealData: sampleIncome?.isRealData,
-        dataSource: sampleIncome?.dataSource,
+        labels: historicalIncome?.labels?.length || 0,
+        datasets: historicalIncome?.datasets?.length || 0,
+        isRealData: historicalIncome?.isRealData,
+        dataSource: historicalIncome?.dataSource,
       },
     });
 
@@ -98,7 +98,7 @@ export function testDataConsistency() {
     
     for (const dataType of dataTypes) {
       for (const vizType of visualizationTypes) {
-        const data = generateSampleDataByType(dataType, vizType);
+        const data = generateHistoricalDataByType(dataType, vizType);
         
         if (data && typeof data === 'object' && 'labels' in data && 'datasets' in data) {
           const chartData = data as ChartData;
@@ -154,10 +154,10 @@ export async function testLocalStorage() {
     }
     
     // Reset to default
-    dataSourcePreference.save('sample');
+    dataSourcePreference.save('historical');
     const reset = dataSourcePreference.load();
-    
-    if (reset !== 'sample') {
+
+    if (reset !== 'historical') {
       throw new Error('Failed to reset data source preference');
     }
     

@@ -231,8 +231,8 @@ export function useChartDataSourceStatus(chartId: string) {
   const currentConfig = useMemo(() => getConfig(currentSource), [getConfig, currentSource]);
   const isUsingCustomSource = useMemo(() => currentSource !== state.currentSource, [currentSource, state.currentSource]);
 
-  const switchToSample = useCallback(
-    () => setChartDataSource(chartId, 'generic', 'sample'),
+  const switchToHistorical = useCallback(
+    () => setChartDataSource(chartId, 'generic', 'historical'),
     [setChartDataSource, chartId]
   );
 
@@ -254,7 +254,7 @@ export function useChartDataSourceStatus(chartId: string) {
     error: state.error,
     lastUpdated: state.lastUpdated,
     config: currentConfig,
-    switchToSample,
+    switchToHistorical,
     switchToLive,
     resetToGlobal,
     setChartDataSource: (dataType: string, source: DataSourceType) => 

@@ -9,7 +9,7 @@ jest.mock('../DataStatusPill.module.css', () => ({
   medium: 'medium',
   large: 'large',
   recent: 'recent',
-  sample: 'sample',
+  historical: 'historical',
   stale: 'stale',
   loading: 'loading',
   icon: 'icon',
@@ -18,11 +18,11 @@ jest.mock('../DataStatusPill.module.css', () => ({
 }));
 
 describe('DataStatusPill', () => {
-  it('renders sample data status correctly', () => {
-    render(<DataStatusPill status="sample" />);
-    
-    expect(screen.getByText('Sample Data')).toBeInTheDocument();
-    expect(screen.getByText('🔶')).toBeInTheDocument();
+  it('renders historical data status correctly', () => {
+    render(<DataStatusPill status="historical" />);
+
+    expect(screen.getByText('Historical Data')).toBeInTheDocument();
+    expect(screen.getByText('📊')).toBeInTheDocument();
   });
 
   it('renders recent data status with timestamp', () => {
@@ -49,17 +49,17 @@ describe('DataStatusPill', () => {
   });
 
   it('applies correct size classes', () => {
-    const { rerender } = render(<DataStatusPill status="sample" size="small" />);
+    const { rerender } = render(<DataStatusPill status="historical" size="small" />);
     expect(screen.getByRole('generic')).toHaveClass('small');
 
-    rerender(<DataStatusPill status="sample" size="large" />);
+    rerender(<DataStatusPill status="historical" size="large" />);
     expect(screen.getByRole('generic')).toHaveClass('large');
   });
 });
 
 describe('getDataStatus', () => {
-  it('returns sample for non-real data', () => {
-    expect(getDataStatus(new Date(), false)).toBe('sample');
+  it('returns historical for non-real data', () => {
+    expect(getDataStatus(new Date(), false)).toBe('historical');
   });
 
   it('returns stale for real data without timestamp', () => {

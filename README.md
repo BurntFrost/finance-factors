@@ -7,17 +7,17 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 ### Real Financial Data Integration
 - **Live Government APIs**: FRED, BLS, Census Bureau, and Alpha Vantage integration
 - **Real-time Data**: Housing prices, employment data, economic indicators, and market trends
-- **Smart Fallbacks**: Graceful degradation to sample data when APIs are unavailable
+- **Smart Fallbacks**: Graceful degradation to historical data when APIs are unavailable
 - **Data Status Indicators**: Visual pills showing data freshness and authenticity
 
 ### Interactive User Experience
-- **Dynamic Data Source Switching**: Toggle between sample data and live APIs with card flip animations
+- **Dynamic Data Source Switching**: Toggle between historical data and live APIs with card flip animations
 - **Chart Refresh Functionality**: Manual refresh with visual feedback and smooth animations
 - **Responsive Design**: Optimized for desktop, tablet, and mobile viewing
 - **Accessibility**: Full keyboard navigation and screen reader support
 
 ### Performance & Deployment
-- **GitHub Pages Ready**: Zero-configuration deployment with automated CI/CD (uses sample data)
+- **GitHub Pages Ready**: Zero-configuration deployment with automated CI/CD (uses historical data)
 - **Performance Optimized**: Lazy loading, code splitting, and intelligent caching
 - **Web Vitals Monitoring**: Built-in performance tracking and optimization
 - **Static Export**: Optimized for fast loading and SEO
@@ -26,7 +26,7 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 ## 📊 Available Data Sources
 
 ### Live APIs (Free Government Data)
-> **Note**: Live APIs require proper server setup due to CORS restrictions. GitHub Pages deployment uses sample data by default.
+> **Note**: Live APIs require proper server setup due to CORS restrictions. GitHub Pages deployment uses historical data by default.
 
 | Data Type | Primary Source | Description | Update Frequency |
 |-----------|----------------|-------------|------------------|
@@ -36,8 +36,8 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 | Demographics | Census Bureau | Population, income statistics | Annual |
 | Market Data | Alpha Vantage | Additional economic indicators | Daily |
 
-### Sample Data (Default for GitHub Pages)
-- Realistic financial trends with volatility and seasonal patterns
+### Historical Data (Default for GitHub Pages)
+- Real historical financial trends with authentic volatility and seasonal patterns
 - Perfect for development, testing, and demonstrations
 - Consistent data format matching live APIs
 - No API keys or server setup required
@@ -85,7 +85,7 @@ next-dashboard/
 │   │   └── useDataSource.ts        # Custom data hooks
 │   ├── services/
 │   │   ├── realApiService.ts       # Live API integration
-│   │   └── mockApiService.ts       # Sample data service
+│   │   └── mockApiService.ts       # Historical data service
 │   ├── layout.tsx                  # Root layout with optimizations
 │   ├── page.tsx                    # Main dashboard page
 │   └── globals.css                 # Global styles
@@ -199,7 +199,7 @@ next-dashboard/
 
 The dashboard includes intelligent data source switching:
 
-- **Sample Data Mode**: Generated realistic financial data for development
+- **Historical Data Mode**: Real historical financial data for development and analysis
 - **Live API Mode**: Real government data with automatic fallbacks
 - **Persistent Preferences**: User selections saved in localStorage
 - **Health Monitoring**: Visual indicators for API status and data freshness
@@ -249,10 +249,10 @@ npm run build:analyze      # Build with bundle analysis
 ## 🎯 Key Features Deep Dive
 
 ### Interactive Data Source Management
-- **Dynamic Switching**: Toggle between sample data and live APIs with visual feedback
+- **Dynamic Switching**: Toggle between historical data and live APIs with visual feedback
 - **Persistent Preferences**: User selections saved across browser sessions
 - **Health Monitoring**: Real-time API status indicators with color-coded pills
-- **Smart Fallbacks**: Automatic fallback to cached or sample data when APIs fail
+- **Smart Fallbacks**: Automatic fallback to cached or historical data when APIs fail
 
 ### Chart Refresh & Interactivity
 - **Manual Refresh**: Click-to-refresh functionality with spinning animations
@@ -262,7 +262,7 @@ npm run build:analyze      # Build with bundle analysis
 
 ### Data Status Indicators
 - **🟢 Live Data**: Recently updated real data with timestamps
-- **🔶 Sample Data**: Demo data for development and testing
+- **📊 Historical Data**: Real historical financial data for analysis
 - **🔴 Outdated**: Real data that may need refreshing
 - **⏳ Loading**: Data currently being fetched
 
@@ -277,7 +277,7 @@ npm run build:analyze      # Build with bundle analysis
 ### Development Configuration
 ```bash
 # .env.local (for development)
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample          # or 'live-api'
+NEXT_PUBLIC_DEFAULT_DATA_SOURCE=historical      # or 'live-api'
 NEXT_PUBLIC_FRED_API_KEY=your_fred_key
 NEXT_PUBLIC_BLS_API_KEY=your_bls_key
 NEXT_PUBLIC_CENSUS_API_KEY=your_census_key
@@ -287,7 +287,7 @@ NEXT_PUBLIC_DEBUG_API=true                      # Enable API debug logging
 ### Production Configuration
 ```bash
 # Environment variables for GitHub Pages (embedded in workflow)
-NEXT_PUBLIC_DEFAULT_DATA_SOURCE=sample          # Uses sample data to avoid CORS
+NEXT_PUBLIC_DEFAULT_DATA_SOURCE=historical      # Uses historical data to avoid CORS
 NEXT_PUBLIC_ENABLE_CACHING=true
 NEXT_PUBLIC_DEBUG_API=false
 ```
@@ -366,7 +366,7 @@ We welcome contributions! Here's how to get started:
 - Follow existing naming conventions (CamelCase for components, snake_case for utilities)
 - Add JSDoc comments for public functions
 - Ensure responsive design for all UI changes
-- Test with both sample and live data sources
+- Test with both historical and live data sources
 
 ## 📄 License
 

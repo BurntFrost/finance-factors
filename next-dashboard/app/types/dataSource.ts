@@ -1,12 +1,12 @@
 /**
  * Data Source Configuration Types
- * 
+ *
  * This module defines the TypeScript types and interfaces for the data source
- * configuration feature, allowing users to switch between sample and live API data.
+ * configuration feature, allowing users to switch between historical and live API data.
  */
 
 // Core data source types
-export type DataSourceType = 'sample' | 'live-api';
+export type DataSourceType = 'historical' | 'live-api';
 
 // Data source configuration interface
 export interface DataSourceConfig {
@@ -152,11 +152,11 @@ export const REAL_API_ENDPOINTS: Record<string, ApiEndpoint> = {
 
 // Available data source configurations
 export const DATA_SOURCE_CONFIGS: Record<DataSourceType, DataSourceConfig> = {
-  'sample': {
-    type: 'sample',
-    name: 'Sample Data',
-    description: 'Generated sample data for demonstration purposes',
-    icon: '🎲',
+  'historical': {
+    type: 'historical',
+    name: 'Historical Data',
+    description: 'Real historical financial data for demonstration and analysis',
+    icon: '📊',
     isDefault: true,
   },
   'live-api': {
@@ -273,7 +273,7 @@ export const STORAGE_KEYS = {
 
 // Default cache TTL values (in milliseconds)
 export const CACHE_TTL = {
-  SAMPLE_DATA: 5 * 60 * 1000, // 5 minutes
+  HISTORICAL_DATA: 5 * 60 * 1000, // 5 minutes
   LIVE_DATA: 15 * 60 * 1000, // 15 minutes
   ERROR_CACHE: 2 * 60 * 1000, // 2 minutes
 } as const;

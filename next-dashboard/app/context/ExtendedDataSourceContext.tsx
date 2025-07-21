@@ -23,7 +23,7 @@ import { dataSourcePreference, apiCache, initializeStorage } from '../utils/loca
 
 // Initial state
 const initialState: ExtendedDataSourceState = {
-  currentSource: 'sample',
+  currentSource: 'historical',
   isLoading: false,
   error: null,
   lastUpdated: null,
@@ -233,15 +233,15 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
     let response: ApiResponse<T>;
 
     try {
-      if (effectiveSource === 'sample') {
-        const { generateSampleDataByType } = await import('../utils/sampleDataGenerators');
-        const sampleData = generateSampleDataByType(dataType, 'line-chart');
+      if (effectiveSource === 'historical') {
+        const { generateHistoricalDataByType } = await import('../utils/historicalDataGenerators');
+        const historicalData = generateHistoricalDataByType(dataType, 'line-chart');
 
         response = {
-          data: sampleData as T,
+          data: historicalData as T,
           success: true,
           timestamp: new Date(),
-          source: 'Sample Data Generator',
+          source: 'Historical Data Generator',
         };
       } else {
         // Use real API service for live data

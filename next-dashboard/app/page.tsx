@@ -8,7 +8,7 @@ import ViewModeToggle from './components/ViewModeToggle';
 import ApiHealthStatus from './components/ApiHealthStatus';
 import { useDashboard } from './context/DashboardContext';
 import { useViewMode } from './context/ViewModeContext';
-import { generateSampleData, generateElementTitle, generateSampleDataByType, generateElementTitleByType } from './utils/sampleDataGenerators';
+import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from './utils/historicalDataGenerators';
 import { DataType, VisualizationType } from './types/dashboard';
 import styles from './page.module.css';
 
@@ -18,7 +18,7 @@ export default function Home() {
 
   // Legacy handler for backward compatibility
   const handleElementSelect = (elementType: ElementType) => {
-    const data = generateSampleData(elementType.id);
+    const data = generateHistoricalData(elementType.id);
     const title = generateElementTitle(elementType.id);
 
     if (data) {
@@ -34,7 +34,7 @@ export default function Home() {
 
   // New two-step handler
   const handleElementCreate = (dataType: DataType, visualizationType: VisualizationType) => {
-    const data = generateSampleDataByType(dataType.id, visualizationType.id);
+    const data = generateHistoricalDataByType(dataType.id, visualizationType.id);
     const title = generateElementTitleByType(dataType.id, visualizationType.id);
 
     if (data) {

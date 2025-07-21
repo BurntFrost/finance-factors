@@ -1,13 +1,13 @@
 /**
  * Data Transformers
- * 
+ *
  * This module provides utilities to transform API responses into consistent
- * ChartData format that matches the existing sample data structure.
+ * ChartData format that matches the existing historical data structure.
  */
 
 import { ChartData, SummaryCardData, TableData } from '../types/dashboard';
 
-// Color palettes for charts (matching existing sample data)
+// Color palettes for charts (matching existing historical data)
 const CHART_COLORS = {
   primary: ['rgba(75,192,192,1)', 'rgba(255,99,132,1)', 'rgba(54,162,235,1)', 'rgba(255,206,86,1)', 'rgba(153,102,255,1)'],
   background: ['rgba(75,192,192,0.2)', 'rgba(255,99,132,0.2)', 'rgba(54,162,235,0.2)', 'rgba(255,206,86,0.2)', 'rgba(153,102,255,0.2)'],

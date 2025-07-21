@@ -92,9 +92,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-      // Default to sample data unless explicitly specified
+      // Default to historical data unless explicitly specified
       isRealData: element.isRealData ?? false,
-      dataSource: element.dataSource ?? 'Sample Data Generator'
+      dataSource: element.dataSource ?? 'Historical Data Generator'
     };
     dispatch({ type: 'ADD_ELEMENT', payload: newElement });
   };

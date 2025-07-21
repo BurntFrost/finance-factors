@@ -15,17 +15,17 @@ Error: Origin https://burntfrost.github.io is not allowed by Access-Control-Allo
 2. **Static Hosting**: GitHub Pages serves static files only - no server-side API proxying
 3. **Security**: Browsers block cross-origin requests to protect users
 
-## ✅ Quick Fix: Use Sample Data
+## ✅ Quick Fix: Use Historical Data
 
-**For GitHub Pages deployment, the app now defaults to sample data** to avoid CORS issues.
+**For GitHub Pages deployment, the app now defaults to historical data** to avoid CORS issues.
 
 ### Current Status
-- ✅ **GitHub Pages**: Configured to use sample data by default
-- ✅ **Fallback System**: Automatically switches to sample data when APIs fail
+- ✅ **GitHub Pages**: Configured to use historical data by default
+- ✅ **Fallback System**: Automatically switches to historical data when APIs fail
 - ✅ **User Control**: Users can manually switch between data sources
 
 ### Current Configuration
-- Default data source: `sample` (safe for GitHub Pages)
+- Default data source: `historical` (safe for GitHub Pages)
 - Live APIs: Available but require proper server setup
 - Error handling: Provides clear CORS error messages
 
@@ -83,7 +83,7 @@ chrome --disable-web-security --user-data-dir="/tmp/chrome_dev"
 
 ### For Demo/Portfolio:
 1. Keep current GitHub Pages setup
-2. Use sample data (current default)
+2. Use historical data (current default)
 3. Mention live API capability in documentation
 
 ## 🔧 Implementation Details
@@ -93,19 +93,19 @@ The app now provides informative error messages:
 ```
 CORS Error: Cannot access FRED API directly from browser.
 This is expected for GitHub Pages deployment.
-Switch to "Sample Data" mode or set up a proper server with API proxies.
+Switch to "Historical Data" mode or set up a proper server with API proxies.
 ```
 
 ### Data Source Toggle
 Users can switch between:
-- **Sample Data**: Works everywhere, no API keys needed
+- **Historical Data**: Works everywhere, no API keys needed
 - **Live API**: Requires proper server setup with CORS handling
 
 ### Fallback Mechanism
 1. Try live API (if configured)
 2. Show clear CORS error message
 3. Automatically fall back to mock data
-4. User can manually switch to sample data
+4. User can manually switch to historical data
 
 ## 📚 Additional Resources
 

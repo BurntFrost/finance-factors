@@ -2,9 +2,9 @@
 
 /**
  * Data Source Context
- * 
+ *
  * This module provides React context for managing data source state across the application.
- * It handles switching between sample and live API data sources with persistence and caching.
+ * It handles switching between historical and live API data sources with persistence and caching.
  */
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
@@ -20,9 +20,9 @@ import {
 } from '../types/dataSource';
 import { dataSourcePreference, apiCache, initializeStorage } from '../utils/localStorage';
 
-// Initial state - always start with sample to avoid hydration issues
+// Initial state - always start with historical to avoid hydration issues
 const initialState: DataSourceState = {
-  currentSource: 'sample',
+  currentSource: 'historical',
   isLoading: false,
   error: null,
   lastUpdated: null,
@@ -175,16 +175,16 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
       // Fetch data based on source type
       let response: ApiResponse<T>;
       
-      if (state.currentSource === 'sample') {
-        // Import sample data generators dynamically
-        const { generateSampleDataByType } = await import('../utils/sampleDataGenerators');
-        const sampleData = generateSampleDataByType(dataType, 'line-chart'); // Default to line chart
+      if (state.currentSource === 'historical') {
+        // Import historical data generators dynamically
+        const { generateHistoricalDataByType } = await import('../utils/historicalDataGenerators');
+        const historicalData = generateHistoricalDataByType(dataType, 'line-chart'); // Default to line chart
 
         response = {
-          data: sampleData as T,
+          data: historicalData as T,
           success: true,
           timestamp: new Date(),
-          source: 'Sample Data Generator',
+          source: 'Historical Data Generator',
         };
       } else {
         // Use real API service for live data

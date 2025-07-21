@@ -2,9 +2,9 @@
 
 /**
  * Automatic Data Source Context
- * 
+ *
  * This context automatically attempts to load live data first, then falls back
- * to sample data if live data fails. It eliminates the need for manual data
+ * to historical data if live data fails. It eliminates the need for manual data
  * source switching and provides a seamless user experience.
  */
 
@@ -12,7 +12,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import { DataFetchOptions, ApiResponse } from '../types/dataSource';
 
 // Data source status types
-export type DataSourceStatus = 'live' | 'sample-fallback' | 'loading' | 'error';
+export type DataSourceStatus = 'live' | 'historical-fallback' | 'loading' | 'error';
 
 export interface AutomaticDataSourceState {
   status: DataSourceStatus;
@@ -172,29 +172,29 @@ export function AutomaticDataSourceProvider({
     }
   }, []);
 
-  // Fetch sample data as fallback
-  const fetchSampleData = useCallback(async <T = unknown>(
+  // Fetch historical data as fallback
+  const fetchHistoricalData = useCallback(async <T = unknown>(
     options: DataFetchOptions
   ): Promise<ApiResponse<T>> => {
     try {
-      // Import sample data generators dynamically
-      const { generateSampleDataByType } = await import('../utils/sampleDataGenerators');
-      const sampleData = generateSampleDataByType(options.dataType, 'line-chart');
+      // Import historical data generators dynamically
+      const { generateHistoricalDataByType } = await import('../utils/historicalDataGenerators');
+      const historicalData = generateHistoricalDataByType(options.dataType, 'line-chart');
 
-      dispatch({ type: 'SET_STATUS', payload: 'sample-fallback' });
+      dispatch({ type: 'SET_STATUS', payload: 'historical-fallback' });
 
       return {
-        data: sampleData as T,
+        data: historicalData as T,
         success: true,
         timestamp: new Date(),
-        source: 'Sample Data Generator (Fallback)',
+        source: 'Historical Data Generator (Fallback)',
         metadata: {
           isFallback: true,
           reason: 'Live data unavailable',
         },
       };
     } catch (error) {
-      throw new Error(`Failed to generate sample data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Failed to generate historical data: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }, []);
 
@@ -290,18 +290,18 @@ export function AutomaticDataSourceProvider({
         return liveResponse;
       }
 
-      // Fall back to sample data
-      console.info(`Falling back to sample data for ${dataType}`);
-      const sampleResponse = await fetchSampleData<T>(options);
+      // Fall back to historical data
+      console.info(`Falling back to historical data for ${dataType}`);
+      const historicalResponse = await fetchHistoricalData<T>(options);
 
-      // Cache sample data with shorter TTL
-      if (useCache && sampleResponse.data) {
+      // Cache historical data with shorter TTL
+      if (useCache && historicalResponse.data) {
         dispatch({
           type: 'SET_CACHE_DATA',
           payload: {
             key: cacheKey,
-            data: sampleResponse.data,
-            ttl: 5 * 60 * 1000, // 5 minutes for sample data
+            data: historicalResponse.data,
+            ttl: 5 * 60 * 1000, // 5 minutes for historical data
           },
         });
       }
@@ -310,7 +310,7 @@ export function AutomaticDataSourceProvider({
       scheduleRetry();
 
       dispatch({ type: 'SET_LAST_UPDATED', payload: new Date() });
-      return sampleResponse;
+      return historicalResponse;
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
@@ -327,7 +327,7 @@ export function AutomaticDataSourceProvider({
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [attemptLiveData, fetchSampleData, getCachedData, scheduleRetry]);
+  }, [attemptLiveData, fetchHistoricalData, getCachedData, scheduleRetry]);
 
   // Clear cache
   const clearCache = useCallback((): void => {

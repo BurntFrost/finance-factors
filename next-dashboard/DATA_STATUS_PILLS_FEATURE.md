@@ -4,7 +4,7 @@ This document describes the data status pills feature added to the Finance Facto
 
 ## Overview
 
-The data status pills feature provides visual indicators to help users understand whether the data being displayed is recently updated real data or sample/dummy data. This improves user experience by clearly communicating data freshness and authenticity.
+The data status pills feature provides visual indicators to help users understand whether the data being displayed is recently updated real data or historical data. This improves user experience by clearly communicating data freshness and authenticity.
 
 ## Implementation
 
@@ -19,7 +19,7 @@ The data status pills feature provides visual indicators to help users understan
 The system supports four data status types:
 
 - **🟢 Live Data** (`recent`) - Recently updated real data
-- **🔶 Sample Data** (`sample`) - Demo/sample data for visualization
+- **📊 Historical Data** (`historical`) - Real historical financial data for analysis
 - **🔴 Outdated** (`stale`) - Real data that may be outdated
 - **⏳ Loading...** (`loading`) - Data is being loaded
 
@@ -101,19 +101,19 @@ interface TableData {
 }
 ```
 
-### Sample Data Updates
+### Historical Data Updates
 
-All sample data generators now include status metadata:
+All historical data generators now include status metadata:
 
-- `isRealData: false` - Marks data as sample/demo
-- `dataSource: 'Sample Data Generator'` - Identifies the source
-- Static charts marked with `dataSource: 'Static Sample Data'`
+- `isRealData: false` - Marks data as historical
+- `dataSource: 'Historical Data Generator'` - Identifies the source
+- Static charts marked with `dataSource: 'Static Historical Data'`
 
 ### Utility Functions
 
 #### `getDataStatus(lastUpdated?, isRealData)`
 Automatically determines the appropriate status based on:
-- Whether data is real or sample
+- Whether data is real or historical
 - How recently the data was updated
 - Returns appropriate status type for display
 
@@ -137,7 +137,7 @@ The styling follows the existing design system:
 
 ### Basic Usage
 ```tsx
-<DataStatusPill status="sample" />
+<DataStatusPill status="historical" />
 <DataStatusPill status="recent" lastUpdated={new Date()} />
 <DataStatusPill status="stale" lastUpdated={oldDate} size="small" />
 ```

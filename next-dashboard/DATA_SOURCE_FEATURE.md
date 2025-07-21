@@ -1,14 +1,14 @@
 # Data Source Configuration Feature
 
-A comprehensive data source switching system that allows users to dynamically toggle between sample/mock data and live API data for all dashboard components.
+A comprehensive data source switching system that allows users to dynamically toggle between historical data and live API data for all dashboard components.
 
 ## 🚀 Features
 
 ### Core Functionality
-- **Dynamic Data Source Switching**: Toggle between "Sample Data" and "Live API Data" modes
+- **Dynamic Data Source Switching**: Toggle between "Historical Data" and "Live API Data" modes
 - **Persistent Preferences**: User selections are saved in localStorage and persist across sessions
 - **Real-time Updates**: All charts and components update immediately when switching data sources
-- **Consistent Data Format**: Both sample and live data use the same ChartData interface
+- **Consistent Data Format**: Both historical and live data use the same ChartData interface
 
 ### User Interface
 - **Segmented Control**: Clean, accessible toggle component in the dashboard header
@@ -97,8 +97,8 @@ function DataSourceControls() {
   return (
     <div>
       <p>Current: {state.currentSource}</p>
-      <button onClick={() => switchDataSource('sample')}>
-        Use Sample Data
+      <button onClick={() => switchDataSource('historical')}>
+        Use Historical Data
       </button>
       <button onClick={() => switchDataSource('live-api')}>
         Use Live Data
@@ -113,7 +113,7 @@ function DataSourceControls() {
 
 ### Data Source Types
 ```typescript
-type DataSourceType = 'sample' | 'live-api';
+type DataSourceType = 'historical' | 'live-api';
 ```
 
 ### Supported Data Types
@@ -127,7 +127,7 @@ type DataSourceType = 'sample' | 'live-api';
 ### Cache Configuration
 ```typescript
 const CACHE_TTL = {
-  SAMPLE_DATA: 5 * 60 * 1000,  // 5 minutes
+  HISTORICAL_DATA: 5 * 60 * 1000,  // 5 minutes
   LIVE_DATA: 15 * 60 * 1000,   // 15 minutes
   ERROR_CACHE: 2 * 60 * 1000,  // 2 minutes
 };
@@ -148,7 +148,7 @@ dataSourceTests.testLocalStorage();
 
 ### Test Coverage
 - ✅ Data source switching functionality
-- ✅ Sample data generation consistency
+- ✅ Historical data generation consistency
 - ✅ Mock API integration
 - ✅ Data transformation accuracy
 - ✅ localStorage persistence
@@ -214,7 +214,7 @@ The `DataSourceSelector` component accepts props for customization:
 - Automatic retry with exponential backoff
 - Fallback to cached data when available
 - User-friendly error messages with retry options
-- Graceful degradation to sample data
+- Graceful degradation to historical data
 
 ## 📱 Responsive Design
 
