@@ -138,10 +138,11 @@ class ChartDataTransformer extends BaseTransformer<ApiTimeSeriesData[], ChartDat
 
 // Multi-series chart data transformer
 class MultiSeriesChartDataTransformer extends BaseTransformer<Record<string, ApiTimeSeriesData[]>, ChartData> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   transform(input: Record<string, ApiTimeSeriesData[]>, dataType: string): ChartData {
     const seriesNames = Object.keys(input);
     if (seriesNames.length === 0) {
-      return this.createEmptyMultiSeriesChartData(dataType);
+      return this.createEmptyMultiSeriesChartData();
     }
     
     // Get all unique dates and sort them
@@ -182,7 +183,7 @@ class MultiSeriesChartDataTransformer extends BaseTransformer<Record<string, Api
     };
   }
   
-  private createEmptyMultiSeriesChartData(_dataType: string): ChartData {
+  private createEmptyMultiSeriesChartData(): ChartData {
     return {
       labels: [],
       datasets: [],

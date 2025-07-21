@@ -7,7 +7,7 @@
  * It handles switching between different view modes like 'edit', 'live', and 'preview'.
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 export type ViewMode = 'edit' | 'live' | 'preview';
 

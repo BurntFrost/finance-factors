@@ -121,7 +121,6 @@ export default function InteractiveLazyChart({
     isLoading,
     error,
     refresh,
-    currentSource,
   } = useChartDataSource({
     chartId,
     dataType,

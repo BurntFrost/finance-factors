@@ -126,7 +126,7 @@ function shouldRetry(error: unknown): boolean {
 }
 
 // Create error object from various error types
-function createDataSourceError(error: unknown, _endpoint: string): DataSourceError {
+function createDataSourceError(error: unknown): DataSourceError {
   if (error instanceof Error) {
     if (error.name === 'AbortError') {
       return {
@@ -294,7 +294,7 @@ export class ApiDataService {
       };
       
     } catch (error) {
-      const dataSourceError = createDataSourceError(error, endpoint);
+      const dataSourceError = createDataSourceError(error);
       
       return {
         data: null as T,

@@ -53,6 +53,7 @@ function generateTimeSeriesData(
 // Mock API endpoints
 const mockEndpoints = {
   // House prices data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   housing: async (_options: DataFetchOptions) => {
     await delay(randomInRange(500, 1500)); // Simulate network delay
     
@@ -84,6 +85,7 @@ const mockEndpoints = {
   },
 
   // Income data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   income: async (_options: DataFetchOptions) => {
     await delay(randomInRange(300, 1200));
     
@@ -115,6 +117,7 @@ const mockEndpoints = {
   },
 
   // Cost of living data
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   economic: async (_options: DataFetchOptions) => {
     await delay(randomInRange(400, 1000));
     
@@ -146,6 +149,7 @@ const mockEndpoints = {
   },
 
   // Education costs
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   education: async (_options: DataFetchOptions) => {
     await delay(randomInRange(600, 1400));
     
@@ -177,6 +181,7 @@ const mockEndpoints = {
   },
 
   // Healthcare costs
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   healthcare: async (_options: DataFetchOptions) => {
     await delay(randomInRange(500, 1300));
     
@@ -208,6 +213,7 @@ const mockEndpoints = {
   },
 
   // Investment returns
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   investments: async (_options: DataFetchOptions) => {
     await delay(randomInRange(400, 1100));
     

@@ -25,6 +25,9 @@ const Doughnut = lazy(() =>
   import('react-chartjs-2').then(module => ({ default: module.Doughnut }))
 );
 
+// Type for chart ref
+type ChartRef = React.ComponentRef<typeof Line>;
+
 // Lazy load components
 const ChartRegistration = lazy(() => 
   import('./ChartRegistration').then(module => ({ default: module.default }))
@@ -68,7 +71,7 @@ function ChartContent({
   type: ChartType;
   data: ChartData; 
   config?: Record<string, unknown>;
-  chartRef: React.RefObject<any>; 
+  chartRef: React.RefObject<ChartRef>;
   onRefresh: () => void;
   onRemove?: () => void;
   isRefreshing: boolean;
@@ -170,7 +173,7 @@ export default function InteractiveDynamicChart({
   isLiveViewMode = false,
   onDataSourceChange,
 }: InteractiveDynamicChartProps) {
-  const chartRef = useRef<any>(null);
+  const chartRef = useRef<ChartRef>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Use chart-specific data source management

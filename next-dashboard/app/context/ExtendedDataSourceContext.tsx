@@ -91,7 +91,8 @@ function extendedDataSourceReducer(state: ExtendedDataSourceState, action: Exten
       };
 
     case 'REMOVE_CHART_CONFIG':
-      const { [action.payload]: removed, ...remainingConfigs } = state.chartConfigs;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { [action.payload]: _removed, ...remainingConfigs } = state.chartConfigs;
       return {
         ...state,
         chartConfigs: remainingConfigs,
