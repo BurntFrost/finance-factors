@@ -5,7 +5,7 @@
  * Documentation: https://fred.stlouisfed.org/docs/api/fred/
  */
 
-import { ApiResponse, DataSourceError } from '../types/dataSource';
+import { ApiResponse } from '../types/dataSource';
 
 export interface FredObservation {
   realtime_start: string;
@@ -51,7 +51,7 @@ export interface FredSeriesInfo {
 class FredApiService {
   private baseUrl: string;
   private apiKey: string;
-  private requestCache = new Map<string, Promise<any>>();
+  private requestCache = new Map<string, Promise<unknown>>();
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_FRED_BASE_URL || 'https://api.stlouisfed.org/fred';
@@ -207,7 +207,7 @@ class FredApiService {
   /**
    * Make HTTP request with error handling
    */
-  private async makeRequest(url: string): Promise<any> {
+  private async makeRequest(url: string): Promise<unknown> {
     const response = await fetch(url, {
       method: 'GET',
       headers: {

@@ -24,7 +24,7 @@ export interface CensusVariable {
 class CensusApiService {
   private baseUrl: string;
   private apiKey: string;
-  private requestCache = new Map<string, Promise<any>>();
+  private requestCache = new Map<string, Promise<unknown>>();
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_CENSUS_BASE_URL || 'https://api.census.gov/data';
@@ -219,7 +219,7 @@ class CensusApiService {
   /**
    * Make HTTP request to Census API
    */
-  private async makeRequest(url: string): Promise<any> {
+  private async makeRequest(url: string): Promise<unknown> {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -258,7 +258,7 @@ class CensusApiService {
     const results: Array<{ date: string; value: number; label?: string }> = [];
 
     rows.forEach(row => {
-      variables.forEach((variable, index) => {
+      variables.forEach((variable) => {
         const valueIndex = headers.indexOf(variable);
         if (valueIndex !== -1) {
           const value = parseFloat(row[valueIndex]);

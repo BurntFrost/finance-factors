@@ -33,10 +33,21 @@ export interface BlsApiResponse {
   };
 }
 
+export interface BlsRequestBody {
+  seriesid: string[];
+  startyear?: string;
+  endyear?: string;
+  catalog?: boolean;
+  calculations?: boolean;
+  annualaverage?: boolean;
+  aspects?: boolean;
+  disable_ssl?: boolean;
+}
+
 class BlsApiService {
   private baseUrl: string;
   private apiKey: string;
-  private requestCache = new Map<string, Promise<any>>();
+  private requestCache = new Map<string, Promise<unknown>>();
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_BLS_BASE_URL || 'https://api.bls.gov/publicAPI/v2';
@@ -161,7 +172,7 @@ class BlsApiService {
   /**
    * Make HTTP request to BLS API
    */
-  private async makeRequest(requestBody: any): Promise<BlsApiResponse> {
+  private async makeRequest(requestBody: BlsRequestBody): Promise<BlsApiResponse> {
     const url = this.apiKey 
       ? `${this.baseUrl}/timeseries/data/`
       : 'https://api.bls.gov/publicAPI/v1/timeseries/data/';

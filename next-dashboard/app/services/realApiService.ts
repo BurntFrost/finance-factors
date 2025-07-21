@@ -12,7 +12,7 @@ import { censusApiService } from './censusApiService';
 import { alphaVantageApiService } from './alphaVantageApiService';
 
 class RealApiService {
-  private requestCache = new Map<string, Promise<ApiResponse<any>>>();
+  private requestCache = new Map<string, Promise<ApiResponse<unknown>>>();
   private rateLimitTracker = new Map<string, { requests: number; resetTime: number }>();
 
   /**
