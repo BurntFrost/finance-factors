@@ -21,10 +21,29 @@ jobs:
           cache: 'npm'
           cache-dependency-path: next-dashboard/package-lock.json
 
+      # Setup Pages configuration
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+        with:
+          static_site_generator: next
+
       # Install dependencies with optimizations
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
         working-directory: next-dashboard
+
+      # Create environment file with API keys
+      - name: Create environment file
+        run: |
+          cat > next-dashboard/.env.local << EOF
+          NEXT_PUBLIC_FRED_API_KEY=d45d9655ab79981088aa17b30a0c741b
+          NEXT_PUBLIC_BLS_API_KEY=81277313b0e141148d59fa83125510de
+          NEXT_PUBLIC_CENSUS_API_KEY=e0d9fd6f239294efa560fd5b8d382d6978439e7b
+          NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
+          NEXT_PUBLIC_ENABLE_CACHING=true
+          NEXT_PUBLIC_DEBUG_API=false
+          NEXT_PUBLIC_BASE_PATH=${{ github.event.repository.name != github.repository_owner.name && format('/{0}', github.event.repository.name) || '' }}
+          EOF
 
       # Run linting
       - name: Lint code
@@ -33,11 +52,18 @@ jobs:
 
       # Build with optimizations
       - name: Build application
-        run: npm run build
+        run: npm run build:github
         working-directory: next-dashboard
         env:
           NODE_ENV: production
           NEXT_TELEMETRY_DISABLED: 1
+
+      # Fix asset paths for GitHub Pages (Next.js 15 basePath workaround)
+      - name: Fix asset paths
+        run: |
+          find next-dashboard/out -name "*.html" -type f -exec sed -i 's|href="/_next/|href="/finance-factors/_next/|g' {} \;
+          find next-dashboard/out -name "*.html" -type f -exec sed -i 's|src="/_next/|src="/finance-factors/_next/|g' {} \;
+          find next-dashboard/out -name "*.js" -type f -exec sed -i 's|"/_next/|"/finance-factors/_next/|g' {} \;
 
       # Create .nojekyll file to prevent Jekyll processing
       - name: Add .nojekyll file
