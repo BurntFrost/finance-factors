@@ -7,6 +7,10 @@ export interface ChartData {
     backgroundColor?: string | string[];
     [key: string]: unknown;
   }>;
+  // Data status metadata
+  isRealData?: boolean;
+  lastUpdated?: Date;
+  dataSource?: string;
 }
 
 // Data type categories for financial data
@@ -39,6 +43,10 @@ export interface DashboardElement {
     row: number;
     col: number;
   };
+  // Data status metadata
+  isRealData?: boolean;
+  lastUpdated?: Date;
+  dataSource?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,6 +77,10 @@ export interface SummaryCardData {
   };
   icon?: string;
   color?: string;
+  // Data status metadata
+  isRealData?: boolean;
+  lastUpdated?: Date;
+  dataSource?: string;
 }
 
 export interface TableColumn {
@@ -81,4 +93,8 @@ export interface TableColumn {
 export interface TableData {
   columns: TableColumn[];
   rows: Record<string, unknown>[];
+  // Data status metadata
+  isRealData?: boolean;
+  lastUpdated?: Date;
+  dataSource?: string;
 }

@@ -2,6 +2,7 @@
 
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import { ChartData } from '../types/dashboard';
+import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -166,10 +167,19 @@ export default function DynamicChart({ type, data, title, onRemove, config }: Dy
     }
   };
 
+  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+
   return (
     <div className={styles.chartContainer}>
       <div className={styles.chartHeader}>
-        <h2 className={styles.chartTitle}>{title}</h2>
+        <div className={styles.titleSection}>
+          <h2 className={styles.chartTitle}>{title}</h2>
+          <DataStatusPill
+            status={dataStatus}
+            lastUpdated={data.lastUpdated}
+            size="small"
+          />
+        </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
           {onRemove && <RemoveButton onClick={onRemove} />}

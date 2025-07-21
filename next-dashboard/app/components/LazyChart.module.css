@@ -11,6 +11,13 @@
   gap: 1rem;
 }
 
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .chartTitle {
   font-size: 1.5rem;
   margin: 0;
@@ -116,15 +123,20 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
+
+  .titleSection {
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
   .refreshButton {
     align-self: flex-end;
   }
-  
+
   .chartTitle {
     font-size: 1.25rem;
   }
-  
+
   .chartWrapper {
     height: 300px;
     padding: 0.5rem;

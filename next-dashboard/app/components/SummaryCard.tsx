@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { SummaryCardData } from '../types/dashboard';
+import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import styles from './SummaryCard.module.css';
 
 interface SummaryCardProps {
@@ -63,15 +64,22 @@ export default function SummaryCard({ title, data, onRemove }: SummaryCardProps)
           {data.icon && <span className={styles.cardIcon}>{data.icon}</span>}
           <h3 className={styles.title}>{data.title}</h3>
         </div>
-        {onRemove && (
-          <button
-            className={styles.removeButton}
-            onClick={onRemove}
-            aria-label="Remove card"
-          >
-            ✕
-          </button>
-        )}
+        <div className={styles.cardActions}>
+          <DataStatusPill
+            status={getDataStatus(data.lastUpdated, data.isRealData)}
+            lastUpdated={data.lastUpdated}
+            size="small"
+          />
+          {onRemove && (
+            <button
+              className={styles.removeButton}
+              onClick={onRemove}
+              aria-label="Remove card"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={styles.cardBody}>
@@ -114,10 +122,25 @@ interface SummaryCardGridProps {
 }
 
 export function SummaryCardGrid({ title, cards, onRemove }: SummaryCardGridProps) {
+  // Determine overall data status from the cards
+  const hasRealData = cards.some(card => card.isRealData);
+  const latestUpdate = cards.reduce((latest, card) => {
+    if (!card.lastUpdated) return latest;
+    if (!latest) return card.lastUpdated;
+    return card.lastUpdated > latest ? card.lastUpdated : latest;
+  }, undefined as Date | undefined);
+
   return (
     <div className={styles.gridContainer}>
       <div className={styles.gridHeader}>
-        <h2 className={styles.gridTitle}>{title}</h2>
+        <div className={styles.titleSection}>
+          <h2 className={styles.gridTitle}>{title}</h2>
+          <DataStatusPill
+            status={getDataStatus(latestUpdate, hasRealData)}
+            lastUpdated={latestUpdate}
+            size="small"
+          />
+        </div>
         {onRemove && (
           <button
             className={styles.removeButton}

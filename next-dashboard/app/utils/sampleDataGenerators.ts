@@ -45,7 +45,13 @@ export function generateLineChartData(): ChartData {
     }
   ];
 
-  return { labels: years, datasets };
+  return {
+    labels: years,
+    datasets,
+    // Mark as sample data
+    isRealData: false,
+    dataSource: 'Sample Data Generator'
+  };
 }
 
 export function generateBarChartData(): ChartData {
@@ -65,7 +71,13 @@ export function generateBarChartData(): ChartData {
     }
   ];
 
-  return { labels: quarters, datasets };
+  return {
+    labels: quarters,
+    datasets,
+    // Mark as sample data
+    isRealData: false,
+    dataSource: 'Sample Data Generator'
+  };
 }
 
 export function generatePieChartData(): ChartData {
@@ -81,7 +93,10 @@ export function generatePieChartData(): ChartData {
         borderColor: CHART_COLORS.primary,
         backgroundColor: CHART_COLORS.background,
       }
-    ]
+    ],
+    // Mark as sample data
+    isRealData: false,
+    dataSource: 'Sample Data Generator'
   };
 }
 
@@ -98,7 +113,10 @@ export function generateDoughnutChartData(): ChartData {
         borderColor: CHART_COLORS.primary,
         backgroundColor: CHART_COLORS.background,
       }
-    ]
+    ],
+    // Mark as sample data
+    isRealData: false,
+    dataSource: 'Sample Data Generator'
   };
 }
 
@@ -125,7 +143,13 @@ export function generateTableData(): TableData {
     marketCap: randomInRange(100000000000, 3000000000000),
   }));
 
-  return { columns, rows };
+  return {
+    columns,
+    rows,
+    // Mark as sample data
+    isRealData: false,
+    dataSource: 'Sample Data Generator'
+  };
 }
 
 export function generateSummaryCards(): SummaryCardData[] {
@@ -139,7 +163,10 @@ export function generateSummaryCards(): SummaryCardData[] {
         period: 'vs last month'
       },
       icon: '💰',
-      color: '#28a745'
+      color: '#28a745',
+      // Mark as sample data
+      isRealData: false,
+      dataSource: 'Sample Data Generator'
     },
     {
       title: 'Monthly Income',
@@ -150,7 +177,10 @@ export function generateSummaryCards(): SummaryCardData[] {
         period: 'vs last month'
       },
       icon: '📈',
-      color: '#007bff'
+      color: '#007bff',
+      // Mark as sample data
+      isRealData: false,
+      dataSource: 'Sample Data Generator'
     },
     {
       title: 'Monthly Expenses',
@@ -161,7 +191,10 @@ export function generateSummaryCards(): SummaryCardData[] {
         period: 'vs last month'
       },
       icon: '💸',
-      color: '#dc3545'
+      color: '#dc3545',
+      // Mark as sample data
+      isRealData: false,
+      dataSource: 'Sample Data Generator'
     },
     {
       title: 'Savings Rate',
@@ -172,7 +205,10 @@ export function generateSummaryCards(): SummaryCardData[] {
         period: 'vs last quarter'
       },
       icon: '🏦',
-      color: '#ffc107'
+      color: '#ffc107',
+      // Mark as sample data
+      isRealData: false,
+      dataSource: 'Sample Data Generator'
     }
   ];
 }

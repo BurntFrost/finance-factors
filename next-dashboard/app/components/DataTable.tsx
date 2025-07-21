@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { TableData, TableColumn } from '../types/dashboard';
+import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import styles from './DataTable.module.css';
 
 interface DataTableProps {
@@ -105,10 +106,19 @@ export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataT
     return sortDirection === 'asc' ? '↑' : '↓';
   };
 
+  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+
   return (
     <div className={styles.tableContainer}>
       <div className={styles.tableHeader}>
-        <h2 className={styles.tableTitle}>{title}</h2>
+        <div className={styles.titleSection}>
+          <h2 className={styles.tableTitle}>{title}</h2>
+          <DataStatusPill
+            status={dataStatus}
+            lastUpdated={data.lastUpdated}
+            size="small"
+          />
+        </div>
         <div className={styles.tableControls}>
           <input
             type="text"

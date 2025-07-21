@@ -23,6 +23,9 @@ const priceData = {
       backgroundColor: 'rgba(75,192,192,0.2)',
     },
   ],
+  // Mark as sample data
+  isRealData: false,
+  dataSource: 'Static Sample Data'
 };
 
 const incomeData = {
@@ -35,6 +38,9 @@ const incomeData = {
       backgroundColor: 'rgba(255,99,132,0.2)',
     },
   ],
+  // Mark as sample data
+  isRealData: false,
+  dataSource: 'Static Sample Data'
 };
 
 export default function Home() {

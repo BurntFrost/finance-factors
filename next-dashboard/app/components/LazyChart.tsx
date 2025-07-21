@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
+import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -24,6 +25,10 @@ interface ChartData {
     borderColor: string;
     backgroundColor: string;
   }>;
+  // Data status metadata
+  isRealData?: boolean;
+  lastUpdated?: Date;
+  dataSource?: string;
 }
 
 interface LazyChartProps {
@@ -91,10 +96,19 @@ const RefreshableChart = ({ data, title }: LazyChartProps) => {
     }
   }, [isRefreshing]);
 
+  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+
   return (
     <div className={styles.chartContainer}>
       <div className={styles.chartHeader}>
-        <h2 className={styles.chartTitle}>{title}</h2>
+        <div className={styles.titleSection}>
+          <h2 className={styles.chartTitle}>{title}</h2>
+          <DataStatusPill
+            status={dataStatus}
+            lastUpdated={data.lastUpdated}
+            size="small"
+          />
+        </div>
         <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
       </div>
       <div className={styles.chartWrapper}>
