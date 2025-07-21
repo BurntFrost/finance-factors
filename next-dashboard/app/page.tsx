@@ -7,6 +7,7 @@ import AddElementDropdown, { ElementType } from './components/AddElementDropdown
 import DynamicElementRenderer from './components/DynamicElementRenderer';
 import DataSourceSelector from './components/DataSourceSelector';
 import ViewModeToggle from './components/ViewModeToggle';
+import ApiHealthStatus from './components/ApiHealthStatus';
 import { useDashboard } from './context/DashboardContext';
 import { useViewMode } from './context/ViewModeContext';
 import { useHousePricesData, useIncomeData } from './hooks/useDataSource';
@@ -61,6 +62,7 @@ export default function Home() {
           <h1>Finance Factor Dashboard</h1>
           <ViewModeToggle size="medium" />
           <DataSourceSelector />
+          <ApiHealthStatus className="ml-4" />
         </div>
         {viewModeState.isEditMode && (
           <AddElementDropdown

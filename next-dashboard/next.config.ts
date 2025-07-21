@@ -9,9 +9,20 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // Configure asset prefix for GitHub Pages (will be set via environment variable)
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/finance-factors' : '',
-  basePath: process.env.NODE_ENV === 'production' ? '/finance-factors' : '',
+  // Configure asset prefix for GitHub Pages (dynamically set based on repository)
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+
+  // Environment variables for build time
+  env: {
+    NEXT_PUBLIC_FRED_API_KEY: process.env.NEXT_PUBLIC_FRED_API_KEY,
+    NEXT_PUBLIC_BLS_API_KEY: process.env.NEXT_PUBLIC_BLS_API_KEY,
+    NEXT_PUBLIC_CENSUS_API_KEY: process.env.NEXT_PUBLIC_CENSUS_API_KEY,
+    NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY: process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY,
+    NEXT_PUBLIC_DEFAULT_DATA_SOURCE: process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE || 'live-api',
+    NEXT_PUBLIC_ENABLE_CACHING: process.env.NEXT_PUBLIC_ENABLE_CACHING || 'true',
+    NEXT_PUBLIC_DEBUG_API: process.env.NEXT_PUBLIC_DEBUG_API || 'false',
+  },
 
   // Performance optimizations
   // experimental: {

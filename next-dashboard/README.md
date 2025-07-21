@@ -106,15 +106,20 @@ Built with modern web technologies:
 
 ## 🚀 Deployment
 
-### GitHub Pages
-```bash
-npm run build
-npm run export
-```
+### GitHub Pages (Recommended)
+**Super simple - no secrets needed!**
 
-### Vercel
+1. Enable GitHub Pages in repository settings
+2. Push to main branch
+3. Your dashboard goes live automatically!
+
+See [SIMPLE_DEPLOY.md](./SIMPLE_DEPLOY.md) for 2-step deployment guide.
+
+### Manual Build
 ```bash
-npm run build
+npm run build        # Standard build
+npm run build:github # Build for GitHub Pages
+npm run deploy:local # Test locally
 ```
 
 The app is optimized for static deployment and works with GitHub Pages out of the box.

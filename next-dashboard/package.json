@@ -6,8 +6,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
+    "build:github": "NEXT_PUBLIC_BASE_PATH=/finance-factors next build",
+    "export": "next build && next export",
+    "deploy:local": "npm run build:github && npx serve out",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:apis": "node scripts/test-apis.js"
   },
   "dependencies": {
     "chart.js": "^4.5.0",
