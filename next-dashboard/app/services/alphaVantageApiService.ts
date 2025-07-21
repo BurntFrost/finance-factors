@@ -19,10 +19,36 @@ export interface AlphaVantageResponse {
   data: AlphaVantageDataPoint[];
 }
 
+export interface TimeSeriesValues {
+  '1. open': string;
+  '2. high': string;
+  '3. low': string;
+  '4. close': string;
+  '5. volume': string;
+}
+
+export interface TimeSeriesData {
+  [key: string]: TimeSeriesValues;
+}
+
+export interface AlphaVantageTimeSeriesResponse {
+  'Meta Data': Record<string, string>;
+  'Time Series (Daily)'?: TimeSeriesData;
+  'Weekly Time Series'?: TimeSeriesData;
+  'Monthly Time Series'?: TimeSeriesData;
+}
+
+export interface ForexTimeSeriesResponse {
+  'Meta Data': Record<string, string>;
+  'Time Series FX (Daily)'?: TimeSeriesData;
+  'Time Series FX (Weekly)'?: TimeSeriesData;
+  'Time Series FX (Monthly)'?: TimeSeriesData;
+}
+
 class AlphaVantageApiService {
   private baseUrl: string;
   private apiKey: string;
-  private requestCache = new Map<string, Promise<any>>();
+  private requestCache = new Map<string, Promise<unknown>>();
 
   constructor() {
     this.baseUrl = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_BASE_URL || 'https://www.alphavantage.co/query';
@@ -233,7 +259,7 @@ class AlphaVantageApiService {
   /**
    * Make HTTP request to Alpha Vantage API
    */
-  private async makeRequest(url: string): Promise<any> {
+  private async makeRequest(url: string): Promise<unknown> {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -262,7 +288,7 @@ class AlphaVantageApiService {
   /**
    * Transform economic indicator data to our standard format
    */
-  private transformEconomicData(data: any): Array<{ date: string; value: number; label?: string }> {
+  private transformEconomicData(data: AlphaVantageResponse): Array<{ date: string; value: number; label?: string }> {
     if (!data.data || !Array.isArray(data.data)) {
       return [];
     }
@@ -273,16 +299,16 @@ class AlphaVantageApiService {
         value: parseFloat(item.value),
         label: this.formatDateLabel(item.date),
       }))
-      .filter((item: any) => !isNaN(item.value))
-      .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      .filter((item: { date: string; value: number; label?: string }) => !isNaN(item.value))
+      .sort((a: { date: string; value: number; label?: string }, b: { date: string; value: number; label?: string }) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
   /**
    * Transform time series data to our standard format
    */
-  private transformTimeSeriesData(data: any, functionType: string): Array<{ date: string; value: number; label?: string }> {
-    let timeSeriesKey = '';
-    
+  private transformTimeSeriesData(data: AlphaVantageTimeSeriesResponse, functionType: string): Array<{ date: string; value: number; label?: string }> {
+    let timeSeriesKey: keyof AlphaVantageTimeSeriesResponse = 'Time Series (Daily)';
+
     // Determine the correct key based on function type
     if (functionType.includes('DAILY')) {
       timeSeriesKey = 'Time Series (Daily)';
@@ -298,7 +324,7 @@ class AlphaVantageApiService {
     }
 
     return Object.entries(timeSeries)
-      .map(([date, values]: [string, any]) => ({
+      .map(([date, values]: [string, TimeSeriesValues]) => ({
         date,
         value: parseFloat(values['4. close']), // Use closing price
         label: this.formatDateLabel(date),
@@ -310,9 +336,9 @@ class AlphaVantageApiService {
   /**
    * Transform forex data to our standard format
    */
-  private transformForexData(data: any, functionType: string): Array<{ date: string; value: number; label?: string }> {
-    let timeSeriesKey = '';
-    
+  private transformForexData(data: ForexTimeSeriesResponse, functionType: string): Array<{ date: string; value: number; label?: string }> {
+    let timeSeriesKey: keyof ForexTimeSeriesResponse = 'Time Series FX (Daily)';
+
     if (functionType === 'FX_DAILY') {
       timeSeriesKey = 'Time Series FX (Daily)';
     } else if (functionType === 'FX_WEEKLY') {
@@ -327,7 +353,7 @@ class AlphaVantageApiService {
     }
 
     return Object.entries(timeSeries)
-      .map(([date, values]: [string, any]) => ({
+      .map(([date, values]: [string, TimeSeriesValues]) => ({
         date,
         value: parseFloat(values['4. close']),
         label: this.formatDateLabel(date),
