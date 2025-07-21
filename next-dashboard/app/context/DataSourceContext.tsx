@@ -183,11 +183,11 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
           source: 'Sample Data Generator',
         };
       } else {
-        // Use mock API service for live data (can be replaced with real API later)
-        const { mockApiService } = await import('../services/mockApiService');
+        // Use real API service for live data
+        const { realApiService } = await import('../services/realApiService');
         const { transformers } = await import('../services/dataTransformers');
 
-        const apiResponse = await mockApiService.fetchData(options);
+        const apiResponse = await realApiService.fetchData(options);
 
         if (apiResponse.success && apiResponse.data) {
           // Transform API data to ChartData format
@@ -204,7 +204,28 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
             metadata: apiResponse.metadata,
           };
         } else {
-          throw new Error(apiResponse.error || 'Failed to fetch live data');
+          // Fallback to mock data if real API fails
+          console.warn(`Real API failed for ${dataType}, falling back to mock data:`, apiResponse.error);
+
+          const { mockApiService } = await import('../services/mockApiService');
+          const mockResponse = await mockApiService.fetchData(options);
+
+          if (mockResponse.success && mockResponse.data) {
+            const transformedData = transformers.chartData.transform(
+              mockResponse.data as Array<{ date: string; value: number; label?: string }>,
+              dataType
+            );
+
+            response = {
+              data: transformedData as T,
+              success: true,
+              timestamp: mockResponse.timestamp,
+              source: `${mockResponse.source} (Fallback)`,
+              metadata: mockResponse.metadata,
+            };
+          } else {
+            throw new Error(apiResponse.error || 'Failed to fetch live data and fallback failed');
+          }
         }
       }
 

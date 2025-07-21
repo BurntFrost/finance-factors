@@ -18,7 +18,7 @@ export interface DataSourceConfig {
   apiConfig?: {
     baseUrl?: string;
     apiKey?: string;
-    endpoints: Record<string, string>;
+    endpoints: Record<string, string | ApiEndpoint>;
     rateLimit?: {
       requestsPerMinute: number;
       requestsPerHour: number;
@@ -27,6 +27,128 @@ export interface DataSourceConfig {
     retryAttempts?: number;
   };
 }
+
+// API Provider configurations
+export interface ApiProvider {
+  name: string;
+  baseUrl: string;
+  apiKey?: string;
+  rateLimit: {
+    requestsPerMinute: number;
+    requestsPerDay?: number;
+  };
+  timeout: number;
+  retryAttempts: number;
+}
+
+export const API_PROVIDERS: Record<string, ApiProvider> = {
+  FRED: {
+    name: 'Federal Reserve Economic Data',
+    baseUrl: 'https://api.stlouisfed.org/fred',
+    rateLimit: { requestsPerMinute: 120 },
+    timeout: 10000,
+    retryAttempts: 3,
+  },
+  CENSUS: {
+    name: 'U.S. Census Bureau',
+    baseUrl: 'https://api.census.gov/data',
+    rateLimit: { requestsPerMinute: 100 },
+    timeout: 10000,
+    retryAttempts: 3,
+  },
+  BLS: {
+    name: 'Bureau of Labor Statistics',
+    baseUrl: 'https://api.bls.gov/publicAPI/v2',
+    rateLimit: { requestsPerMinute: 10, requestsPerDay: 500 },
+    timeout: 15000,
+    retryAttempts: 3,
+  },
+  ALPHA_VANTAGE: {
+    name: 'Alpha Vantage',
+    baseUrl: 'https://www.alphavantage.co/query',
+    rateLimit: { requestsPerMinute: 5, requestsPerDay: 25 },
+    timeout: 10000,
+    retryAttempts: 2,
+  },
+};
+
+// Real API endpoint configurations
+export interface ApiEndpoint {
+  provider: keyof typeof API_PROVIDERS;
+  seriesId?: string;
+  endpoint: string;
+  params?: Record<string, string>;
+  transformKey?: string;
+}
+
+export const REAL_API_ENDPOINTS: Record<string, ApiEndpoint> = {
+  'house-prices': {
+    provider: 'FRED',
+    seriesId: 'CSUSHPISA', // Case-Shiller U.S. National Home Price Index
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'salary-income': {
+    provider: 'BLS',
+    seriesId: 'CES0500000003', // Average hourly earnings of all employees
+    endpoint: '/timeseries/data',
+    params: {
+      calculations: 'true',
+      annualaverage: 'true',
+    },
+  },
+  'cost-of-living': {
+    provider: 'BLS',
+    seriesId: 'CUUR0000SA0', // Consumer Price Index - All Urban Consumers
+    endpoint: '/timeseries/data',
+    params: {
+      calculations: 'true',
+      annualaverage: 'true',
+    },
+  },
+  'interest-rates': {
+    provider: 'FRED',
+    seriesId: 'FEDFUNDS', // Federal Funds Effective Rate
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120',
+    },
+  },
+  'unemployment-rate': {
+    provider: 'FRED',
+    seriesId: 'UNRATE', // Unemployment Rate
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120',
+    },
+  },
+  'inflation-rate': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '',
+    params: {
+      function: 'INFLATION',
+      datatype: 'json',
+    },
+  },
+  'gdp-growth': {
+    provider: 'FRED',
+    seriesId: 'GDP', // Gross Domestic Product
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '40', // 10 years of quarterly data
+    },
+  },
+};
 
 // Available data source configurations
 export const DATA_SOURCE_CONFIGS: Record<DataSourceType, DataSourceConfig> = {
@@ -40,15 +162,10 @@ export const DATA_SOURCE_CONFIGS: Record<DataSourceType, DataSourceConfig> = {
   'live-api': {
     type: 'live-api',
     name: 'Live API Data',
-    description: 'Real-time data from financial APIs',
+    description: 'Real-time data from government and financial APIs',
     icon: '🌐',
     apiConfig: {
-      endpoints: {
-        'house-prices': '/api/housing/prices',
-        'salary-income': '/api/labor/income',
-        'cost-of-living': '/api/economic/cost-of-living',
-        'investment-returns': '/api/financial/investments',
-      },
+      endpoints: REAL_API_ENDPOINTS,
       rateLimit: {
         requestsPerMinute: 60,
         requestsPerHour: 1000,
