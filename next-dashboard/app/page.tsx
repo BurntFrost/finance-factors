@@ -2,10 +2,13 @@
 
 import React from 'react';
 import LazyChart from './components/LazyChart';
+import InteractiveLazyChart from './components/InteractiveLazyChart';
 import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
 import DataSourceSelector from './components/DataSourceSelector';
+import ViewModeToggle from './components/ViewModeToggle';
 import { useDashboard } from './context/DashboardContext';
+import { useViewMode } from './context/ViewModeContext';
 import { useHousePricesData, useIncomeData } from './hooks/useDataSource';
 import { generateSampleData, generateElementTitle, generateSampleDataByType, generateElementTitleByType } from './utils/sampleDataGenerators';
 import { DataType, VisualizationType, ChartData } from './types/dashboard';
@@ -13,6 +16,7 @@ import styles from './page.module.css';
 
 export default function Home() {
   const { state, addElement, removeElement } = useDashboard();
+  const { state: viewModeState } = useViewMode();
 
   // Use data source hooks for house prices and income data
   const housePricesResult = useHousePricesData();
@@ -55,19 +59,30 @@ export default function Home() {
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <h1>Finance Factor Dashboard</h1>
+          <ViewModeToggle size="medium" />
           <DataSourceSelector />
         </div>
-        <AddElementDropdown
-          onElementSelect={handleElementSelect}
-          onElementCreate={handleElementCreate}
-        />
+        {viewModeState.isEditMode && (
+          <AddElementDropdown
+            onElementSelect={handleElementSelect}
+            onElementCreate={handleElementCreate}
+          />
+        )}
       </div>
 
       {/* Dashboard Grid Layout */}
       <div className={styles.dashboardGrid}>
         {/* Data source aware charts */}
         <div className={styles.chartContainer}>
-          {housePricesResult.data ? (
+          {viewModeState.isLiveViewMode ? (
+            <InteractiveLazyChart
+              chartId="house-prices-main"
+              dataType="house-prices"
+              title="Average House Price Over Time"
+              isLiveViewMode={true}
+              fallbackData={housePricesResult.data as ChartData}
+            />
+          ) : housePricesResult.data ? (
             <LazyChart
               data={housePricesResult.data as ChartData}
               title="Average House Price Over Time"
@@ -92,7 +107,15 @@ export default function Home() {
         </div>
 
         <div className={styles.chartContainer}>
-          {incomeResult.data ? (
+          {viewModeState.isLiveViewMode ? (
+            <InteractiveLazyChart
+              chartId="income-main"
+              dataType="salary-income"
+              title="Average Household Income Over Time"
+              isLiveViewMode={true}
+              fallbackData={incomeResult.data as ChartData}
+            />
+          ) : incomeResult.data ? (
             <LazyChart
               data={incomeResult.data as ChartData}
               title="Average Household Income Over Time"

@@ -170,3 +170,30 @@ export const DATA_TYPE_MAPPINGS: Record<string, string> = {
   'utilities-costs': 'utilities',
   'investment-returns': 'investments',
 };
+
+// Per-chart data source configuration
+export interface ChartDataSourceConfig {
+  chartId: string;
+  dataType: string;
+  dataSource: DataSourceType;
+  lastUpdated?: Date;
+}
+
+// Extended data source state for per-chart management
+export interface ExtendedDataSourceState extends DataSourceState {
+  chartConfigs: Record<string, ChartDataSourceConfig>;
+}
+
+// Additional actions for per-chart data source management
+export type ExtendedDataSourceAction = DataSourceAction
+  | { type: 'SET_CHART_DATA_SOURCE'; payload: ChartDataSourceConfig }
+  | { type: 'REMOVE_CHART_CONFIG'; payload: string }
+  | { type: 'CLEAR_CHART_CONFIGS' };
+
+// Extended context type for per-chart management
+export interface ExtendedDataSourceContextType extends DataSourceContextType {
+  setChartDataSource: (chartId: string, dataType: string, source: DataSourceType) => Promise<void>;
+  getChartDataSource: (chartId: string) => DataSourceType;
+  removeChartConfig: (chartId: string) => void;
+  clearChartConfigs: () => void;
+}

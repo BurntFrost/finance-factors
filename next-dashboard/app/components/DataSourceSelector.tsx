@@ -9,7 +9,7 @@
 
 import React, { useState } from 'react';
 import { DataSourceType, DATA_SOURCE_CONFIGS } from '../types/dataSource';
-import { useDataSourceContext } from '../context/DataSourceContext';
+import { useExtendedDataSourceContext } from '../context/ExtendedDataSourceContext';
 import styles from './DataSourceSelector.module.css';
 
 interface DataSourceSelectorProps {
@@ -27,7 +27,7 @@ export default function DataSourceSelector({
   showIcons = true,
   disabled = false,
 }: DataSourceSelectorProps) {
-  const { state, switchDataSource } = useDataSourceContext();
+  const { state, switchDataSource } = useExtendedDataSourceContext();
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const handleSourceChange = async (source: DataSourceType) => {

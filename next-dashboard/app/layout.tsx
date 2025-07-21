@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DashboardProvider } from "./context/DashboardContext";
-import { DataSourceProvider } from "./context/DataSourceContext";
+import { ExtendedDataSourceProvider } from "./context/ExtendedDataSourceContext";
+import { ViewModeProvider } from "./context/ViewModeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const geistSans = Geist({
@@ -52,11 +53,13 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
-          <DataSourceProvider>
-            <DashboardProvider>
-              {children}
-            </DashboardProvider>
-          </DataSourceProvider>
+          <ViewModeProvider>
+            <ExtendedDataSourceProvider>
+              <DashboardProvider>
+                {children}
+              </DashboardProvider>
+            </ExtendedDataSourceProvider>
+          </ViewModeProvider>
         </ErrorBoundary>
       </body>
     </html>

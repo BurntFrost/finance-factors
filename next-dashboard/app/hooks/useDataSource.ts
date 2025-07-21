@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useDataSourceContext } from '../context/DataSourceContext';
+import { useExtendedDataSourceContext } from '../context/ExtendedDataSourceContext';
 import {
   DataSourceType,
   UseDataSourceReturn,
@@ -40,7 +40,7 @@ export function useDataSource<T = unknown>(
     onSuccess,
   } = options;
 
-  const { state, switchDataSource, fetchData } = useDataSourceContext();
+  const { state, switchDataSource, fetchData } = useExtendedDataSourceContext();
   
   // Local state for this hook instance
   const [data, setData] = useState<T | null>(null);
@@ -212,7 +212,7 @@ export function useMultipleDataSources<T = unknown>(
 
 // Hook for data source status and controls
 export function useDataSourceStatus() {
-  const { state, switchDataSource, clearCache, getConfig } = useDataSourceContext();
+  const { state, switchDataSource, clearCache, getConfig } = useExtendedDataSourceContext();
 
   const currentConfig = useMemo(() => getConfig(), [getConfig]);
 
