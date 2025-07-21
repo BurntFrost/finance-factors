@@ -1,7 +1,7 @@
 .container {
   padding: 2rem;
   font-family: var(--font-geist-sans), Arial, sans-serif;
-  max-width: 1200px;
+  max-width: 1400px; /* Increased for better 2-column layout */
   margin: 0 auto;
 }
 
@@ -26,13 +26,31 @@
   color: var(--foreground);
 }
 
-.chartContainer {
+/* Dashboard grid layout */
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
   margin-bottom: 2rem;
-  max-width: 800px;
+  /* Ensure grid items have equal height */
+  grid-auto-rows: minmax(300px, auto);
+  align-items: stretch;
+}
+
+.chartContainer {
+  margin-bottom: 0; /* Remove bottom margin since grid handles spacing */
   /* Improve chart container performance */
   contain: layout style;
   will-change: transform;
+  /* Ensure charts fill their grid cell properly */
+  width: 100%;
+  min-height: 300px;
+  /* Ensure proper flex behavior for grid items */
+  display: flex;
+  flex-direction: column;
 }
+
+
 
 /* Loading and error states */
 .loadingContainer {
@@ -106,6 +124,12 @@
 }
 
 /* Responsive design for better mobile performance */
+@media (max-width: 1024px) {
+  .dashboardGrid {
+    gap: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 1rem;
@@ -126,12 +150,42 @@
     font-size: 1.5rem;
   }
 
+  /* Switch to single column on mobile */
+  .dashboardGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
   .chartContainer {
-    max-width: 100%;
+    min-height: 250px;
   }
 
   .loadingContainer,
   .errorContainer {
     min-height: 150px;
+  }
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboardGrid {
+    gap: 1.5rem;
+    grid-auto-rows: minmax(280px, auto);
+  }
+
+  .chartContainer {
+    min-height: 280px;
+  }
+}
+
+/* Large screen adjustments */
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1600px;
+  }
+
+  .dashboardGrid {
+    gap: 2.5rem;
+    grid-auto-rows: minmax(350px, auto);
   }
 }

@@ -125,7 +125,10 @@
 
 /* Grid container styles */
 .gridContainer {
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Remove margin since parent grid handles spacing */
+  height: 100%; /* Fill the grid cell */
+  display: flex;
+  flex-direction: column;
 }
 
 .gridHeader {
@@ -152,8 +155,10 @@
 
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
+  flex: 1; /* Take remaining space in flex container */
+  align-content: start; /* Align cards to top of container */
 }
 
 /* Dark mode support */

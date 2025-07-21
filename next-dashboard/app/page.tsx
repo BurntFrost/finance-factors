@@ -63,66 +63,69 @@ export default function Home() {
         />
       </div>
 
-      {/* Data source aware charts */}
-      <div className={styles.chartContainer}>
-        {housePricesResult.data ? (
-          <LazyChart
-            data={housePricesResult.data as ChartData}
-            title="Average House Price Over Time"
-          />
-        ) : housePricesResult.isLoading ? (
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}>Loading house prices data...</div>
-          </div>
-        ) : housePricesResult.error ? (
-          <div className={styles.errorContainer}>
-            <div className={styles.errorMessage}>
-              Error loading house prices: {housePricesResult.error.message}
-              <button
-                onClick={housePricesResult.refresh}
-                className={styles.retryButton}
-              >
-                Retry
-              </button>
+      {/* Dashboard Grid Layout */}
+      <div className={styles.dashboardGrid}>
+        {/* Data source aware charts */}
+        <div className={styles.chartContainer}>
+          {housePricesResult.data ? (
+            <LazyChart
+              data={housePricesResult.data as ChartData}
+              title="Average House Price Over Time"
+            />
+          ) : housePricesResult.isLoading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}>Loading house prices data...</div>
             </div>
-          </div>
-        ) : null}
-      </div>
-
-      <div className={styles.chartContainer}>
-        {incomeResult.data ? (
-          <LazyChart
-            data={incomeResult.data as ChartData}
-            title="Average Household Income Over Time"
-          />
-        ) : incomeResult.isLoading ? (
-          <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}>Loading income data...</div>
-          </div>
-        ) : incomeResult.error ? (
-          <div className={styles.errorContainer}>
-            <div className={styles.errorMessage}>
-              Error loading income data: {incomeResult.error.message}
-              <button
-                onClick={incomeResult.refresh}
-                className={styles.retryButton}
-              >
-                Retry
-              </button>
+          ) : housePricesResult.error ? (
+            <div className={styles.errorContainer}>
+              <div className={styles.errorMessage}>
+                Error loading house prices: {housePricesResult.error.message}
+                <button
+                  onClick={housePricesResult.refresh}
+                  className={styles.retryButton}
+                >
+                  Retry
+                </button>
+              </div>
             </div>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Dynamic elements */}
-      {state.elements.map((element) => (
-        <div key={element.id} className={styles.chartContainer}>
-          <DynamicElementRenderer
-            element={element}
-            onRemove={removeElement}
-          />
+          ) : null}
         </div>
-      ))}
+
+        <div className={styles.chartContainer}>
+          {incomeResult.data ? (
+            <LazyChart
+              data={incomeResult.data as ChartData}
+              title="Average Household Income Over Time"
+            />
+          ) : incomeResult.isLoading ? (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loadingSpinner}>Loading income data...</div>
+            </div>
+          ) : incomeResult.error ? (
+            <div className={styles.errorContainer}>
+              <div className={styles.errorMessage}>
+                Error loading income data: {incomeResult.error.message}
+                <button
+                  onClick={incomeResult.refresh}
+                  className={styles.retryButton}
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Dynamic elements */}
+        {state.elements.map((element) => (
+          <div key={element.id} className={styles.chartContainer}>
+            <DynamicElementRenderer
+              element={element}
+              onRemove={removeElement}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

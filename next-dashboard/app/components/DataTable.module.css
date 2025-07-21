@@ -1,9 +1,12 @@
 .tableContainer {
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Remove margin since parent grid handles spacing */
   background: var(--background);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  height: 100%; /* Fill the grid cell */
+  display: flex;
+  flex-direction: column;
 }
 
 .tableHeader {
@@ -74,8 +77,9 @@
 
 .tableWrapper {
   overflow-x: auto;
-  max-height: 500px;
+  flex: 1; /* Take remaining space in flex container */
   overflow-y: auto;
+  min-height: 200px;
 }
 
 .table {

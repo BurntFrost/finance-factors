@@ -1,5 +1,8 @@
 .chartContainer {
-  margin-bottom: 2rem;
+  margin-bottom: 0; /* Remove margin since parent grid handles spacing */
+  height: 100%; /* Fill the grid cell */
+  display: flex;
+  flex-direction: column;
 }
 
 .chartHeader {
@@ -97,7 +100,8 @@
 
 .chartWrapper {
   position: relative;
-  height: 400px;
+  flex: 1; /* Take remaining space in flex container */
+  min-height: 300px;
   background: var(--background);
   border-radius: 8px;
   padding: 1rem;
@@ -138,7 +142,7 @@
   }
 
   .chartWrapper {
-    height: 300px;
+    min-height: 250px;
     padding: 0.5rem;
   }
 }
