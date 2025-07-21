@@ -56,6 +56,31 @@
   cursor: not-allowed;
 }
 
+.retryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: 1px solid #f59e0b;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: #f59e0b;
+}
+
+.retryButton:hover:not(:disabled) {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+
+.retryButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .spinning {
   animation: spin 1s linear infinite;
 }
@@ -363,12 +388,14 @@
   }
   
   .refreshButton,
+  .retryButton,
   .compactRetry {
     border-color: #4b5563;
     color: #d1d5db;
   }
-  
+
   .refreshButton:hover:not(:disabled),
+  .retryButton:hover:not(:disabled),
   .compactRetry:hover:not(:disabled) {
     background: #374151;
     border-color: #6b7280;

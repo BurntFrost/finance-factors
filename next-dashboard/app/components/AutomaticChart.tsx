@@ -106,6 +106,21 @@ export default function AutomaticChart({
         <h3 className={styles.title}>{title}</h3>
         
         <div className={styles.actions}>
+          {/* Historical data retry button - positioned to the left */}
+          {status === 'historical-fallback' && (
+            <button
+              className={styles.retryButton}
+              onClick={handleRetry}
+              disabled={isLoading}
+              title="Retry live data"
+              aria-label="Retry fetching live data"
+            >
+              <span className={isLoading ? styles.spinning : ''}>
+                🔄
+              </span>
+            </button>
+          )}
+
           {/* Refresh button */}
           <button
             className={styles.refreshButton}
@@ -154,6 +169,7 @@ export default function AutomaticChart({
                 data={displayData}
                 title=""
                 type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
+                hideHeader={true}
               />
               
               {/* Loading overlay for refresh */}
@@ -270,6 +286,7 @@ export function CompactAutomaticChart({
               data={displayData}
               title=""
               type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
+              hideHeader={true}
             />
           </Suspense>
         ) : (

@@ -33,6 +33,7 @@ interface DynamicChartProps {
   title: string;
   onRemove?: () => void;
   config?: Record<string, unknown>;
+  hideHeader?: boolean;
 }
 
 // Chart skeleton component for loading state
@@ -83,7 +84,7 @@ const RemoveButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export default function DynamicChart({ type, data, title, onRemove, config }: DynamicChartProps) {
+export default function DynamicChart({ type, data, title, onRemove, config, hideHeader = false }: DynamicChartProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -171,20 +172,22 @@ export default function DynamicChart({ type, data, title, onRemove, config }: Dy
 
   return (
     <div className={styles.chartContainer}>
-      <div className={styles.chartHeader}>
-        <div className={styles.titleSection}>
-          <h2 className={styles.chartTitle}>{title}</h2>
-          <DataStatusPill
-            status={dataStatus}
-            lastUpdated={data.lastUpdated}
-            size="small"
-          />
+      {!hideHeader && (
+        <div className={styles.chartHeader}>
+          <div className={styles.titleSection}>
+            <h2 className={styles.chartTitle}>{title}</h2>
+            <DataStatusPill
+              status={dataStatus}
+              lastUpdated={data.lastUpdated}
+              size="small"
+            />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
+            {onRemove && <RemoveButton onClick={onRemove} />}
+          </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
-          {onRemove && <RemoveButton onClick={onRemove} />}
-        </div>
-      </div>
+      )}
       <div className={styles.chartWrapper}>
         <Suspense fallback={<ChartSkeleton />}>
           <ChartRegistration />
