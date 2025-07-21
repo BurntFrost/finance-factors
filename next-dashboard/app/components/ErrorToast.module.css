@@ -1,0 +1,182 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  max-width: 400px;
+  min-width: 300px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid #dc3545;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateX(100%);
+  transition: all 0.3s ease-in-out;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.toast.error {
+  border-left-color: #dc3545;
+}
+
+.toast.warning {
+  border-left-color: #ffc107;
+}
+
+.toast.info {
+  border-left-color: #17a2b8;
+}
+
+.content {
+  padding: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.message {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.4;
+  color: #333;
+  word-wrap: break-word;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.details {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.corsHelp {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.corsHelp p {
+  margin: 0 0 8px 0;
+}
+
+.corsHelp p:last-child {
+  margin-bottom: 0;
+}
+
+.corsHelp strong {
+  color: #333;
+}
+
+.corsHelp small {
+  color: #888;
+  font-style: italic;
+}
+
+.toggleButton {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 12px;
+  text-decoration: underline;
+  padding: 4px 0;
+  margin-top: 8px;
+}
+
+.toggleButton:hover {
+  color: #0056b3;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .toast {
+    background: #2d3748;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .message {
+    color: #e2e8f0;
+  }
+
+  .closeButton {
+    color: #a0aec0;
+  }
+
+  .closeButton:hover {
+    background-color: #4a5568;
+    color: #e2e8f0;
+  }
+
+  .details {
+    border-top-color: #4a5568;
+  }
+
+  .corsHelp {
+    color: #a0aec0;
+  }
+
+  .corsHelp strong {
+    color: #e2e8f0;
+  }
+
+  .corsHelp small {
+    color: #718096;
+  }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .toast {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    max-width: none;
+    min-width: auto;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .message {
+    font-size: 13px;
+  }
+
+  .icon {
+    font-size: 16px;
+  }
+}

@@ -173,25 +173,37 @@ class BlsApiService {
    * Make HTTP request to BLS API
    */
   private async makeRequest(requestBody: BlsRequestBody): Promise<BlsApiResponse> {
-    const url = this.apiKey 
-      ? `${this.baseUrl}/timeseries/data/`
-      : 'https://api.bls.gov/publicAPI/v1/timeseries/data/';
+    try {
+      const url = this.apiKey
+        ? `${this.baseUrl}/timeseries/data/`
+        : 'https://api.bls.gov/publicAPI/v1/timeseries/data/';
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    });
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
 
-    if (!response.ok) {
-      throw new Error(`BLS API HTTP error: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`BLS API HTTP error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      // Handle CORS and network errors with more informative messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error(
+          'CORS Error: Cannot access BLS API directly from browser. ' +
+          'This is expected for GitHub Pages deployment. ' +
+          'Switch to "Sample Data" mode or set up a proper server with API proxies.'
+        );
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return data;
   }
 
   /**

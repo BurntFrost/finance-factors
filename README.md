@@ -17,14 +17,17 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 - **Accessibility**: Full keyboard navigation and screen reader support
 
 ### Performance & Deployment
-- **GitHub Pages Ready**: Zero-configuration deployment with automated CI/CD
+- **GitHub Pages Ready**: Zero-configuration deployment with automated CI/CD (uses sample data)
 - **Performance Optimized**: Lazy loading, code splitting, and intelligent caching
 - **Web Vitals Monitoring**: Built-in performance tracking and optimization
 - **Static Export**: Optimized for fast loading and SEO
+- **CORS Handling**: Smart error handling for API limitations in static deployments
 
 ## 📊 Available Data Sources
 
 ### Live APIs (Free Government Data)
+> **Note**: Live APIs require proper server setup due to CORS restrictions. GitHub Pages deployment uses sample data by default.
+
 | Data Type | Primary Source | Description | Update Frequency |
 |-----------|----------------|-------------|------------------|
 | House Prices | FRED API | Case-Shiller Home Price Index | Monthly |
@@ -33,10 +36,11 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 | Demographics | Census Bureau | Population, income statistics | Annual |
 | Market Data | Alpha Vantage | Additional economic indicators | Daily |
 
-### Sample Data
+### Sample Data (Default for GitHub Pages)
 - Realistic financial trends with volatility and seasonal patterns
 - Perfect for development, testing, and demonstrations
 - Consistent data format matching live APIs
+- No API keys or server setup required
 
 ## 🛠 Technology Stack
 

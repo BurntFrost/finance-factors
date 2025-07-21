@@ -2,7 +2,13 @@
 
 This document explains how to integrate real financial and economic data APIs into the Finance Factors dashboard.
 
-## 🚀 Quick Start
+## ⚠️ Important: CORS and Deployment Considerations
+
+**For GitHub Pages deployment**: The app defaults to sample data to avoid CORS issues. Live APIs require a proper server setup.
+
+**For local development or server deployment**: Follow the setup below to use live APIs.
+
+## 🚀 Quick Start (Local Development)
 
 1. **Copy environment file**:
    ```bash
@@ -14,7 +20,7 @@ This document explains how to integrate real financial and economic data APIs in
    - Create free account and request API key
    - Add to `.env.local`: `NEXT_PUBLIC_FRED_API_KEY=your_key_here`
 
-3. **Enable live data**:
+3. **Enable live data** (only for local development or proper server deployment):
    ```bash
    # In .env.local
    NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
@@ -24,6 +30,14 @@ This document explains how to integrate real financial and economic data APIs in
    ```bash
    npm run dev
    ```
+
+## 🌐 GitHub Pages Deployment
+
+The current GitHub Pages deployment uses sample data by default because:
+- External APIs don't allow direct browser requests (CORS policy)
+- GitHub Pages only serves static files (no server-side API proxying)
+
+See `CORS_AND_API_SETUP.md` for detailed solutions.
 
 ## 📊 Supported APIs
 

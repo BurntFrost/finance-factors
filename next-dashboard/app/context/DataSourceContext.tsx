@@ -7,7 +7,7 @@
  * It handles switching between sample and live API data sources with persistence and caching.
  */
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useState } from 'react';
 import {
   DataSourceType,
   DataSourceState,
@@ -20,7 +20,7 @@ import {
 } from '../types/dataSource';
 import { dataSourcePreference, apiCache, initializeStorage } from '../utils/localStorage';
 
-// Initial state
+// Initial state - always start with sample to avoid hydration issues
 const initialState: DataSourceState = {
   currentSource: 'sample',
   isLoading: false,
@@ -102,12 +102,20 @@ interface DataSourceProviderProps {
 
 export function DataSourceProvider({ children }: DataSourceProviderProps) {
   const [state, dispatch] = useReducer(dataSourceReducer, initialState);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Initialize storage and load saved preference on mount
+  // Initialize storage and handle hydration
   useEffect(() => {
+    // Mark as hydrated to prevent SSR mismatches
+    setIsHydrated(true);
+
     initializeStorage();
+
+    // Load saved preference only after hydration
     const savedSource = dataSourcePreference.load();
-    dispatch({ type: 'SET_SOURCE', payload: savedSource });
+    if (savedSource && savedSource !== state.currentSource) {
+      dispatch({ type: 'SET_SOURCE', payload: savedSource });
+    }
   }, []);
 
   // Check if a data source is available

@@ -208,25 +208,37 @@ class FredApiService {
    * Make HTTP request with error handling
    */
   private async makeRequest(url: string): Promise<unknown> {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`FRED API error: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`FRED API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Check for FRED API specific errors
+      if (data.error_code) {
+        throw new Error(`FRED API error: ${data.error_message}`);
+      }
+
+      return data;
+    } catch (error) {
+      // Handle CORS and network errors with more informative messages
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error(
+          'CORS Error: Cannot access FRED API directly from browser. ' +
+          'This is expected for GitHub Pages deployment. ' +
+          'Switch to "Sample Data" mode or set up a proper server with API proxies.'
+        );
+      }
+      throw error;
     }
-
-    const data = await response.json();
-
-    // Check for FRED API specific errors
-    if (data.error_code) {
-      throw new Error(`FRED API error: ${data.error_message}`);
-    }
-
-    return data;
   }
 
   /**

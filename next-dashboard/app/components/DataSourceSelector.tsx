@@ -40,7 +40,13 @@ export default function DataSourceSelector({
       await switchDataSource(source);
     } catch (error) {
       console.error('Failed to switch data source:', error);
-      // Error is handled by the context, we just need to reset the transition state
+
+      // Show user-friendly error message for CORS issues
+      if (error instanceof Error && error.message.includes('CORS')) {
+        // The error will be displayed by the context and components
+        // For now, we just log it - the UI will show the error state
+        console.warn('CORS error detected - this is expected for GitHub Pages deployment');
+      }
     } finally {
       setIsTransitioning(false);
     }

@@ -7,7 +7,7 @@
  * It allows individual charts to have their own data sources while maintaining global state consistency.
  */
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useState } from 'react';
 import {
   DataSourceType,
   ExtendedDataSourceState,
@@ -124,17 +124,21 @@ export function useExtendedDataSourceContext(): ExtendedDataSourceContextType {
 // Provider component
 export function ExtendedDataSourceProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(extendedDataSourceReducer, initialState);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Initialize storage on mount
+  // Initialize storage and handle hydration
   useEffect(() => {
+    // Mark as hydrated to prevent SSR mismatches
+    setIsHydrated(true);
+
     initializeStorage();
-    
-    // Load saved preference
+
+    // Load saved preference only after hydration
     const savedSource = dataSourcePreference.load();
     if (savedSource && savedSource !== state.currentSource) {
       dispatch({ type: 'SET_SOURCE', payload: savedSource });
     }
-  }, [state.currentSource]);
+  }, []); // Remove state.currentSource dependency to prevent loops
 
   // Check if a data source is available
   const isSourceAvailable = useCallback((source: DataSourceType): boolean => {
@@ -244,26 +248,55 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
           source: 'Sample Data Generator',
         };
       } else {
-        // For live API, use mock data for now (can be replaced with real API later)
-        const { generateSampleDataByType } = await import('../utils/sampleDataGenerators');
-        const mockLiveData = generateSampleDataByType(dataType, 'line-chart');
+        // Use real API service for live data
+        try {
+          const { realApiService } = await import('../services/realApiService');
+          const { transformers } = await import('../services/dataTransformers');
 
-        // Add some variation to make it look different from sample data
-        if (mockLiveData && 'datasets' in mockLiveData && mockLiveData.datasets) {
-          mockLiveData.datasets = mockLiveData.datasets.map(dataset => ({
-            ...dataset,
-            label: dataset.label + ' (Live)',
-            borderColor: '#28a745', // Green color for live data
-            backgroundColor: 'rgba(40, 167, 69, 0.1)',
-          }));
+          const apiResponse = await realApiService.fetchData(options);
+
+          if (apiResponse.success && apiResponse.data) {
+            const transformedData = transformers.chartData.transform(
+              apiResponse.data as Array<{ date: string; value: number; label?: string }>,
+              dataType
+            );
+
+            response = {
+              data: transformedData as T,
+              success: true,
+              timestamp: apiResponse.timestamp,
+              source: apiResponse.source,
+              metadata: apiResponse.metadata,
+            };
+          } else {
+            throw new Error(apiResponse.error || 'Failed to fetch live data');
+          }
+        } catch (apiError) {
+          // Handle CORS and other API errors gracefully
+          console.warn(`Live API failed for ${dataType}:`, apiError);
+
+          // Fall back to mock data with clear indication
+          const { mockApiService } = await import('../services/mockApiService');
+          const mockResponse = await mockApiService.fetchData(options);
+
+          if (mockResponse.success && mockResponse.data) {
+            const { transformers } = await import('../services/dataTransformers');
+            const transformedData = transformers.chartData.transform(
+              mockResponse.data as Array<{ date: string; value: number; label?: string }>,
+              dataType
+            );
+
+            response = {
+              data: transformedData as T,
+              success: true,
+              timestamp: mockResponse.timestamp,
+              source: `${mockResponse.source} (Fallback)`,
+              metadata: mockResponse.metadata,
+            };
+          } else {
+            throw apiError; // Re-throw if fallback also fails
+          }
         }
-
-        response = {
-          data: mockLiveData as T,
-          success: true,
-          timestamp: new Date(),
-          source: 'Live API (Mock)',
-        };
       }
 
       // Cache the response

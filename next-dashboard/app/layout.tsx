@@ -5,6 +5,7 @@ import { DashboardProvider } from "./context/DashboardContext";
 import { ExtendedDataSourceProvider } from "./context/ExtendedDataSourceContext";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ToastProvider } from "./components/ToastManager";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,13 +54,15 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
-          <ViewModeProvider>
-            <ExtendedDataSourceProvider>
-              <DashboardProvider>
-                {children}
-              </DashboardProvider>
-            </ExtendedDataSourceProvider>
-          </ViewModeProvider>
+          <ToastProvider>
+            <ViewModeProvider>
+              <ExtendedDataSourceProvider>
+                <DashboardProvider>
+                  {children}
+                </DashboardProvider>
+              </ExtendedDataSourceProvider>
+            </ViewModeProvider>
+          </ToastProvider>
         </ErrorBoundary>
       </body>
     </html>
