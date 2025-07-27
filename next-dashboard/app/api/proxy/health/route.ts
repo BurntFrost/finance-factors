@@ -1,15 +1,12 @@
 /**
- * API Proxy Health Check Endpoint
- * 
+ * API Proxy Health Check Endpoint - App Router Version
+ *
  * Provides status information about the API proxy services
  */
 
-import { NextApiRequest, NextApiResponse } from 'next';
-import {
-  setCorsHeaders,
-  handleCorsOptions,
-} from '../utils/proxy-utils';
-import { fredProxyService } from '../services/fred-proxy';
+import { NextRequest, NextResponse } from 'next/server';
+import { fredProxyService } from '../../services/fred-proxy';
+import { blsProxyService } from '../../services/bls-proxy';
 
 interface HealthCheckResponse {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -44,19 +41,24 @@ interface HealthCheckResponse {
 }
 
 /**
- * Health check handler
+ * Handle OPTIONS requests for CORS preflight
  */
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<HealthCheckResponse>
-): Promise<void> {
-  // Handle CORS preflight requests
-  if (handleCorsOptions(req, res)) {
-    return;
-  }
+export async function OPTIONS(request: NextRequest) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
 
-  // Set CORS headers
-  setCorsHeaders(res);
+/**
+ * Health check handler for GET requests
+ */
+export async function GET(request: NextRequest): Promise<NextResponse<HealthCheckResponse>> {
 
   try {
     // Check service configurations
@@ -77,7 +79,7 @@ export default async function handler(
         },
         bls: {
           configured: blsConfigured,
-          status: 'unknown', // Not implemented yet
+          status: blsConfigured ? 'available' : 'unavailable',
         },
         census: {
           configured: censusConfigured,
@@ -109,7 +111,14 @@ export default async function handler(
       healthCheck.status = 'degraded';
     }
 
-    res.status(200).json(healthCheck);
+    return NextResponse.json(healthCheck, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
 
   } catch (_error) {
     const errorHealthCheck: HealthCheckResponse = {
@@ -132,6 +141,13 @@ export default async function handler(
       },
     };
 
-    res.status(503).json(errorHealthCheck);
+    return NextResponse.json(errorHealthCheck, {
+      status: 503,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
   }
 }

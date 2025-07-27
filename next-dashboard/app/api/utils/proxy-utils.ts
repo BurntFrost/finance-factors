@@ -206,7 +206,7 @@ export function formatDateLabel(dateString: string): string {
 }
 
 /**
- * Validate request parameters
+ * Validate request parameters (Pages Router version)
  */
 export function validateRequest(req: NextApiRequest): { isValid: boolean; error?: ProxyError } {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -220,7 +220,38 @@ export function validateRequest(req: NextApiRequest): { isValid: boolean; error?
       },
     };
   }
-  
+
+  return { isValid: true };
+}
+
+/**
+ * Validate request body (App Router version)
+ */
+export function validateRequestBody(body: any): { isValid: boolean; error?: ProxyError } {
+  if (!body || typeof body !== 'object') {
+    return {
+      isValid: false,
+      error: {
+        type: 'validation',
+        message: 'Request body must be a valid JSON object',
+        statusCode: 400,
+        retryable: false,
+      },
+    };
+  }
+
+  if (!body.dataType || typeof body.dataType !== 'string') {
+    return {
+      isValid: false,
+      error: {
+        type: 'validation',
+        message: 'dataType parameter is required and must be a string',
+        statusCode: 400,
+        retryable: false,
+      },
+    };
+  }
+
   return { isValid: true };
 }
 
@@ -242,6 +273,24 @@ export function extractRequestOptions(req: NextApiRequest): {
       end: source.timeRange.end as string,
     } : undefined,
     useCache: source.useCache !== 'false', // Default to true
+  };
+}
+
+/**
+ * Extract request options from request body (App Router version)
+ */
+export function extractRequestOptionsFromBody(body: any): {
+  dataType: string;
+  timeRange?: { start: Date; end: Date };
+  useCache: boolean;
+} {
+  return {
+    dataType: body.dataType,
+    timeRange: body.timeRange ? {
+      start: new Date(body.timeRange.start),
+      end: new Date(body.timeRange.end),
+    } : undefined,
+    useCache: body.useCache !== false, // Default to true
   };
 }
 
