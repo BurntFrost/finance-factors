@@ -2,12 +2,12 @@
 
 /**
  * View Mode Context
- * 
+ *
  * This module provides React context for managing view mode state across the application.
  * It handles switching between different view modes like 'edit', 'live', and 'preview'.
  */
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 
 export type ViewMode = 'edit' | 'live' | 'preview';
 
@@ -42,13 +42,13 @@ export function useViewMode(): ViewModeContextType {
 }
 
 // Helper function to create state from mode
-function createStateFromMode(mode: ViewMode): ViewModeState {
+function createStateFromMode(mode: ViewMode, includeTimestamp: boolean = false): ViewModeState {
   return {
     currentMode: mode,
     isLiveViewMode: mode === 'live',
     isEditMode: mode === 'edit',
     isPreviewMode: mode === 'preview',
-    lastChanged: new Date(),
+    lastChanged: includeTimestamp ? new Date() : null,
   };
 }
 
@@ -57,31 +57,32 @@ const VIEW_MODE_STORAGE_KEY = 'finance-dashboard-view-mode';
 
 // Provider component
 export function ViewModeProvider({ children }: { children: ReactNode }) {
-  // Initialize state with default mode
-  const [state, setState] = useState<ViewModeState>(() => {
-    // Try to load from localStorage on client side
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
-        if (saved) {
-          const savedMode = JSON.parse(saved) as ViewMode;
-          if (['edit', 'live', 'preview'].includes(savedMode)) {
-            return createStateFromMode(savedMode);
-          }
+  // Initialize state with default mode (always start with 'edit' to avoid hydration issues)
+  const [state, setState] = useState<ViewModeState>(() => createStateFromMode('edit'));
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Load from localStorage after hydration to prevent hydration mismatches
+  useEffect(() => {
+    setIsHydrated(true);
+
+    // Try to load from localStorage on client side after hydration
+    try {
+      const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (saved) {
+        const savedMode = JSON.parse(saved) as ViewMode;
+        if (['edit', 'live', 'preview'].includes(savedMode)) {
+          setState(createStateFromMode(savedMode, false)); // Don't include timestamp during hydration
         }
-      } catch (error) {
-        console.warn('Failed to load view mode from localStorage:', error);
       }
+    } catch (error) {
+      console.warn('Failed to load view mode from localStorage:', error);
     }
-    
-    // Default to edit mode
-    return createStateFromMode('edit');
-  });
+  }, []);
 
   // Set view mode
   const setViewMode = useCallback((mode: ViewMode) => {
-    setState(createStateFromMode(mode));
-    
+    setState(createStateFromMode(mode, true)); // Include timestamp when actively changing mode
+
     // Persist to localStorage
     if (typeof window !== 'undefined') {
       try {

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useRef } from 'react';
 import { DashboardState, DashboardAction, DashboardElement } from '../types/dashboard';
 
 const initialState: DashboardState = {
@@ -85,11 +85,13 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
+  const elementCounterRef = useRef(0);
 
   const addElement = (element: Omit<DashboardElement, 'id' | 'createdAt' | 'updatedAt'>) => {
+    elementCounterRef.current += 1;
     const newElement: DashboardElement = {
       ...element,
-      id: `element_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `element_${elementCounterRef.current}`,
       createdAt: new Date(),
       updatedAt: new Date(),
       // Default to historical data unless explicitly specified

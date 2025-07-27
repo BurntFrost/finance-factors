@@ -148,6 +148,87 @@ export const REAL_API_ENDPOINTS: Record<string, ApiEndpoint> = {
       limit: '40', // 10 years of quarterly data
     },
   },
+  // New Economic Indicators
+  'inflation-cpi': {
+    provider: 'FRED',
+    seriesId: 'CPIAUCSL', // Consumer Price Index for All Urban Consumers
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'core-inflation': {
+    provider: 'FRED',
+    seriesId: 'CPILFESL', // Consumer Price Index for All Urban Consumers: All Items Less Food and Energy
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'fed-balance-sheet': {
+    provider: 'FRED',
+    seriesId: 'WALCL', // All Federal Reserve Banks: Total Assets
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of weekly data
+    },
+  },
+  'federal-funds-rate': {
+    provider: 'FRED',
+    seriesId: 'FEDFUNDS', // Federal Funds Effective Rate
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'money-supply-m1': {
+    provider: 'FRED',
+    seriesId: 'M1SL', // M1 Money Stock
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'money-supply-m2': {
+    provider: 'FRED',
+    seriesId: 'M2SL', // M2 Money Stock
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'treasury-10y': {
+    provider: 'FRED',
+    seriesId: 'GS10', // 10-Year Treasury Constant Maturity Rate
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
+  'treasury-2y': {
+    provider: 'FRED',
+    seriesId: 'GS2', // 2-Year Treasury Constant Maturity Rate
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120', // 10 years of monthly data
+    },
+  },
 };
 
 // Available data source configurations
@@ -290,6 +371,17 @@ export const DATA_TYPE_MAPPINGS: Record<string, string> = {
   'food-prices': 'food',
   'utilities-costs': 'utilities',
   'investment-returns': 'investments',
+  // New Economic Indicators
+  'inflation-cpi': 'economic',
+  'core-inflation': 'economic',
+  'fed-balance-sheet': 'economic',
+  'federal-funds-rate': 'economic',
+  'unemployment-rate': 'economic',
+  'gdp-growth': 'economic',
+  'money-supply-m1': 'economic',
+  'money-supply-m2': 'economic',
+  'treasury-10y': 'economic',
+  'treasury-2y': 'economic',
 };
 
 // Per-chart data source configuration

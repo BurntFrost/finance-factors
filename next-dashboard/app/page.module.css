@@ -37,6 +37,15 @@
   align-items: stretch;
 }
 
+/* 3-column layout for larger screens with many charts */
+@media (min-width: 1200px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    grid-auto-rows: minmax(320px, auto);
+  }
+}
+
 .chartContainer {
   margin-bottom: 0; /* Remove bottom margin since grid handles spacing */
   /* Improve chart container performance */
@@ -181,11 +190,20 @@
 /* Large screen adjustments */
 @media (min-width: 1400px) {
   .container {
-    max-width: 1600px;
+    max-width: 1800px;
   }
 
   .dashboardGrid {
-    gap: 2.5rem;
-    grid-auto-rows: minmax(350px, auto);
+    gap: 2rem;
+    grid-auto-rows: minmax(340px, auto);
+  }
+}
+
+/* Extra large screens - 4 columns for maximum space utilization */
+@media (min-width: 1600px) {
+  .dashboardGrid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    grid-auto-rows: minmax(320px, auto);
   }
 }

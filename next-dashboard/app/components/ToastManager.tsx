@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useRef } from 'react';
 import ErrorToast from './ErrorToast';
 
 interface Toast {
@@ -33,13 +33,15 @@ interface ToastProviderProps {
 
 export function ToastProvider({ children }: ToastProviderProps) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastCounterRef = useRef(0);
 
   const showToast = useCallback((
-    message: string, 
+    message: string,
     type: Toast['type'] = 'error',
     options: { duration?: number; showDetails?: boolean } = {}
   ) => {
-    const id = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    toastCounterRef.current += 1;
+    const id = `toast_${toastCounterRef.current}`;
     const newToast: Toast = {
       id,
       message,

@@ -71,6 +71,77 @@ export const DATA_TYPES: DataType[] = [
     description: 'Stock market performance and investment data',
     icon: '📈',
     category: 'financial'
+  },
+  // New Economic Indicators
+  {
+    id: 'inflation-cpi',
+    name: 'Consumer Price Index (CPI)',
+    description: 'Consumer Price Index trends and inflation data',
+    icon: '📊',
+    category: 'economic'
+  },
+  {
+    id: 'core-inflation',
+    name: 'Core Inflation',
+    description: 'Core inflation rates excluding food and energy',
+    icon: '🎯',
+    category: 'economic'
+  },
+  {
+    id: 'fed-balance-sheet',
+    name: 'Federal Reserve Balance Sheet',
+    description: 'Total assets held by the Federal Reserve',
+    icon: '🏦',
+    category: 'economic'
+  },
+  {
+    id: 'federal-funds-rate',
+    name: 'Federal Funds Rate',
+    description: 'Federal funds effective interest rate',
+    icon: '💹',
+    category: 'economic'
+  },
+  {
+    id: 'unemployment-rate',
+    name: 'Unemployment Rate',
+    description: 'National unemployment rate trends',
+    icon: '👥',
+    category: 'economic'
+  },
+  {
+    id: 'gdp-growth',
+    name: 'GDP Growth Rate',
+    description: 'Gross Domestic Product growth rates',
+    icon: '🌟',
+    category: 'economic'
+  },
+  {
+    id: 'money-supply-m1',
+    name: 'Money Supply (M1)',
+    description: 'M1 money supply including currency and demand deposits',
+    icon: '💵',
+    category: 'economic'
+  },
+  {
+    id: 'money-supply-m2',
+    name: 'Money Supply (M2)',
+    description: 'M2 money supply including savings and time deposits',
+    icon: '💴',
+    category: 'economic'
+  },
+  {
+    id: 'treasury-10y',
+    name: '10-Year Treasury Yield',
+    description: '10-year Treasury constant maturity rate',
+    icon: '📜',
+    category: 'economic'
+  },
+  {
+    id: 'treasury-2y',
+    name: '2-Year Treasury Yield',
+    description: '2-year Treasury constant maturity rate',
+    icon: '📋',
+    category: 'economic'
   }
 ];
 
@@ -82,7 +153,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Perfect for showing trends over time',
     icon: '📈',
     category: 'chart',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
   },
   {
     id: 'bar-chart',
@@ -90,7 +161,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Great for comparing values across categories',
     icon: '📊',
     category: 'chart',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
   },
   {
     id: 'pie-chart',
@@ -114,7 +185,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Display detailed data in tabular format',
     icon: '📋',
     category: 'data',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
   },
   {
     id: 'summary-card',
@@ -122,7 +193,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Show key metrics and single values',
     icon: '📄',
     category: 'widget',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
   }
 ];
 

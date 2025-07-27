@@ -6,6 +6,7 @@ import AddElementDropdown, { ElementType } from './components/AddElementDropdown
 import DynamicElementRenderer from './components/DynamicElementRenderer';
 import ViewModeToggle from './components/ViewModeToggle';
 import ApiHealthStatus from './components/ApiHealthStatus';
+import HydrationSafeWrapper from './components/HydrationSafeWrapper';
 import { useDashboard } from './context/DashboardContext';
 import { useViewMode } from './context/ViewModeContext';
 import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from './utils/historicalDataGenerators';
@@ -54,7 +55,9 @@ export default function Home() {
         <div className={styles.headerContent}>
           <h1>Finance Factor Dashboard</h1>
           <ViewModeToggle size="medium" />
-          <ApiHealthStatus className="ml-4" />
+          <HydrationSafeWrapper fallback={<div className="ml-4 p-3 bg-gray-50 rounded-lg">Loading API status...</div>}>
+            <ApiHealthStatus className="ml-4" />
+          </HydrationSafeWrapper>
         </div>
         {viewModeState.isEditMode && (
           <AddElementDropdown
@@ -83,6 +86,127 @@ export default function Home() {
           <AutomaticChart
             dataType="salary-income"
             title="Average Household Income Over Time"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        {/* Economic Indicators */}
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="inflation-cpi"
+            title="Consumer Price Index (CPI)"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="core-inflation"
+            title="Core Inflation Rate"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="fed-balance-sheet"
+            title="Federal Reserve Balance Sheet"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="federal-funds-rate"
+            title="Federal Funds Rate"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="unemployment-rate"
+            title="Unemployment Rate"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="gdp-growth"
+            title="GDP Growth Rate"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="money-supply-m1"
+            title="Money Supply (M1)"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="money-supply-m2"
+            title="Money Supply (M2)"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="treasury-10y"
+            title="10-Year Treasury Yield"
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+          />
+        </div>
+
+        <div className={styles.chartContainer}>
+          <AutomaticChart
+            dataType="treasury-2y"
+            title="2-Year Treasury Yield"
             chartType="line"
             height={400}
             showIndicator={true}

@@ -6,14 +6,40 @@ const CHART_COLORS = {
   background: ['rgba(75,192,192,0.2)', 'rgba(255,99,132,0.2)', 'rgba(54,162,235,0.2)', 'rgba(255,206,86,0.2)', 'rgba(153,102,255,0.2)'],
 };
 
-// Generate random number within range
+// Deterministic pseudo-random number generator using a seed
+// This ensures consistent data generation across server and client
+class SeededRandom {
+  private seed: number;
+
+  constructor(seed: number) {
+    this.seed = seed;
+  }
+
+  next(): number {
+    this.seed = (this.seed * 9301 + 49297) % 233280;
+    return this.seed / 233280;
+  }
+
+  inRange(min: number, max: number): number {
+    return Math.floor(this.next() * (max - min + 1)) + min;
+  }
+
+  floatInRange(min: number, max: number): number {
+    return this.next() * (max - min) + min;
+  }
+}
+
+// Create a global seeded random instance for consistent data generation
+const seededRandom = new SeededRandom(12345); // Fixed seed for consistency
+
+// Generate random number within range (deterministic)
 const randomInRange = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return seededRandom.inRange(min, max);
 };
 
-// Generate random float within range
+// Generate random float within range (deterministic)
 const randomFloatInRange = (min: number, max: number): number => {
-  return Math.random() * (max - min) + min;
+  return seededRandom.floatInRange(min, max);
 };
 
 // Generate years array
@@ -159,7 +185,7 @@ export function generateSummaryCards(): SummaryCardData[] {
       value: randomInRange(500000, 2000000),
       change: {
         value: randomFloatInRange(-10, 15),
-        type: Math.random() > 0.5 ? 'increase' : 'decrease',
+        type: seededRandom.next() > 0.5 ? 'increase' : 'decrease',
         period: 'vs last month'
       },
       icon: '💰',
@@ -187,7 +213,7 @@ export function generateSummaryCards(): SummaryCardData[] {
       value: randomInRange(4000, 12000),
       change: {
         value: randomFloatInRange(-5, 3),
-        type: Math.random() > 0.3 ? 'decrease' : 'increase',
+        type: seededRandom.next() > 0.3 ? 'decrease' : 'increase',
         period: 'vs last month'
       },
       icon: '💸',
@@ -201,7 +227,7 @@ export function generateSummaryCards(): SummaryCardData[] {
       value: `${randomInRange(15, 45)}%`,
       change: {
         value: randomFloatInRange(-2, 5),
-        type: Math.random() > 0.4 ? 'increase' : 'neutral',
+        type: seededRandom.next() > 0.4 ? 'increase' : 'neutral',
         period: 'vs last quarter'
       },
       icon: '🏦',
@@ -295,7 +321,7 @@ export function generateElementTitleByType(dataTypeId: string, visualizationType
     return generateElementTitle(visualizationType);
   }
 
-  return visualizationTemplates[Math.floor(Math.random() * visualizationTemplates.length)];
+  return visualizationTemplates[Math.floor(seededRandom.next() * visualizationTemplates.length)];
 }
 
 // Generate appropriate titles for different element types (legacy support)
@@ -310,7 +336,7 @@ export function generateElementTitle(elementType: string): string {
   };
 
   const typeTitle = titles[elementType as keyof typeof titles] || ['New Element'];
-  return typeTitle[Math.floor(Math.random() * typeTitle.length)];
+  return typeTitle[Math.floor(seededRandom.next() * typeTitle.length)];
 }
 
 // Data type-specific generators for line charts
@@ -369,6 +395,137 @@ function generateLineChartDataForType(dataTypeId: string): ChartData {
         ]
       };
 
+    // New Economic Indicators
+    case 'inflation-cpi':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'Consumer Price Index',
+            data: years.map((_, i) => 250 + i * 6 + randomFloatInRange(-3, 8)), // Base 250, ~2.5% annual growth
+            borderColor: CHART_COLORS.primary[0],
+            backgroundColor: CHART_COLORS.background[0],
+          }
+        ]
+      };
+
+    case 'core-inflation':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'Core Inflation Rate (%)',
+            data: years.map((_, i) => 2.0 + randomFloatInRange(-0.5, 1.5)), // Around 2% target
+            borderColor: CHART_COLORS.primary[1],
+            backgroundColor: CHART_COLORS.background[1],
+          }
+        ]
+      };
+
+    case 'fed-balance-sheet':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'Fed Balance Sheet (Trillions USD)',
+            data: years.map((_, i) => 4.0 + i * 0.8 + randomFloatInRange(-0.3, 0.5)), // Growing trend
+            borderColor: CHART_COLORS.primary[2],
+            backgroundColor: CHART_COLORS.background[2],
+          }
+        ]
+      };
+
+    case 'federal-funds-rate':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'Federal Funds Rate (%)',
+            data: years.map((_, i) => Math.max(0, 0.5 + i * 0.4 + randomFloatInRange(-0.3, 0.8))), // Gradual increase
+            borderColor: CHART_COLORS.primary[3],
+            backgroundColor: CHART_COLORS.background[3],
+          }
+        ]
+      };
+
+    case 'unemployment-rate':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'Unemployment Rate (%)',
+            data: years.map(() => 3.5 + randomFloatInRange(-1.0, 2.5)), // Around 3.5-6%
+            borderColor: CHART_COLORS.primary[4],
+            backgroundColor: CHART_COLORS.background[4],
+          }
+        ]
+      };
+
+    case 'gdp-growth':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'GDP Growth Rate (%)',
+            data: years.map(() => 2.5 + randomFloatInRange(-1.5, 2.0)), // Around 2-3% growth
+            borderColor: CHART_COLORS.primary[0],
+            backgroundColor: CHART_COLORS.background[0],
+          }
+        ]
+      };
+
+    case 'money-supply-m1':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'M1 Money Supply (Trillions USD)',
+            data: years.map((_, i) => 3.5 + i * 0.6 + randomFloatInRange(-0.2, 0.4)), // Growing trend
+            borderColor: CHART_COLORS.primary[1],
+            backgroundColor: CHART_COLORS.background[1],
+          }
+        ]
+      };
+
+    case 'money-supply-m2':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: 'M2 Money Supply (Trillions USD)',
+            data: years.map((_, i) => 15.0 + i * 1.2 + randomFloatInRange(-0.5, 0.8)), // Growing trend
+            borderColor: CHART_COLORS.primary[2],
+            backgroundColor: CHART_COLORS.background[2],
+          }
+        ]
+      };
+
+    case 'treasury-10y':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: '10-Year Treasury Yield (%)',
+            data: years.map((_, i) => 2.0 + i * 0.3 + randomFloatInRange(-0.4, 0.6)), // Gradual increase
+            borderColor: CHART_COLORS.primary[3],
+            backgroundColor: CHART_COLORS.background[3],
+          }
+        ]
+      };
+
+    case 'treasury-2y':
+      return {
+        labels: years,
+        datasets: [
+          {
+            label: '2-Year Treasury Yield (%)',
+            data: years.map((_, i) => 1.5 + i * 0.4 + randomFloatInRange(-0.3, 0.5)), // Gradual increase
+            borderColor: CHART_COLORS.primary[4],
+            backgroundColor: CHART_COLORS.background[4],
+          }
+        ]
+      };
+
     default:
       return generateLineChartData();
   }
@@ -401,6 +558,49 @@ function generateBarChartDataForType(dataTypeId: string): ChartData {
             data: industries.map(() => randomInRange(40000, 120000)),
             borderColor: CHART_COLORS.primary[2],
             backgroundColor: CHART_COLORS.background[2],
+          }
+        ]
+      };
+
+    // New Economic Indicators for Bar Charts
+    case 'inflation-cpi':
+      const inflationPeriods = ['2019', '2020', '2021', '2022', '2023', '2024'];
+      return {
+        labels: inflationPeriods,
+        datasets: [
+          {
+            label: 'Annual Inflation Rate (%)',
+            data: inflationPeriods.map(() => randomFloatInRange(1.0, 6.0)),
+            borderColor: CHART_COLORS.primary[0],
+            backgroundColor: CHART_COLORS.background[0],
+          }
+        ]
+      };
+
+    case 'unemployment-rate':
+      const unemploymentRegions = ['Northeast', 'Southeast', 'Midwest', 'Southwest', 'West'];
+      return {
+        labels: unemploymentRegions,
+        datasets: [
+          {
+            label: 'Regional Unemployment Rate (%)',
+            data: unemploymentRegions.map(() => randomFloatInRange(2.5, 7.0)),
+            borderColor: CHART_COLORS.primary[4],
+            backgroundColor: CHART_COLORS.background[4],
+          }
+        ]
+      };
+
+    case 'gdp-growth':
+      const gdpQuarters = ['Q1 2023', 'Q2 2023', 'Q3 2023', 'Q4 2023', 'Q1 2024', 'Q2 2024'];
+      return {
+        labels: gdpQuarters,
+        datasets: [
+          {
+            label: 'Quarterly GDP Growth (%)',
+            data: gdpQuarters.map(() => randomFloatInRange(1.0, 4.5)),
+            borderColor: CHART_COLORS.primary[0],
+            backgroundColor: CHART_COLORS.background[0],
           }
         ]
       };
@@ -493,7 +693,7 @@ function generateSummaryCardsForType(dataTypeId: string): SummaryCardData[] {
           value: randomInRange(300000, 600000),
           change: {
             value: randomFloatInRange(-5, 15),
-            type: Math.random() > 0.3 ? 'increase' : 'decrease',
+            type: seededRandom.next() > 0.3 ? 'increase' : 'decrease',
             period: 'vs last year'
           },
           icon: '🏠',
@@ -504,7 +704,7 @@ function generateSummaryCardsForType(dataTypeId: string): SummaryCardData[] {
           value: randomInRange(150, 400),
           change: {
             value: randomFloatInRange(-3, 10),
-            type: Math.random() > 0.4 ? 'increase' : 'neutral',
+            type: seededRandom.next() > 0.4 ? 'increase' : 'neutral',
             period: 'vs last year'
           },
           icon: '📐',
@@ -515,7 +715,7 @@ function generateSummaryCardsForType(dataTypeId: string): SummaryCardData[] {
           value: randomInRange(20, 90),
           change: {
             value: randomFloatInRange(-20, 10),
-            type: Math.random() > 0.6 ? 'decrease' : 'increase',
+            type: seededRandom.next() > 0.6 ? 'decrease' : 'increase',
             period: 'vs last year'
           },
           icon: '📅',
@@ -526,7 +726,7 @@ function generateSummaryCardsForType(dataTypeId: string): SummaryCardData[] {
           value: `${randomFloatInRange(1.5, 6.0).toFixed(1)} months`,
           change: {
             value: randomFloatInRange(-15, 25),
-            type: Math.random() > 0.5 ? 'increase' : 'decrease',
+            type: seededRandom.next() > 0.5 ? 'increase' : 'decrease',
             period: 'vs last year'
           },
           icon: '📊',
@@ -552,7 +752,7 @@ function generateSummaryCardsForType(dataTypeId: string): SummaryCardData[] {
           value: randomInRange(45000, 85000),
           change: {
             value: randomFloatInRange(-1, 6),
-            type: Math.random() > 0.2 ? 'increase' : 'neutral',
+            type: seededRandom.next() > 0.2 ? 'increase' : 'neutral',
             period: 'vs last year'
           },
           icon: '📈',

@@ -302,6 +302,47 @@ class RealApiService {
         description: 'Gross Domestic Product',
         configured: fredApiService.isConfigured(),
       },
+      // New Economic Indicators
+      'inflation-cpi': {
+        provider: 'FRED',
+        description: 'Consumer Price Index for All Urban Consumers',
+        configured: fredApiService.isConfigured(),
+      },
+      'core-inflation': {
+        provider: 'FRED',
+        description: 'Consumer Price Index Less Food and Energy',
+        configured: fredApiService.isConfigured(),
+      },
+      'fed-balance-sheet': {
+        provider: 'FRED',
+        description: 'All Federal Reserve Banks: Total Assets',
+        configured: fredApiService.isConfigured(),
+      },
+      'federal-funds-rate': {
+        provider: 'FRED',
+        description: 'Federal Funds Effective Rate',
+        configured: fredApiService.isConfigured(),
+      },
+      'money-supply-m1': {
+        provider: 'FRED',
+        description: 'M1 Money Stock',
+        configured: fredApiService.isConfigured(),
+      },
+      'money-supply-m2': {
+        provider: 'FRED',
+        description: 'M2 Money Stock',
+        configured: fredApiService.isConfigured(),
+      },
+      'treasury-10y': {
+        provider: 'FRED',
+        description: '10-Year Treasury Constant Maturity Rate',
+        configured: fredApiService.isConfigured(),
+      },
+      'treasury-2y': {
+        provider: 'FRED',
+        description: '2-Year Treasury Constant Maturity Rate',
+        configured: fredApiService.isConfigured(),
+      },
     };
   }
 
