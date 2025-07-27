@@ -44,7 +44,7 @@ async function testEndpoint(url: string): Promise<{ status: string; responseTime
       status: response.ok ? 'available' : 'error',
       responseTime: Date.now() - startTime,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       status: 'unavailable',
       responseTime: Date.now() - startTime,

@@ -138,8 +138,7 @@ class ChartDataTransformer extends BaseTransformer<ApiTimeSeriesData[], ChartDat
 
 // Multi-series chart data transformer
 class MultiSeriesChartDataTransformer extends BaseTransformer<Record<string, ApiTimeSeriesData[]>, ChartData> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  transform(input: Record<string, ApiTimeSeriesData[]>, dataType: string): ChartData {
+  transform(input: Record<string, ApiTimeSeriesData[]>, _dataType: string): ChartData {
     const seriesNames = Object.keys(input);
     if (seriesNames.length === 0) {
       return this.createEmptyMultiSeriesChartData();

@@ -6,9 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  DeploymentHealthCheck, 
-  HealthCheckError,
+import {
+  DeploymentHealthCheck,
   HealthCheckResult
 } from '../../types/health';
 import {
@@ -58,7 +57,7 @@ async function checkApiRoutes(baseUrl: string) {
     routes.health = checks[0].status === 'fulfilled' && checks[0].value.status === 'available';
     routes.data = checks[1].status === 'fulfilled' && checks[1].value.status === 'available';
     routes.proxy = checks[2].status === 'fulfilled' && checks[2].value.status === 'available';
-  } catch (error) {
+  } catch (_error) {
     // Routes check failed, all remain false
   }
 
@@ -82,7 +81,7 @@ async function checkPageRoutes(baseUrl: string) {
 
     routes.home = checks[0].status === 'fulfilled' && checks[0].value.status === 'available';
     routes.dashboard = checks[1].status === 'fulfilled' && checks[1].value.status === 'available';
-  } catch (error) {
+  } catch (_error) {
     // Page routes check failed, all remain false
   }
 
@@ -106,7 +105,7 @@ async function checkSecurityHeaders(baseUrl: string) {
     headers.cors = responseHeaders.has('access-control-allow-origin');
     headers.csp = responseHeaders.has('content-security-policy');
     headers.hsts = responseHeaders.has('strict-transport-security');
-  } catch (error) {
+  } catch (_error) {
     // Security headers check failed, all remain false
   }
 
@@ -331,7 +330,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { checkType, options = {} } = body;
+    const { checkType, options: _options = {} } = body;
 
     switch (checkType) {
       case 'quick-check':

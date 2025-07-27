@@ -199,7 +199,7 @@ export interface HealthCheckResult {
   message: string;
   duration: number;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 // Alert definition
@@ -227,7 +227,7 @@ export interface HealthCheckError {
   error: {
     code: string;
     message: string;
-    details?: Record<string, any>;
+    details?: Record<string, unknown>;
   };
   performance?: Partial<PerformanceMetrics>;
 }

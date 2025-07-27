@@ -193,7 +193,7 @@ export async function checkStaticAssets(baseUrl: string): Promise<{
     assetChecks.js = checks[1].status === 'fulfilled' && checks[1].value.ok;
     assetChecks.images = checks[2].status === 'fulfilled' && checks[2].value.ok;
     assetChecks.fonts = checks[3].status === 'fulfilled' && checks[3].value.ok;
-  } catch (error) {
+  } catch (_error) {
     // Assets check failed, return false for all
   }
   
@@ -256,7 +256,7 @@ export function createHealthCheckResult(
   status: HealthStatus,
   message: string,
   startTime: number,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): HealthCheckResult {
   return {
     name,
@@ -274,7 +274,7 @@ export function createHealthCheckResult(
 export function createHealthCheckError(
   code: string,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): HealthCheckError {
   return {
     status: 'error',

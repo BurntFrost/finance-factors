@@ -6,9 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  DashboardHealthCheck, 
-  HealthCheckError,
+import {
+  DashboardHealthCheck,
   HealthCheckResult
 } from '../../types/health';
 import {
@@ -137,7 +136,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
   const url = new URL(request.url);
   const includeWebVitals = url.searchParams.get('webVitals') === 'true';
-  const testDataSources = url.searchParams.get('testDataSources') === 'true';
+  const shouldTestDataSources = url.searchParams.get('testDataSources') === 'true';
 
   try {
     // Get performance metrics
@@ -148,7 +147,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     // Test data sources if requested
     let dataSources;
-    if (testDataSources) {
+    if (shouldTestDataSources) {
       dataSources = await testDataSources();
     } else {
       // Quick check without actual API calls
@@ -264,7 +263,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { webVitals, userAgent, url: pageUrl } = body;
+    const { webVitals, userAgent: _userAgent, url: _pageUrl } = body;
 
     // In a real implementation, you would store these metrics
     // For now, we'll just validate and return them

@@ -6,9 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  VercelHealthCheck, 
-  HealthCheckError 
+import {
+  VercelHealthCheck
 } from '../../types/health';
 import {
   getPerformanceMetrics,

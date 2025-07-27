@@ -6,9 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  MonitoringHealthCheck, 
-  HealthCheckError,
+import {
+  MonitoringHealthCheck,
   HealthCheckResult,
   Alert
 } from '../../types/health';
@@ -17,8 +16,6 @@ import {
   createHealthCheckError,
   createHealthCheckResult,
   determineOverallStatus,
-  generateAlerts,
-  checkApiServiceHealth,
   checkEnvironmentVariables,
   isVercelEnvironment,
   getVercelDeploymentInfo,
@@ -341,7 +338,7 @@ function generatePrometheusMetrics(healthCheck: MonitoringHealthCheck): string {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { action, webhook, customChecks } = body;
+    const { action, webhook: _webhook, customChecks } = body;
 
     switch (action) {
       case 'webhook':

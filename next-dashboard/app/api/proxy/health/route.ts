@@ -6,14 +6,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { fredProxyService } from '../../services/fred-proxy';
-import { blsProxyService } from '../../services/bls-proxy';
-import { censusProxyService } from '../../services/census-proxy';
-import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
 import {
-  ApiHealthCheck,
-  HealthCheckError,
-  DEFAULT_HEALTH_CONFIG
+  ApiHealthCheck
 } from '../../types/health';
 import {
   getPerformanceMetrics,
