@@ -51,55 +51,151 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 - **Performance**: Lazy loading, code splitting, and intelligent caching
 - **Deployment**: GitHub Pages with automated workflows
 
-## 🏗 Architecture & Project Structure
+## 🏗 Architecture & Design
 
-### Component Architecture
+### System Architecture Overview
+
+The Finance Factors Dashboard follows a modern React architecture with clear separation of concerns:
+
 ```
-DataSourceProvider (Context)
-├── DataSourceSelector (UI Component)
-├── Page Components
-│   ├── LazyChart (data source aware)
-│   ├── DynamicChart (data source aware)
-│   ├── DataStatusPill (status indicators)
-│   └── DynamicElementRenderer
-└── Services Layer
-    ├── realApiService (API orchestrator)
-    ├── fredApiService (FRED API client)
-    ├── blsApiService (BLS API client)
-    ├── censusApiService (Census API client)
-    └── mockApiService (development/testing)
+┌─────────────────────────────────────────────────────────────┐
+│                    Next.js 15 App Router                    │
+├─────────────────────────────────────────────────────────────┤
+│  Context Providers (Global State Management)               │
+│  ├── DashboardProvider (Element management)                │
+│  ├── AutomaticDataSourceProvider (Data source switching)   │
+│  └── ViewModeProvider (Edit/Live mode toggle)              │
+├─────────────────────────────────────────────────────────────┤
+│  Component Layer                                            │
+│  ├── AutomaticChart (Smart chart with data source aware)   │
+│  ├── DynamicElementRenderer (Dynamic dashboard elements)   │
+│  ├── DataStatusPill (Real-time status indicators)         │
+│  └── UI Components (Dropdowns, toggles, controls)         │
+├─────────────────────────────────────────────────────────────┤
+│  Hooks Layer (Custom React Hooks)                          │
+│  ├── useDataSource (Data fetching & caching)              │
+│  ├── useDashboard (Dashboard state management)            │
+│  └── useViewMode (Edit/Live mode state)                   │
+├─────────────────────────────────────────────────────────────┤
+│  Services Layer (Data & API Management)                    │
+│  ├── realApiService (Live government APIs orchestrator)    │
+│  ├── dataTransformers (Data format standardization)       │
+│  ├── historicalDataGenerators (Sample data generation)    │
+│  └── apiCache (Intelligent caching with TTL)              │
+├─────────────────────────────────────────────────────────────┤
+│  External APIs (Government Data Sources)                   │
+│  ├── FRED API (Federal Reserve Economic Data)              │
+│  ├── BLS API (Bureau of Labor Statistics)                  │
+│  ├── Census Bureau API (Demographics & Housing)            │
+│  └── Alpha Vantage API (Additional economic indicators)    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Data Flow Architecture
+
+```
+User Interaction
+       ↓
+Context Providers (State Management)
+       ↓
+Custom Hooks (useDataSource, useDashboard)
+       ↓
+Services Layer (API calls, caching, transformations)
+       ↓
+External APIs / Historical Data Generators
+       ↓
+Data Transformers (Standardize format)
+       ↓
+Chart.js Components (Visualization)
+       ↓
+User Interface (Interactive charts & controls)
 ```
 
 ### Project Structure
 ```
 next-dashboard/
-├── app/
-│   ├── components/
-│   │   ├── LazyChart.tsx           # Lazy-loaded chart component
-│   │   ├── DataSourceSelector.tsx  # Data source toggle UI
-│   │   ├── DataStatusPill.tsx      # Data freshness indicators
-│   │   └── ChartRegistration.tsx   # Chart.js registration
-│   ├── context/
-│   │   └── DataSourceContext.tsx   # Global state management
-│   ├── hooks/
-│   │   └── useDataSource.ts        # Custom data hooks
-│   ├── services/
-│   │   ├── realApiService.ts       # Live API integration
-│   │   └── mockApiService.ts       # Historical data service
-│   ├── layout.tsx                  # Root layout with optimizations
+├── app/                            # Next.js 15 App Router
+│   ├── components/                 # React Components
+│   │   ├── AutomaticChart.tsx      # Smart chart with data source awareness
+│   │   ├── DynamicElementRenderer.tsx # Dynamic dashboard elements
+│   │   ├── AddElementDropdown.tsx  # Element creation interface
+│   │   ├── DataStatusPill.tsx      # Real-time status indicators
+│   │   ├── ViewModeToggle.tsx      # Edit/Live mode switcher
+│   │   ├── ApiHealthStatus.tsx     # API connectivity status
+│   │   ├── ErrorBoundary.tsx       # Error handling wrapper
+│   │   ├── ToastManager.tsx        # Notification system
+│   │   └── HydrationSafeWrapper.tsx # SSR hydration safety
+│   ├── context/                    # React Context Providers
+│   │   ├── DashboardContext.tsx    # Dashboard state management
+│   │   ├── AutomaticDataSourceContext.tsx # Data source switching
+│   │   └── ViewModeContext.tsx     # Edit/Live mode state
+│   ├── hooks/                      # Custom React Hooks
+│   │   ├── useDataSource.ts        # Data fetching & caching
+│   │   ├── useDashboard.ts         # Dashboard operations
+│   │   └── useViewMode.ts          # View mode management
+│   ├── services/                   # Data Services Layer
+│   │   ├── realApiService.ts       # Live API orchestrator
+│   │   ├── dataTransformers.ts     # Data format standardization
+│   │   ├── apiCache.ts             # Intelligent caching system
+│   │   └── mockApiService.ts       # Development/testing data
+│   ├── utils/                      # Utility Functions
+│   │   ├── historicalDataGenerators.ts # Sample data generation
+│   │   ├── localStorage.ts         # Browser storage utilities
+│   │   └── apiHelpers.ts           # API utility functions
+│   ├── types/                      # TypeScript Definitions
+│   │   ├── dashboard.ts            # Dashboard-related types
+│   │   ├── api.ts                  # API response types
+│   │   └── chart.ts                # Chart.js type extensions
+│   ├── config/                     # Configuration Files
+│   │   ├── apiConfig.ts            # API endpoints & settings
+│   │   └── chartConfig.ts          # Chart.js default configurations
+│   ├── layout.tsx                  # Root layout with providers
 │   ├── page.tsx                    # Main dashboard page
-│   └── globals.css                 # Global styles
-├── .github/workflows/
-│   └── deploy.yml                  # GitHub Pages deployment
-├── next.config.ts                  # Next.js configuration
-└── package.json                    # Dependencies and scripts
+│   ├── page.module.css             # Page-specific styles
+│   └── globals.css                 # Global styles & CSS variables
+├── .github/workflows/              # CI/CD Pipeline
+│   └── deploy.yml                  # Automated GitHub Pages deployment
+├── scripts/                        # Build & Development Scripts
+│   └── test-apis.js                # API connectivity testing
+├── next.config.ts                  # Next.js configuration & optimizations
+├── package.json                    # Dependencies & npm scripts
+├── tsconfig.json                   # TypeScript configuration
+└── Documentation/                  # Feature Documentation
+    ├── API_INTEGRATION.md          # API setup guide
+    ├── DATA_SOURCE_FEATURE.md      # Data source switching
+    ├── CHART_REFRESH_FEATURE.md    # Manual refresh functionality
+    ├── DATA_STATUS_PILLS_FEATURE.md # Status indicators
+    └── GITHUB_DEPLOYMENT.md        # Deployment instructions
 ```
 
-## 🚀 Quick Start
+### Key Design Patterns
+
+#### 1. **Context-Driven Architecture**
+- **Global State Management**: React Context API for cross-component state sharing
+- **Provider Pattern**: Nested providers for different concerns (Dashboard, DataSource, ViewMode)
+- **Separation of Concerns**: Each context handles a specific domain of functionality
+
+#### 2. **Smart Component Pattern**
+- **AutomaticChart**: Intelligent chart component that adapts to data source changes
+- **Data Source Awareness**: Components automatically react to data source switching
+- **Lazy Loading**: Chart.js components loaded on-demand for performance
+
+#### 3. **Service Layer Pattern**
+- **API Orchestration**: Single service coordinates multiple government APIs
+- **Data Transformation**: Consistent data format across different API sources
+- **Caching Strategy**: Intelligent caching with TTL and request deduplication
+
+#### 4. **Error Boundary Pattern**
+- **Graceful Degradation**: Fallback to historical data when APIs fail
+- **User-Friendly Errors**: Clear error messages with recovery suggestions
+- **Resilient UI**: Application continues functioning despite individual component failures
+
+## 🚀 Quick Start & Usage
 
 ### Prerequisites
-- Node.js 18+ (Node.js 20+ recommended)
-- npm, yarn, or pnpm package manager
+- **Node.js 18+** (Node.js 20+ recommended for optimal performance)
+- **Package Manager**: npm, yarn, or pnpm
+- **Modern Browser**: Chrome 90+, Firefox 88+, Safari 14+, Edge 90+
 
 ### Installation & Setup
 
@@ -120,7 +216,7 @@ next-dashboard/
 
 3. **Configure APIs (Optional for live data)**
    ```bash
-   # Copy environment template
+   # Copy environment template (if available)
    cp .env.example .env.local
 
    # Add your API keys for live data (see API Integration section)
@@ -142,14 +238,36 @@ next-dashboard/
 
 ### Available Scripts
 
-- `npm run dev` - Start development server with Turbopack
-- `npm run build` - Build for production
-- `npm run build:github` - Build for GitHub Pages deployment
-- `npm run build:analyze` - Build with bundle analysis
-- `npm run deploy:local` - Test GitHub Pages build locally
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run test:apis` - Test API connectivity
+| Script | Description | Use Case |
+|--------|-------------|----------|
+| `npm run dev` | Start development server with Turbopack | Local development |
+| `npm run build` | Build for production | Standard production build |
+| `npm run build:github` | Build for GitHub Pages deployment | GitHub Pages with base path |
+| `npm run build:analyze` | Build with bundle analysis | Performance optimization |
+| `npm run deploy:local` | Test GitHub Pages build locally | Pre-deployment testing |
+| `npm run start` | Start production server | Production server deployment |
+| `npm run lint` | Run ESLint | Code quality checks |
+| `npm run test:apis` | Test API connectivity | API troubleshooting |
+
+### Usage Modes
+
+#### 1. **Development Mode** (Default)
+- Uses historical data for consistent development experience
+- No API keys required
+- Full feature functionality with sample data
+- Hot reload and development optimizations enabled
+
+#### 2. **Live Data Mode** (Optional)
+- Requires API keys for government data sources
+- Real-time financial and economic data
+- Automatic fallback to historical data on API failures
+- Production-ready data visualization
+
+#### 3. **GitHub Pages Mode** (Deployment)
+- Optimized static build for GitHub Pages
+- Embedded API keys (public government APIs)
+- Asset path optimization for repository deployment
+- Automatic CI/CD pipeline deployment
 
 ## 🔌 API Integration
 
@@ -246,31 +364,53 @@ npm run deploy:local       # Test locally with serve
 npm run build:analyze      # Build with bundle analysis
 ```
 
-## 🎯 Key Features Deep Dive
+## 🎯 Advanced Features & Technical Implementation
 
 ### Interactive Data Source Management
 - **Dynamic Switching**: Toggle between historical data and live APIs with visual feedback
-- **Persistent Preferences**: User selections saved across browser sessions
+- **Persistent Preferences**: User selections saved across browser sessions using localStorage
 - **Health Monitoring**: Real-time API status indicators with color-coded pills
 - **Smart Fallbacks**: Automatic fallback to cached or historical data when APIs fail
+- **Context-Driven**: Global state management through React Context API
+- **Type Safety**: Full TypeScript integration with strict type checking
 
 ### Chart Refresh & Interactivity
 - **Manual Refresh**: Click-to-refresh functionality with spinning animations
 - **Auto-refresh**: Optional automatic data updates at configurable intervals
 - **Smooth Animations**: Chart.js integration with 750ms easing transitions
 - **Loading States**: Skeleton loaders and progress indicators during data fetching
+- **Error Recovery**: Graceful error handling with user-friendly messages
+- **Data Validation**: Runtime data validation and transformation
 
-### Data Status Indicators
+### Data Status Indicators & Health Monitoring
 - **🟢 Live Data**: Recently updated real data with timestamps
 - **📊 Historical Data**: Real historical financial data for analysis
 - **🔴 Outdated**: Real data that may need refreshing
 - **⏳ Loading**: Data currently being fetched
+- **⚠️ Error State**: Clear error messages with recovery suggestions
+- **🔄 Refreshing**: Visual feedback during data updates
 
-### Performance Optimizations
-- **Lazy Loading**: Chart components loaded on-demand
+### Performance Optimizations & Caching
+- **Lazy Loading**: Chart components loaded on-demand with React.lazy()
 - **Code Splitting**: Separate chunks for React, Chart.js, and application code
 - **Intelligent Caching**: 30-minute cache for API responses with request deduplication
 - **Bundle Analysis**: Built-in webpack bundle analyzer (`npm run build:analyze`)
+- **Memory Management**: Automatic cleanup of unused chart instances
+- **Request Optimization**: Debounced API calls and request batching
+
+### Real-Time Features
+- **Live Data Updates**: Automatic refresh of financial data from government APIs
+- **WebSocket Ready**: Architecture prepared for real-time data streaming
+- **Background Sync**: Service worker integration for offline data caching
+- **Progressive Enhancement**: Works offline with cached historical data
+
+### Developer Experience
+- **Hot Reload**: Instant development feedback with Turbopack
+- **TypeScript**: Full type safety with strict mode enabled
+- **ESLint Integration**: Code quality enforcement with Next.js config
+- **Error Boundaries**: Comprehensive error handling and recovery
+- **Debug Mode**: Detailed API logging and performance metrics
+- **Testing Utilities**: Built-in API connectivity testing
 
 ## 🔧 Configuration & Environment Variables
 
@@ -278,25 +418,81 @@ npm run build:analyze      # Build with bundle analysis
 ```bash
 # .env.local (for development)
 NEXT_PUBLIC_DEFAULT_DATA_SOURCE=historical      # or 'live-api'
-NEXT_PUBLIC_FRED_API_KEY=your_fred_key
-NEXT_PUBLIC_BLS_API_KEY=your_bls_key
-NEXT_PUBLIC_CENSUS_API_KEY=your_census_key
+NEXT_PUBLIC_FRED_API_KEY=your_fred_key          # Federal Reserve Economic Data
+NEXT_PUBLIC_BLS_API_KEY=your_bls_key            # Bureau of Labor Statistics
+NEXT_PUBLIC_CENSUS_API_KEY=your_census_key      # U.S. Census Bureau
+NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY=your_av_key   # Alpha Vantage (optional)
 NEXT_PUBLIC_DEBUG_API=true                      # Enable API debug logging
+NEXT_PUBLIC_ENABLE_CACHING=true                 # Enable intelligent caching
 ```
 
 ### Production Configuration
 ```bash
 # Environment variables for GitHub Pages (embedded in workflow)
 NEXT_PUBLIC_DEFAULT_DATA_SOURCE=historical      # Uses historical data to avoid CORS
-NEXT_PUBLIC_ENABLE_CACHING=true
-NEXT_PUBLIC_DEBUG_API=false
+NEXT_PUBLIC_ENABLE_CACHING=true                 # Enable production caching
+NEXT_PUBLIC_DEBUG_API=false                     # Disable debug logging
+NEXT_PUBLIC_BASE_PATH=/finance-factors          # GitHub Pages base path
 ```
 
 ### Next.js Configuration Highlights
-- **Static Export**: Enabled for GitHub Pages compatibility
+
+#### Static Export & GitHub Pages
+- **Static Export**: Enabled for GitHub Pages compatibility with `output: 'export'`
 - **Asset Optimization**: Dynamic base path handling for repository deployments
-- **Webpack Optimizations**: Custom chunk splitting for optimal caching
-- **Performance**: Compression enabled, image optimization configured
+- **Image Optimization**: Disabled for static export (`unoptimized: true`)
+- **Trailing Slash**: Enabled for consistent routing (`trailingSlash: true`)
+
+#### Performance Optimizations
+- **Webpack Bundle Splitting**: Custom chunk splitting for optimal caching
+  - Separate chunks for React, Chart.js, and application code
+  - Priority-based chunk loading for critical resources
+- **Compression**: Gzip compression enabled for all assets
+- **Bundle Analysis**: Integrated webpack-bundle-analyzer for performance monitoring
+
+#### Development Features
+- **Turbopack**: Next.js 15 Turbopack for faster development builds
+- **Hot Reload**: Instant feedback during development
+- **TypeScript**: Full TypeScript support with strict mode
+- **ESLint**: Integrated linting with Next.js configuration
+
+### API Configuration Details
+
+#### FRED API (Federal Reserve Economic Data)
+```typescript
+// Configuration in app/config/apiConfig.ts
+export const FRED_CONFIG = {
+  baseUrl: 'https://api.stlouisfed.org/fred',
+  apiKey: process.env.NEXT_PUBLIC_FRED_API_KEY,
+  rateLimit: 120, // requests per minute
+  timeout: 10000, // 10 seconds
+  retries: 3,
+  cacheTTL: 1800000, // 30 minutes
+};
+```
+
+#### BLS API (Bureau of Labor Statistics)
+```typescript
+export const BLS_CONFIG = {
+  baseUrl: 'https://api.bls.gov/publicAPI/v2',
+  apiKey: process.env.NEXT_PUBLIC_BLS_API_KEY,
+  rateLimit: 500, // requests per day with key
+  timeout: 15000, // 15 seconds
+  retries: 2,
+  cacheTTL: 3600000, // 1 hour
+};
+```
+
+#### Caching Strategy
+```typescript
+// Intelligent caching with TTL and request deduplication
+export const CACHE_CONFIG = {
+  defaultTTL: 1800000, // 30 minutes
+  maxSize: 100, // Maximum cached items
+  enableDeduplication: true,
+  enablePersistence: true, // localStorage persistence
+};
+```
 
 ## 🚨 Troubleshooting
 
@@ -349,7 +545,95 @@ This logs all API requests and responses to browser console.
 - **Reduced Motion**: Respects user's motion preferences
 - **Color Accessibility**: Sufficient color contrast ratios (WCAG 2.1 AA)
 
-## 🤝 Contributing
+## 🔄 Advanced Usage Patterns
+
+### Custom Data Sources
+```typescript
+// Adding a new data source
+import { DataSourceType } from './types/dashboard';
+
+// 1. Define the data source type
+const customDataSource: DataSourceType = 'custom-api';
+
+// 2. Add configuration
+export const CUSTOM_API_CONFIG = {
+  name: 'Custom Financial API',
+  description: 'Your custom data source',
+  baseUrl: 'https://api.example.com',
+  requiresAuth: true,
+  rateLimit: 1000,
+};
+
+// 3. Implement data transformer
+export const transformCustomData = (rawData: any): ChartData => {
+  return {
+    labels: rawData.dates,
+    datasets: [{
+      label: 'Custom Data',
+      data: rawData.values,
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+    }]
+  };
+};
+```
+
+### Custom Chart Types
+```typescript
+// Creating a custom chart component
+import { AutomaticChart } from './components/AutomaticChart';
+
+const CustomFinancialChart = () => {
+  return (
+    <AutomaticChart
+      dataType="custom-financial-data"
+      chartType="line"
+      title="Custom Financial Metrics"
+      options={{
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: { display: true, text: 'Custom Chart' }
+        }
+      }}
+    />
+  );
+};
+```
+
+### API Integration Patterns
+```typescript
+// Custom hook for specific data needs
+export function useCustomFinancialData() {
+  const { fetchData, state } = useDataSource({
+    dataType: 'custom-financial',
+    autoFetch: true,
+    useCache: true,
+    cacheTTL: 900000, // 15 minutes
+  });
+
+  const refreshData = useCallback(async () => {
+    try {
+      const data = await fetchData();
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch custom data:', error);
+      throw error;
+    }
+  }, [fetchData]);
+
+  return {
+    data: state.data,
+    isLoading: state.isLoading,
+    error: state.error,
+    refresh: refreshData,
+  };
+}
+```
+
+## 🤝 Contributing & Development
+
+### Contributing Guidelines
 
 We welcome contributions! Here's how to get started:
 
@@ -361,12 +645,52 @@ We welcome contributions! Here's how to get started:
 6. **Push to branch**: `git push origin feature/amazing-feature`
 7. **Submit a pull request**: Describe your changes and their benefits
 
-### Development Guidelines
-- Use TypeScript for all new code
-- Follow existing naming conventions (CamelCase for components, snake_case for utilities)
-- Add JSDoc comments for public functions
-- Ensure responsive design for all UI changes
+### Development Standards
+
+#### Code Style & Conventions
+- **TypeScript**: Use TypeScript for all new code with strict mode enabled
+- **Naming Conventions**:
+  - CamelCase for React components (`MyComponent`)
+  - camelCase for functions and variables (`myFunction`)
+  - UPPER_CASE for constants (`API_BASE_URL`)
+- **File Organization**: Group related functionality in dedicated directories
+- **JSDoc Comments**: Document all public functions and complex logic
+
+#### Architecture Principles
+- **Single Responsibility**: Each component/function should have one clear purpose
+- **Separation of Concerns**: Keep UI, business logic, and data access separate
+- **Error Boundaries**: Implement proper error handling at component boundaries
+- **Performance First**: Consider performance implications of all changes
+
+#### Testing Requirements
 - Test with both historical and live data sources
+- Ensure responsive design across all screen sizes
+- Verify accessibility compliance (WCAG 2.1 AA)
+- Test error scenarios and edge cases
+- Validate API integration with rate limiting
+
+### Local Development Setup
+
+#### Advanced Development Features
+```bash
+# Enable debug mode for detailed logging
+NEXT_PUBLIC_DEBUG_API=true npm run dev
+
+# Run with bundle analysis
+npm run build:analyze
+
+# Test API connectivity
+npm run test:apis
+
+# Local GitHub Pages testing
+npm run deploy:local
+```
+
+#### Development Tools Integration
+- **VS Code**: Recommended with TypeScript and ESLint extensions
+- **Chrome DevTools**: React Developer Tools for component debugging
+- **Network Tab**: Monitor API calls and caching behavior
+- **Performance Tab**: Analyze rendering performance and Core Web Vitals
 
 ## 📄 License
 
