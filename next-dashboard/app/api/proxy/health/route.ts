@@ -7,7 +7,8 @@
 
 import { NextResponse } from 'next/server';
 import {
-  ApiHealthCheck
+  ApiHealthCheck,
+  ServiceStatus
 } from '../../types/health';
 import {
   getPerformanceMetrics,
@@ -58,7 +59,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         '/series?series_id=GDP&api_key='
       ) : {
         configured: !!process.env.NEXT_PUBLIC_FRED_API_KEY,
-        status: !!process.env.NEXT_PUBLIC_FRED_API_KEY ? 'available' : 'unavailable',
+        status: (!!process.env.NEXT_PUBLIC_FRED_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
         lastChecked: new Date().toISOString()
       },
       testApis ? checkApiServiceHealth(
@@ -68,7 +69,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         '/timeseries/data/'
       ) : {
         configured: !!process.env.NEXT_PUBLIC_BLS_API_KEY,
-        status: !!process.env.NEXT_PUBLIC_BLS_API_KEY ? 'available' : 'unavailable',
+        status: (!!process.env.NEXT_PUBLIC_BLS_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
         lastChecked: new Date().toISOString()
       },
       testApis ? checkApiServiceHealth(
@@ -78,7 +79,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         '/timeseries/eits/resconst'
       ) : {
         configured: !!process.env.NEXT_PUBLIC_CENSUS_API_KEY,
-        status: !!process.env.NEXT_PUBLIC_CENSUS_API_KEY ? 'available' : 'unavailable',
+        status: (!!process.env.NEXT_PUBLIC_CENSUS_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
         lastChecked: new Date().toISOString()
       },
       testApis ? checkApiServiceHealth(
@@ -88,7 +89,7 @@ export async function GET(request: Request): Promise<NextResponse> {
         '/query?function=TIME_SERIES_DAILY&symbol=MSFT'
       ) : {
         configured: !!process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY,
-        status: !!process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY ? 'available' : 'unavailable',
+        status: (!!process.env.NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
         lastChecked: new Date().toISOString()
       }
     ]);

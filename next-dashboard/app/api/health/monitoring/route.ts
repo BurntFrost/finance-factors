@@ -165,10 +165,10 @@ function generateMonitoringAlerts(checks: HealthCheckResult[]): Alert[] {
         break;
 
       case 'Environment Variables':
-        if (check.status === 'degraded' && check.metadata?.missing?.length > 0) {
+        if (check.status === 'degraded' && check.metadata?.missing && Array.isArray(check.metadata.missing) && check.metadata.missing.length > 0) {
           alerts.push({
             level: 'warning',
-            message: `Missing environment variables: ${check.metadata.missing.join(', ')}`,
+            message: `Missing environment variables: ${(check.metadata.missing as string[]).join(', ')}`,
             component: 'configuration',
             timestamp: check.timestamp,
           });

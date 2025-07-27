@@ -8,7 +8,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   DashboardHealthCheck,
-  HealthCheckResult
+  HealthCheckResult,
+  ServiceStatus
 } from '../../types/health';
 import {
   getPerformanceMetrics,
@@ -38,7 +39,7 @@ export async function OPTIONS() {
  */
 async function testDataSources() {
   const liveDataTests = [];
-  const sampleDataStatus = { status: 'available' as const, dataIntegrity: true };
+  const sampleDataStatus = { status: 'available' as ServiceStatus, dataIntegrity: true };
 
   // Test FRED API if configured
   if (process.env.NEXT_PUBLIC_FRED_API_KEY) {
@@ -77,7 +78,7 @@ async function testDataSources() {
   ).length;
 
   const liveDataStatus = {
-    status: successfulTests > 0 ? 'available' : 'unavailable' as const,
+    status: (successfulTests > 0 ? 'available' : 'unavailable') as ServiceStatus,
     lastSuccessfulFetch: successfulTests > 0 ? new Date().toISOString() : undefined,
     failureCount: liveDataTests.length - successfulTests,
   };
@@ -153,11 +154,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       // Quick check without actual API calls
       dataSources = {
         liveDataStatus: {
-          status: 'unknown' as const,
+          status: 'unknown' as ServiceStatus,
           failureCount: 0,
         },
         sampleDataStatus: {
-          status: 'available' as const,
+          status: 'available' as ServiceStatus,
           dataIntegrity: true,
         },
       };
