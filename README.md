@@ -8,7 +8,7 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 - **📊 Interactive Charts**: Dynamic visualizations with Chart.js
 - **🔄 Smart Data Switching**: Toggle between live APIs and historical data
 - **⚡ Performance Optimized**: Lazy loading, code splitting, intelligent caching
-- **🚀 Easy Deployment**: Vercel (recommended) or GitHub Pages options
+- **🚀 Automatic Deployment**: GitHub Actions → Vercel with preview deployments
 - **📱 Responsive Design**: Optimized for all devices and screen sizes
 - **♿ Accessibility**: Full keyboard navigation and screen reader support
 
@@ -41,7 +41,7 @@ npm run dev
 - **Visualization**: Chart.js 4.5.0 with react-chartjs-2
 - **Styling**: CSS Modules with responsive design patterns
 - **State Management**: React Context API
-- **Deployment**: Vercel (recommended) or GitHub Pages
+- **Deployment**: Vercel with GitHub Actions CI/CD
 
 ## 📚 Documentation
 
@@ -49,7 +49,7 @@ npm run dev
 - **[📖 README](README.md)** - Project overview and quick start (you are here)
 - **[🏗 ARCHITECTURE](ARCHITECTURE.md)** - System design, component architecture, and technical patterns
 - **[💻 DEVELOPMENT](DEVELOPMENT.md)** - Local setup, API integration, and development guides
-- **[🚀 DEPLOYMENT](DEPLOYMENT.md)** - Comprehensive deployment guide for Vercel and GitHub Pages
+- **[🚀 DEPLOYMENT](VERCEL_GITHUB_ACTIONS_SETUP.md)** - Automatic Vercel deployment with GitHub Actions
 
 ### Live Demo
 **🌐 [View Live Dashboard](https://burntfrost.github.io/finance-factors/)**
@@ -81,8 +81,8 @@ npm run dev
 |--------|-------------|
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
-| `npm run build:github` | Build for GitHub Pages |
-| `npm run deploy:local` | Test build locally |
+| `npm run deploy` | Show deployment status (auto via GitHub Actions) |
+| `npm run deploy:manual` | Manual Vercel deployment |
 | `npm run lint` | Run code quality checks |
 | `npm run test:apis` | Test API connectivity |
 
@@ -115,34 +115,36 @@ npm run test:apis
 
 ## 🚀 Deployment
 
-### Option 1: Vercel (Recommended)
+### Automatic Vercel Deployment (Primary)
+- ✅ **GitHub Actions CI/CD** - Push to main = automatic deployment
 - ✅ **Full API functionality** with serverless functions
-- ✅ **Automatic deployment** on push to main branch
+- ✅ **Preview deployments** for pull requests
 - ✅ **Real-time data** from government APIs
-- ✅ **Performance optimized** with edge caching
+- ✅ **Performance optimized** with global CDN and edge functions
 
-### Option 2: GitHub Pages (Backup)
-- ✅ **Zero configuration** required
-- ✅ **Static hosting** with GitHub's CDN
-- ✅ **Historical data** fallback
-- ✅ **Fast deployment** in 5 minutes
+### Setup Steps
 
-### Quick Deploy
+1. **Configure GitHub Secrets** (one-time setup):
+   ```bash
+   # Get your Vercel project info
+   cd next-dashboard
+   vercel login
+   cat .vercel/project.json  # Copy projectId and orgId
+   ```
 
-**Vercel:**
-```bash
-cd next-dashboard
-./setup-vercel-env.sh  # Configure API keys
-git push origin main   # Auto-deploy
-```
+2. **Add GitHub Secrets**:
+   - Go to GitHub repo → Settings → Secrets and variables → Actions
+   - Add: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
 
-**GitHub Pages:**
-```bash
-# Enable GitHub Pages in repository settings
-git push origin main   # Auto-deploy
-```
+3. **Deploy**:
+   ```bash
+   git push origin main   # Automatic deployment via GitHub Actions
+   ```
 
-> **📖 For complete deployment instructions, see [DEPLOYMENT.md](DEPLOYMENT.md)**
+### GitHub Pages (Backup Option)
+Available for static hosting without API functionality.
+
+> **📖 For complete setup instructions, see [VERCEL_GITHUB_ACTIONS_SETUP.md](VERCEL_GITHUB_ACTIONS_SETUP.md)**
 
 ## ✨ Key Features
 

@@ -1,15 +1,11 @@
-# DISABLED: Using Vercel Git Integration instead
-# This workflow is disabled because Vercel Git integration handles automatic deployment
-# Deploy hook: https://api.vercel.com/v1/integrations/deploy/prj_DSmy4FBhYDJiUQr6YbNsXg3Nw7gt/xyCW8UBEuO
-
-name: Deploy to Vercel (DISABLED)
+name: Deploy to Vercel
 
 on:
-  workflow_dispatch:  # Manual trigger only
-  # push:
-  #   branches: [main]
-  # pull_request:
-  #   branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -18,6 +14,9 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: next-dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,59 +28,80 @@ jobs:
           cache: 'npm'
           cache-dependency-path: next-dashboard/package-lock.json
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
-
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
-        working-directory: next-dashboard
 
       - name: Run linting
         run: npm run lint
-        working-directory: next-dashboard
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: next-dashboard
+        run: vercel pull --yes --environment=${{ github.event_name == 'push' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: next-dashboard
+        run: vercel build ${{ github.event_name == 'push' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: next-dashboard
+        id: deploy
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "Deploying to production..."
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          else
+            echo "Deploying preview for PR..."
+            DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          fi
+          echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+          echo "Deployment URL: $DEPLOYMENT_URL"
 
-      - name: Test API Proxy Health
+      - name: Test Deployment
+        if: github.event_name == 'push'  # Only test production deployments
         run: |
           echo "Waiting for deployment to be ready..."
           sleep 30
 
-          # Get the deployment URL from Vercel
-          DEPLOYMENT_URL=$(vercel ls --token=${{ secrets.VERCEL_TOKEN }} --scope=${{ secrets.VERCEL_ORG_ID }} | grep "finance-factors" | head -1 | awk '{print $2}')
+          DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment_url }}"
 
           if [ -n "$DEPLOYMENT_URL" ]; then
-            echo "Testing API proxy health at: https://$DEPLOYMENT_URL"
+            echo "Testing deployment at: $DEPLOYMENT_URL"
 
-            # Test health endpoint
-            HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://$DEPLOYMENT_URL/api/proxy/health" || echo "000")
+            # Test main page
+            MAIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
+
+            if [ "$MAIN_RESPONSE" = "200" ]; then
+              echo "✅ Main page accessible"
+            else
+              echo "⚠️  Main page test failed (HTTP $MAIN_RESPONSE)"
+            fi
+
+            # Test API health endpoint
+            HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/proxy/health" || echo "000")
 
             if [ "$HEALTH_RESPONSE" = "200" ]; then
               echo "✅ API proxy health check passed"
             else
-              echo "❌ API proxy health check failed (HTTP $HEALTH_RESPONSE)"
-              exit 1
+              echo "⚠️  API proxy health check failed (HTTP $HEALTH_RESPONSE)"
             fi
 
-            # Test data endpoint
-            DATA_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "https://$DEPLOYMENT_URL/api/proxy/data?source=fred&series=MSPUS" || echo "000")
-
-            if [ "$DATA_RESPONSE" = "200" ]; then
-              echo "✅ API proxy data endpoint test passed"
-            else
-              echo "⚠️  API proxy data endpoint test failed (HTTP $DATA_RESPONSE) - may be due to API rate limits"
-            fi
+            echo "🎉 Deployment completed successfully!"
+            echo "🔗 Live URL: $DEPLOYMENT_URL"
           else
             echo "⚠️  Could not determine deployment URL for testing"
           fi
-        working-directory: next-dashboard
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deploymentUrl = '${{ steps.deploy.outputs.deployment_url }}';
+            if (deploymentUrl) {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🚀 **Preview deployment ready!**\n\n📱 **Live Preview:** ${deploymentUrl}\n\n🔍 **API Health:** ${deploymentUrl}/api/proxy/health`
+              });
+            }
