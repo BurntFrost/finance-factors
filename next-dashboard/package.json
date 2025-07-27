@@ -11,7 +11,16 @@
     "deploy:local": "npm run build:github && npx serve out",
     "start": "next start",
     "lint": "next lint",
-    "test:apis": "node scripts/test-apis.js"
+    "test:apis": "node scripts/test-apis.js",
+    "test:proxy": "node test-proxy.js",
+    "test:house-prices": "node test-house-prices.js",
+    "deploy:vercel": "./deploy-vercel.sh",
+    "setup:vercel": "./setup-vercel-env.sh",
+    "dev:vercel": "vercel dev",
+    "vercel:login": "vercel login",
+    "vercel:env": "vercel env ls",
+    "vercel:logs": "vercel logs",
+    "test:deployment": "node test-deployment-ready.js"
   },
   "dependencies": {
     "chart.js": "^4.5.0",

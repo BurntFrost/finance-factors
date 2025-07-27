@@ -1,8 +1,10 @@
 /**
  * Real API Service
- * 
+ *
  * Unified service that orchestrates all real financial and economic data APIs
  * This service replaces the mock API when live data is needed
+ *
+ * Updated to use API proxy when available to solve CORS issues
  */
 
 import { ApiResponse, DataFetchOptions, REAL_API_ENDPOINTS } from '../types/dataSource';
@@ -10,18 +12,65 @@ import { fredApiService } from './fredApiService';
 import { blsApiService } from './blsApiService';
 import { censusApiService } from './censusApiService';
 import { alphaVantageApiService } from './alphaVantageApiService';
+import { proxyApiService } from './proxyApiService';
 
 class RealApiService {
   private requestCache = new Map<string, Promise<ApiResponse<unknown>>>();
   private rateLimitTracker = new Map<string, { requests: number; resetTime: number }>();
+  private useProxy = true; // Enable proxy by default
+  private proxyAvailable: boolean | null = null; // Cache proxy availability
+
+  /**
+   * Check if API proxy is available
+   */
+  private async checkProxyAvailability(): Promise<boolean> {
+    if (this.proxyAvailable !== null) {
+      return this.proxyAvailable;
+    }
+
+    try {
+      this.proxyAvailable = await proxyApiService.isAvailable();
+      return this.proxyAvailable;
+    } catch {
+      this.proxyAvailable = false;
+      return false;
+    }
+  }
 
   /**
    * Fetch data for a specific data type using the appropriate API
+   * Tries proxy first, falls back to direct API calls if proxy is unavailable
    */
   async fetchData<T = unknown>(options: DataFetchOptions): Promise<ApiResponse<T>> {
     const { dataType, timeRange, useCache = true } = options;
-    
+
     try {
+      // Try proxy first if enabled and available
+      if (this.useProxy && await this.checkProxyAvailability()) {
+        try {
+          console.log(`Attempting to fetch ${dataType} via API proxy...`);
+          const proxyResponse = await proxyApiService.fetchData<T>(options);
+
+          if (proxyResponse.success) {
+            console.log(`Successfully fetched ${dataType} via API proxy`);
+            return proxyResponse;
+          } else {
+            console.warn(`Proxy failed for ${dataType}:`, proxyResponse.error);
+            // Continue to fallback to direct API calls
+          }
+        } catch (proxyError) {
+          console.warn(`Proxy error for ${dataType}:`, proxyError);
+          // Mark proxy as unavailable temporarily
+          this.proxyAvailable = false;
+          setTimeout(() => {
+            this.proxyAvailable = null; // Reset availability check after 5 minutes
+          }, 5 * 60 * 1000);
+        }
+      }
+
+      // Fallback to direct API calls
+      console.log(`Falling back to direct API for ${dataType}...`);
+
       // Get endpoint configuration
       const endpoint = REAL_API_ENDPOINTS[dataType];
       if (!endpoint) {
@@ -41,7 +90,7 @@ class RealApiService {
 
       // Generate cache key
       const cacheKey = this.generateCacheKey(dataType, timeRange);
-      
+
       // Check cache if enabled
       if (useCache && this.requestCache.has(cacheKey)) {
         return await this.requestCache.get(cacheKey) as ApiResponse<T>;
@@ -49,10 +98,10 @@ class RealApiService {
 
       // Fetch data based on provider
       const requestPromise = this.fetchFromProvider(endpoint, timeRange);
-      
+
       if (useCache) {
         this.requestCache.set(cacheKey, requestPromise);
-        
+
         // Clear cache after 30 minutes
         setTimeout(() => {
           this.requestCache.delete(cacheKey);
@@ -260,6 +309,47 @@ class RealApiService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Enable or disable proxy usage
+   */
+  setProxyEnabled(enabled: boolean): void {
+    this.useProxy = enabled;
+    if (!enabled) {
+      this.proxyAvailable = false;
+    } else {
+      this.proxyAvailable = null; // Reset to trigger availability check
+    }
+  }
+
+  /**
+   * Check if proxy is currently being used
+   */
+  isProxyEnabled(): boolean {
+    return this.useProxy;
+  }
+
+  /**
+   * Get proxy status
+   */
+  async getProxyStatus(): Promise<{ enabled: boolean; available: boolean; health?: any }> {
+    const available = await this.checkProxyAvailability();
+    let health = null;
+
+    if (available) {
+      try {
+        health = await proxyApiService.checkHealth();
+      } catch {
+        // Ignore health check errors
+      }
+    }
+
+    return {
+      enabled: this.useProxy,
+      available,
+      health,
+    };
   }
 
   /**

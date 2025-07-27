@@ -1,8 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable static export for GitHub Pages
-  output: 'export',
+  // Conditionally enable static export for GitHub Pages
+  // Disable for Vercel deployment to enable API routes
+  ...(process.env.NEXT_PUBLIC_BASE_PATH ? { output: 'export' } : {}),
 
   // Disable image optimization for static export
   images: {
