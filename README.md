@@ -52,7 +52,7 @@ npm run dev
 - **[🚀 DEPLOYMENT](VERCEL_GITHUB_ACTIONS_SETUP.md)** - Automatic Vercel deployment with GitHub Actions
 
 ### Live Demo
-**🌐 [View Live Dashboard](https://burntfrost.github.io/finance-factors/)**
+**🌐 [View Live Dashboard](https://finance-factors.vercel.app/)**
 
 ## 🚀 Quick Start
 
@@ -140,9 +140,6 @@ npm run test:apis
    ```bash
    git push origin main   # Automatic deployment via GitHub Actions
    ```
-
-### GitHub Pages (Backup Option)
-Available for static hosting without API functionality.
 
 > **📖 For complete setup instructions, see [VERCEL_GITHUB_ACTIONS_SETUP.md](VERCEL_GITHUB_ACTIONS_SETUP.md)**
 

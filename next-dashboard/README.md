@@ -25,7 +25,7 @@ npm run dev
 
 ## 🔗 Live Demo
 
-**[View Live Dashboard](https://burntfrost.github.io/finance-factors/)**
+**[View Live Dashboard](https://finance-factors.vercel.app/)**
 
 ---
 

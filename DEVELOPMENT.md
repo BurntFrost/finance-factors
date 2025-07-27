@@ -42,12 +42,12 @@
 |--------|-------------|----------|
 | `npm run dev` | Start development server with Turbopack | Local development |
 | `npm run build` | Build for production | Standard production build |
-| `npm run build:github` | Build for GitHub Pages deployment | GitHub Pages with base path |
 | `npm run build:analyze` | Build with bundle analysis | Performance optimization |
-| `npm run deploy:local` | Test GitHub Pages build locally | Pre-deployment testing |
 | `npm run start` | Start production server | Production server deployment |
 | `npm run lint` | Run ESLint | Code quality checks |
 | `npm run test:apis` | Test API connectivity | API troubleshooting |
+| `npm run deploy` | Show deployment status | Check GitHub Actions deployment |
+| `npm run deploy:manual` | Manual Vercel deployment | Emergency deployment |
 
 ## API Integration
 
@@ -191,7 +191,7 @@ next-dashboard/
 4. **Build and test**:
    ```bash
    npm run build
-   npm run deploy:local
+   npm run start
    ```
 
 ### 2. **Adding New Data Sources**
