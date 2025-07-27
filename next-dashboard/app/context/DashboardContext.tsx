@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode, useRef, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useRef } from 'react';
 import { DashboardState, DashboardAction, DashboardElement } from '../types/dashboard';
 import { generateHistoricalDataByType, generateElementTitleByType } from '../utils/historicalDataGenerators';
 

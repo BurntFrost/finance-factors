@@ -59,7 +59,7 @@ const VIEW_MODE_STORAGE_KEY = 'finance-dashboard-view-mode';
 export function ViewModeProvider({ children }: { children: ReactNode }) {
   // Initialize state with default mode (always start with 'edit' to avoid hydration issues)
   const [state, setState] = useState<ViewModeState>(() => createStateFromMode('edit'));
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [, setIsHydrated] = useState(false);
 
   // Load from localStorage after hydration to prevent hydration mismatches
   useEffect(() => {

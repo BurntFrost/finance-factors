@@ -333,9 +333,9 @@ class RealApiService {
   /**
    * Get proxy status
    */
-  async getProxyStatus(): Promise<{ enabled: boolean; available: boolean; health?: any }> {
+  async getProxyStatus(): Promise<{ enabled: boolean; available: boolean; health?: Record<string, unknown> }> {
     const available = await this.checkProxyAvailability();
-    let health = null;
+    let health: Record<string, unknown> | undefined = undefined;
 
     if (available) {
       try {

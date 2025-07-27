@@ -7,6 +7,15 @@
 
 import { ApiResponse, DataFetchOptions } from '../types/dataSource';
 
+interface ProxyRequestData {
+  dataType: string;
+  timeRange?: {
+    start?: string;
+    end?: string;
+  };
+  useCache: boolean;
+}
+
 export interface ProxyApiResponse<T = unknown> {
   data: T | null;
   success: boolean;
@@ -87,7 +96,7 @@ class ProxyApiService {
   /**
    * Make request to the proxy endpoint
    */
-  private async makeProxyRequest<T>(requestData: any): Promise<ApiResponse<T>> {
+  private async makeProxyRequest<T>(requestData: ProxyRequestData): Promise<ApiResponse<T>> {
     try {
       const response = await fetch(`${this.baseUrl}/data`, {
         method: 'POST',
@@ -117,7 +126,7 @@ class ProxyApiService {
 
       // Convert proxy response to frontend ApiResponse format
       return {
-        data: proxyResponse.data,
+        data: proxyResponse.data as T,
         success: proxyResponse.success,
         error: proxyResponse.error,
         timestamp: new Date(proxyResponse.timestamp),

@@ -190,7 +190,7 @@ async function fetchFromFred(
   const data: FredApiResponse = await response.json();
 
   if ('error_code' in data) {
-    throw new Error(`FRED API error: ${(data as any).error_message}`);
+    throw new Error(`FRED API error: ${(data as unknown as { error_message: string }).error_message}`);
   }
 
   if (!data.observations || !Array.isArray(data.observations)) {
@@ -383,7 +383,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ProxyApiR
 /**
  * OPTIONS /api/proxy/data (CORS preflight)
  */
-export async function OPTIONS(request: NextRequest): Promise<NextResponse> {
+export async function OPTIONS(_request: NextRequest): Promise<NextResponse> {
   return new NextResponse(null, {
     status: 200,
     headers: {

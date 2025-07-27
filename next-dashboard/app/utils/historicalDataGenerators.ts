@@ -415,7 +415,7 @@ function generateLineChartDataForType(dataTypeId: string): ChartData {
         datasets: [
           {
             label: 'Core Inflation Rate (%)',
-            data: years.map((_, i) => 2.0 + randomFloatInRange(-0.5, 1.5)), // Around 2% target
+            data: years.map(() => 2.0 + randomFloatInRange(-0.5, 1.5)), // Around 2% target
             borderColor: CHART_COLORS.primary[1],
             backgroundColor: CHART_COLORS.background[1],
           }

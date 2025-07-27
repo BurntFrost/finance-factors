@@ -8,7 +8,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import {
   setCorsHeaders,
   handleCorsOptions,
-  createSuccessResponse,
 } from '../utils/proxy-utils';
 import { fredProxyService } from '../services/fred-proxy';
 
@@ -112,7 +111,7 @@ export default async function handler(
 
     res.status(200).json(healthCheck);
 
-  } catch (error) {
+  } catch (_error) {
     const errorHealthCheck: HealthCheckResponse = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

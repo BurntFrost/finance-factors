@@ -131,7 +131,7 @@ export class FredProxyService {
       if ('error_code' in data) {
         const error: ProxyError = {
           type: 'api',
-          message: `FRED API error: ${(data as any).error_message}`,
+          message: `FRED API error: ${(data as unknown as { error_message: string }).error_message}`,
           statusCode: 400,
           retryable: false,
         };
@@ -221,7 +221,7 @@ export class FredProxyService {
   /**
    * Get series information/metadata
    */
-  async getSeriesInfo(seriesId: string): Promise<ProxyApiResponse<any>> {
+  async getSeriesInfo(seriesId: string): Promise<ProxyApiResponse<Record<string, unknown>>> {
     const startTime = Date.now();
     
     try {

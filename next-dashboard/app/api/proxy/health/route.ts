@@ -41,7 +41,7 @@ interface HealthCheckResponse {
 /**
  * GET /api/proxy/health
  */
-export async function GET(request: NextRequest): Promise<NextResponse<HealthCheckResponse>> {
+export async function GET(_request: NextRequest): Promise<NextResponse<HealthCheckResponse>> {
   try {
     // Check service configurations
     const fredConfigured = !!process.env.FRED_API_KEY;
@@ -102,7 +102,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthChec
       },
     });
 
-  } catch (error) {
+  } catch (_error) {
     const errorHealthCheck: HealthCheckResponse = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
@@ -137,7 +137,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthChec
 /**
  * OPTIONS /api/proxy/health (CORS preflight)
  */
-export async function OPTIONS(request: NextRequest): Promise<NextResponse> {
+export async function OPTIONS(_request: NextRequest): Promise<NextResponse> {
   return new NextResponse(null, {
     status: 200,
     headers: {
