@@ -15,12 +15,16 @@
     "test:proxy": "node test-proxy.js",
     "test:house-prices": "node test-house-prices.js",
     "deploy:vercel": "./deploy-vercel.sh",
+    "deploy:auto": "echo 'Automatic deployment is now handled by GitHub Actions. Push to main branch to deploy.'",
     "setup:vercel": "./setup-vercel-env.sh",
+    "setup:auto-deploy": "echo 'Follow the instructions in VERCEL_AUTO_DEPLOYMENT_SETUP.md to configure automatic deployment'",
+    "verify:vercel": "./verify-vercel-setup.sh",
     "dev:vercel": "vercel dev",
     "vercel:login": "vercel login",
     "vercel:env": "vercel env ls",
     "vercel:logs": "vercel logs",
-    "test:deployment": "node test-deployment-ready.js"
+    "test:deployment": "node test-deployment-ready.js",
+    "check:deployment": "curl -s https://$(vercel ls | grep finance-factors | head -1 | awk '{print $2}')/api/proxy/health || echo 'Deployment not found or not ready'"
   },
   "dependencies": {
     "chart.js": "^4.5.0",

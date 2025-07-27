@@ -17,11 +17,12 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 - **Accessibility**: Full keyboard navigation and screen reader support
 
 ### Performance & Deployment
-- **GitHub Pages Ready**: Zero-configuration deployment with automated CI/CD (uses historical data)
+- **Vercel Ready**: Automatic deployment with full API functionality and serverless functions
+- **GitHub Pages Backup**: Static deployment option with historical data fallback
 - **Performance Optimized**: Lazy loading, code splitting, and intelligent caching
 - **Web Vitals Monitoring**: Built-in performance tracking and optimization
-- **Static Export**: Optimized for fast loading and SEO
-- **CORS Handling**: Smart error handling for API limitations in static deployments
+- **API Proxy**: Secure server-side API calls with caching and rate limiting
+- **Auto-Deploy**: Push to main branch triggers automatic production deployment
 
 ## 📊 Available Data Sources
 
@@ -322,33 +323,59 @@ The dashboard includes intelligent data source switching:
 - **Persistent Preferences**: User selections saved in localStorage
 - **Health Monitoring**: Visual indicators for API status and data freshness
 
-## 🚀 GitHub Pages Deployment
+## 🚀 Deployment Options
 
-### Super Simple Deployment (2 Steps)
+### Option 1: Vercel Deployment (Recommended) ✅ **CONFIGURED**
 
-**No secrets needed!** API keys are embedded in the build since they're public anyway.
+**Full API functionality with Git integration - automatic deployment on every push to main branch.**
 
-#### Step 1: Enable GitHub Pages
-1. Go to repository **Settings**
-2. Scroll to **Pages** section
-3. Under **Source**, select **GitHub Actions**
+#### ✅ Already Set Up!
+Your project already has Vercel Git integration configured with deploy hook:
+`https://api.vercel.com/v1/integrations/deploy/prj_DSmy4FBhYDJiUQr6YbNsXg3Nw7gt/xyCW8UBEuO`
 
-#### Step 2: Push to Deploy
+#### Quick Setup (Only API Keys Needed)
+See detailed guide in `VERCEL_GIT_INTEGRATION_SETUP.md`:
+
+1. **Configure API keys** in Vercel dashboard (one-time setup)
+2. **Push to deploy**: Automatic deployment already works!
+
 ```bash
+# Configure API keys (one-time)
+cd next-dashboard
+./setup-vercel-env.sh
+
+# Then just push to deploy
 git add .
-git commit -m "Deploy with live API data"
+git commit -m "Deploy with full API functionality"
 git push origin main
 ```
 
-**That's it!** Your dashboard will be live at: `https://yourusername.github.io/finance-factors`
+**Benefits:**
+✅ **Git Integration**: Native Vercel integration (no GitHub Actions needed)
+✅ **Full API Functionality**: Server-side API proxy with secure key management
+✅ **Automatic Deployment**: Push to main triggers production deployment
+✅ **Performance Optimized**: Edge caching, CDN, and serverless functions
+✅ **Real-time Data**: Live government APIs with intelligent caching
 
-### What You Get
-✅ **Real Financial Data**: Live housing prices, employment data, economic indicators
-✅ **Government APIs**: FRED, BLS, Census Bureau data
-✅ **Interactive Features**: Data source switching, chart refresh, hover effects
-✅ **Mobile Responsive**: Works on all devices
-✅ **Auto Updates**: Redeploys on every push to main branch
-✅ **Performance Optimized**: Fast loading with intelligent caching
+### Option 2: GitHub Pages Deployment (Backup)
+
+**Static deployment with client-side API calls and historical data fallback.**
+
+#### Simple Setup (2 Steps)
+1. **Enable GitHub Pages**: Go to repository Settings → Pages → Source: "GitHub Actions"
+2. **Push to deploy**: Automatic deployment on push to main
+
+```bash
+git add .
+git commit -m "Deploy static version"
+git push origin main
+```
+
+**Benefits:**
+✅ **Zero Configuration**: No secrets or tokens required
+✅ **Static Hosting**: Fast loading with GitHub's CDN
+✅ **Fallback Option**: Works when Vercel isn't available
+✅ **Historical Data**: Reliable sample data for demonstrations
 
 ### Deployment Timeline
 - **Push code**: Instant
