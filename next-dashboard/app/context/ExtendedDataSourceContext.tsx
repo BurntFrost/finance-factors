@@ -21,9 +21,18 @@ import {
 } from '../types/dataSource';
 import { dataSourcePreference, apiCache, initializeStorage } from '../utils/localStorage';
 
-// Initial state
+// Get initial data source from environment variable with fallback
+const getInitialDataSource = (): DataSourceType => {
+  const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+  if (envSource === 'live-api' || envSource === 'historical') {
+    return envSource;
+  }
+  return 'historical'; // Safe fallback
+};
+
+// Initial state - use environment variable or fallback to historical
 const initialState: ExtendedDataSourceState = {
-  currentSource: 'historical',
+  currentSource: getInitialDataSource(),
   isLoading: false,
   error: null,
   lastUpdated: null,

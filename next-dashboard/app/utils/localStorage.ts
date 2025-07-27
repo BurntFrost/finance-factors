@@ -54,9 +54,23 @@ export const dataSourcePreference = {
     return safeLocalStorageOperation(
       () => {
         const saved = localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_PREFERENCE);
-        return (saved === 'historical' || saved === 'live-api') ? saved : 'historical';
+        if (saved === 'historical' || saved === 'live-api') {
+          return saved;
+        }
+
+        // If no saved preference, use environment variable as default
+        const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+        if (envSource === 'live-api' || envSource === 'historical') {
+          return envSource;
+        }
+
+        return 'historical'; // Final fallback
       },
-      'historical'
+      // Also use environment variable for fallback when localStorage is unavailable
+      (() => {
+        const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+        return (envSource === 'live-api' || envSource === 'historical') ? envSource : 'historical';
+      })()
     );
   },
 
@@ -243,10 +257,16 @@ export const userPreferences = {
    * Load user preferences with defaults
    */
   load: (): UserPreferences => {
+    // Get default data source from environment variable
+    const getDefaultDataSource = (): DataSourceType => {
+      const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+      return (envSource === 'live-api' || envSource === 'historical') ? envSource : 'historical';
+    };
+
     return safeLocalStorageOperation(() => {
       const saved = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
       const defaults: UserPreferences = {
-        dataSource: 'historical',
+        dataSource: getDefaultDataSource(),
         autoRefresh: false,
         refreshInterval: 300000, // 5 minutes
         notifications: true,
@@ -254,7 +274,7 @@ export const userPreferences = {
 
       return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
     }, {
-      dataSource: 'historical',
+      dataSource: getDefaultDataSource(),
       autoRefresh: false,
       refreshInterval: 300000,
       notifications: true,
