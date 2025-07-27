@@ -3,6 +3,7 @@
 import React from 'react';
 import { SummaryCardData } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { useIsEditMode } from '../context/ViewModeContext';
 import styles from './SummaryCard.module.css';
 
 interface SummaryCardProps {
@@ -12,6 +13,8 @@ interface SummaryCardProps {
 }
 
 export default function SummaryCard({ title, data, onRemove }: SummaryCardProps) {
+  const isEditMode = useIsEditMode();
+
   const formatValue = (value: string | number) => {
     if (typeof value === 'number') {
       // Format large numbers with appropriate suffixes
@@ -70,7 +73,7 @@ export default function SummaryCard({ title, data, onRemove }: SummaryCardProps)
             lastUpdated={data.lastUpdated}
             size="small"
           />
-          {onRemove && (
+          {onRemove && isEditMode && (
             <button
               className={styles.removeButton}
               onClick={onRemove}
@@ -122,6 +125,8 @@ interface SummaryCardGridProps {
 }
 
 export function SummaryCardGrid({ title, cards, onRemove }: SummaryCardGridProps) {
+  const isEditMode = useIsEditMode();
+
   // Determine overall data status from the cards
   const hasRealData = cards.some(card => card.isRealData);
   const latestUpdate = cards.reduce((latest, card) => {
@@ -141,7 +146,7 @@ export function SummaryCardGrid({ title, cards, onRemove }: SummaryCardGridProps
             size="small"
           />
         </div>
-        {onRemove && (
+        {onRemove && isEditMode && (
           <button
             className={styles.removeButton}
             onClick={onRemove}

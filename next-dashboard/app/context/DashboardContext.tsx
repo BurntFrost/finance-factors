@@ -1,10 +1,40 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useRef, useEffect } from 'react';
 import { DashboardState, DashboardAction, DashboardElement } from '../types/dashboard';
+import { generateHistoricalDataByType, generateElementTitleByType } from '../utils/historicalDataGenerators';
+
+// Function to create default dashboard elements
+function createDefaultElements(): DashboardElement[] {
+  const defaultElements: Array<{
+    dataType: string;
+    visualizationType: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart' | 'data-table' | 'summary-card';
+  }> = [
+    { dataType: 'house-prices', visualizationType: 'line-chart' },
+    { dataType: 'salary-income', visualizationType: 'summary-card' }
+  ];
+
+  return defaultElements.map((element, index) => {
+    const data = generateHistoricalDataByType(element.dataType, element.visualizationType);
+    const title = generateElementTitleByType(element.dataType, element.visualizationType);
+
+    return {
+      id: `default_element_${index + 1}`,
+      type: element.visualizationType,
+      dataType: element.dataType,
+      title,
+      data,
+      config: {},
+      isRealData: false,
+      dataSource: 'Historical Data Generator',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  }).filter(element => element.data !== null) as DashboardElement[];
+}
 
 const initialState: DashboardState = {
-  elements: [],
+  elements: createDefaultElements(),
   layout: 'stack',
   isLoading: false,
   error: undefined,
@@ -85,7 +115,8 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
-  const elementCounterRef = useRef(0);
+  // Start counter from 100 to avoid conflicts with default elements
+  const elementCounterRef = useRef(100);
 
   const addElement = (element: Omit<DashboardElement, 'id' | 'createdAt' | 'updatedAt'>) => {
     elementCounterRef.current += 1;

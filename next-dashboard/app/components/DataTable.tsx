@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { TableData, TableColumn } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { useIsEditMode } from '../context/ViewModeContext';
 import styles from './DataTable.module.css';
 
 interface DataTableProps {
@@ -15,6 +16,7 @@ interface DataTableProps {
 type SortDirection = 'asc' | 'desc' | null;
 
 export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataTableProps) {
+  const isEditMode = useIsEditMode();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -130,7 +132,7 @@ export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataT
             }}
             className={styles.searchInput}
           />
-          {onRemove && (
+          {onRemove && isEditMode && (
             <button
               className={styles.removeButton}
               onClick={onRemove}

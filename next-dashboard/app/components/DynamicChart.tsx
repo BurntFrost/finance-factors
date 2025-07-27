@@ -3,6 +3,7 @@
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import { ChartData } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { useIsEditMode } from '../context/ViewModeContext';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -88,6 +89,7 @@ export default function DynamicChart({ type, data, title, onRemove, config, hide
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isEditMode = useIsEditMode();
 
   const handleRefresh = useCallback(async () => {
     if (!chartRef.current || isRefreshing) return;
@@ -184,7 +186,7 @@ export default function DynamicChart({ type, data, title, onRemove, config, hide
           </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
-            {onRemove && <RemoveButton onClick={onRemove} />}
+            {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
           </div>
         </div>
       )}
