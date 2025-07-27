@@ -256,6 +256,71 @@ export const PROXY_API_ENDPOINTS: Record<string, ApiEndpointConfig> = {
       limit: '120',
     },
   },
+  // Missing data types - using Census for demographic/economic proxies
+  'tuition-education': {
+    provider: 'CENSUS',
+    seriesId: 'B15003_022E', // Bachelor's degree or higher (education proxy)
+    endpoint: '/acs/acs5',
+    params: {
+      get: 'B15003_022E,NAME',
+      for: 'us:*',
+    },
+  },
+  'medical-costs': {
+    provider: 'CENSUS',
+    seriesId: 'B19301_001E', // Per capita income (healthcare affordability proxy)
+    endpoint: '/acs/acs5',
+    params: {
+      get: 'B19301_001E,NAME',
+      for: 'us:*',
+    },
+  },
+  'childcare-costs': {
+    provider: 'CENSUS',
+    seriesId: 'B19301_001E', // Per capita income (childcare affordability proxy)
+    endpoint: '/acs/acs5',
+    params: {
+      get: 'B19301_001E,NAME',
+      for: 'us:*',
+    },
+  },
+  'transportation-costs': {
+    provider: 'CENSUS',
+    seriesId: 'B19301_001E', // Per capita income (transportation affordability proxy)
+    endpoint: '/acs/acs5',
+    params: {
+      get: 'B19301_001E,NAME',
+      for: 'us:*',
+    },
+  },
+  'food-prices': {
+    provider: 'FRED',
+    seriesId: 'CPIUFDSL', // Consumer Price Index for All Urban Consumers: Food
+    endpoint: '/series/observations',
+    params: {
+      file_type: 'json',
+      sort_order: 'desc',
+      limit: '120',
+    },
+  },
+  'utilities-costs': {
+    provider: 'CENSUS',
+    seriesId: 'B25064_001E', // Median gross rent (includes utilities)
+    endpoint: '/acs/acs5',
+    params: {
+      get: 'B25064_001E,NAME',
+      for: 'us:*',
+    },
+  },
+  'investment-returns': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'SPY', // S&P 500 ETF as investment proxy
+      outputsize: 'compact',
+    },
+  },
 };
 
 // Rate limit configurations by provider

@@ -309,6 +309,13 @@ export function getRequiredEnvVar(name: string): string {
 }
 
 /**
+ * Get optional environment variable
+ */
+export function getOptionalEnvVar(name: string): string | undefined {
+  return process.env[name];
+}
+
+/**
  * Make HTTP request with timeout and error handling
  */
 export async function makeHttpRequest(url: string, options: RequestInit = {}): Promise<Response> {

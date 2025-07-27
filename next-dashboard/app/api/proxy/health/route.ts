@@ -82,11 +82,11 @@ export async function GET(): Promise<NextResponse> {
         },
         census: {
           configured: censusConfigured,
-          status: 'unknown', // Not implemented yet
+          status: censusConfigured ? 'available' : 'unavailable',
         },
         alphaVantage: {
           configured: alphaVantageConfigured,
-          status: 'unknown', // Not implemented yet
+          status: alphaVantageConfigured ? 'available' : 'unavailable',
         },
       },
       environment: {

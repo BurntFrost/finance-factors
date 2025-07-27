@@ -20,6 +20,8 @@ import {
 } from '../../utils/proxy-utils';
 import { fredProxyService } from '../../services/fred-proxy';
 import { blsProxyService } from '../../services/bls-proxy';
+import { censusProxyService } from '../../services/census-proxy';
+import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
 
 /**
  * Handle OPTIONS requests for CORS preflight
@@ -102,25 +104,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'CENSUS':
-        // TODO: Implement Census proxy service
-        const censusError: ProxyError = {
-          type: 'api',
-          message: 'Census API proxy not yet implemented',
-          statusCode: 501,
-          retryable: false,
-        };
-        response = createErrorResponse(censusError, 'API Proxy');
+        response = await censusProxyService.fetchSeries(dataType, {
+          startYear: timeRange?.start ? timeRange.start.getFullYear() : undefined,
+          endYear: timeRange?.end ? timeRange.end.getFullYear() : undefined,
+          useCache,
+        });
         break;
 
       case 'ALPHA_VANTAGE':
-        // TODO: Implement Alpha Vantage proxy service
-        const alphaError: ProxyError = {
-          type: 'api',
-          message: 'Alpha Vantage API proxy not yet implemented',
-          statusCode: 501,
-          retryable: false,
-        };
-        response = createErrorResponse(alphaError, 'API Proxy');
+        response = await alphaVantageProxyService.fetchSeries(dataType, {
+          startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
+          endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
+          useCache,
+        });
         break;
 
       default:
