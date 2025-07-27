@@ -98,6 +98,8 @@ class ProxyApiService {
    */
   private async makeProxyRequest<T>(requestData: ProxyRequestData): Promise<ApiResponse<T>> {
     try {
+      console.log(`Making proxy request for ${requestData.dataType}...`);
+
       const response = await fetch(`${this.baseUrl}/data`, {
         method: 'POST',
         headers: {
@@ -106,6 +108,8 @@ class ProxyApiService {
         },
         body: JSON.stringify(requestData),
       });
+
+      console.log(`Proxy response status: ${response.status} ${response.statusText}`);
 
       if (!response.ok) {
         // Try to get error details from response
@@ -118,7 +122,8 @@ class ProxyApiService {
         } catch {
           // Ignore JSON parsing errors, use default message
         }
-        
+
+        console.error(`Proxy request failed: ${errorMessage}`);
         throw new Error(errorMessage);
       }
 

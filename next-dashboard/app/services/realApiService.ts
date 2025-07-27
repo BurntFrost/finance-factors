@@ -20,6 +20,14 @@ class RealApiService {
   private useProxy = true; // Enable proxy by default
   private proxyAvailable: boolean | null = null; // Cache proxy availability
 
+  constructor() {
+    // Force proxy usage in production to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      this.useProxy = true;
+      this.proxyAvailable = true; // Assume proxy is available in production
+    }
+  }
+
   /**
    * Check if API proxy is available
    */
@@ -29,9 +37,23 @@ class RealApiService {
     }
 
     try {
+      // For production/Vercel deployment, always assume proxy is available
+      // since it's part of the same Next.js application
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        this.proxyAvailable = true;
+        return true;
+      }
+
+      // For local development, test the proxy
       this.proxyAvailable = await proxyApiService.isAvailable();
       return this.proxyAvailable;
-    } catch {
+    } catch (error) {
+      console.warn('Proxy availability check failed:', error);
+      // In production, still try to use proxy even if health check fails
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        this.proxyAvailable = true;
+        return true;
+      }
       this.proxyAvailable = false;
       return false;
     }
@@ -39,14 +61,14 @@ class RealApiService {
 
   /**
    * Fetch data for a specific data type using the appropriate API
-   * Tries proxy first, falls back to direct API calls if proxy is unavailable
+   * Prioritizes proxy usage to avoid CORS issues
    */
   async fetchData<T = unknown>(options: DataFetchOptions): Promise<ApiResponse<T>> {
     const { dataType, timeRange, useCache = true } = options;
 
     try {
-      // Try proxy first if enabled and available
-      if (this.useProxy && await this.checkProxyAvailability()) {
+      // Always try proxy first if enabled
+      if (this.useProxy) {
         try {
           console.log(`Attempting to fetch ${dataType} via API proxy...`);
           const proxyResponse = await proxyApiService.fetchData<T>(options);
@@ -56,11 +78,33 @@ class RealApiService {
             return proxyResponse;
           } else {
             console.warn(`Proxy failed for ${dataType}:`, proxyResponse.error);
-            // Continue to fallback to direct API calls
+            // For production deployments, don't fall back to direct API calls
+            // as they will fail due to CORS
+            if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+              return {
+                data: null as T,
+                success: false,
+                error: `API proxy failed: ${proxyResponse.error}. Direct API calls are blocked by CORS in production.`,
+                timestamp: new Date(),
+                source: 'Real API Service',
+              };
+            }
           }
         } catch (proxyError) {
           console.warn(`Proxy error for ${dataType}:`, proxyError);
-          // Mark proxy as unavailable temporarily
+
+          // For production deployments, don't fall back to direct API calls
+          if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+            return {
+              data: null as T,
+              success: false,
+              error: `API proxy error: ${proxyError instanceof Error ? proxyError.message : 'Unknown error'}. Direct API calls are blocked by CORS in production.`,
+              timestamp: new Date(),
+              source: 'Real API Service',
+            };
+          }
+
+          // Mark proxy as unavailable temporarily for local development
           this.proxyAvailable = false;
           setTimeout(() => {
             this.proxyAvailable = null; // Reset availability check after 5 minutes
@@ -68,8 +112,8 @@ class RealApiService {
         }
       }
 
-      // Fallback to direct API calls
-      console.log(`Falling back to direct API for ${dataType}...`);
+      // Fallback to direct API calls (only for local development)
+      console.log(`Falling back to direct API for ${dataType}... (This may fail due to CORS in production)`);
 
       // Get endpoint configuration
       const endpoint = REAL_API_ENDPOINTS[dataType];
