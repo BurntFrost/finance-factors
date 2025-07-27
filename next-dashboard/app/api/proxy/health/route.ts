@@ -4,9 +4,8 @@
  * Provides status information about the API proxy services
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { fredProxyService } from '../../services/fred-proxy';
-import { blsProxyService } from '../../services/bls-proxy';
 
 interface HealthCheckResponse {
   status: 'healthy' | 'degraded' | 'unhealthy';
@@ -43,7 +42,7 @@ interface HealthCheckResponse {
 /**
  * Handle OPTIONS requests for CORS preflight
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -58,7 +57,7 @@ export async function OPTIONS(request: NextRequest) {
 /**
  * Health check handler for GET requests
  */
-export async function GET(request: NextRequest): Promise<NextResponse<HealthCheckResponse>> {
+export async function GET(): Promise<NextResponse> {
 
   try {
     // Check service configurations
@@ -120,7 +119,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<HealthChec
       },
     });
 
-  } catch (_error) {
+  } catch {
     const errorHealthCheck: HealthCheckResponse = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

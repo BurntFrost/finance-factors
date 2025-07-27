@@ -76,7 +76,7 @@ class BlsProxyService {
       useCache?: boolean;
     } = {}
   ): Promise<ProxyApiResponse<StandardDataPoint[]>> {
-    const { startYear, endYear, useCache = true } = options;
+    const { startYear, endYear } = options;
 
     try {
       // Check rate limit
@@ -96,6 +96,16 @@ class BlsProxyService {
         const error: ProxyError = {
           type: 'validation',
           message: `Invalid BLS data type: ${dataType}`,
+          statusCode: 400,
+          retryable: false,
+        };
+        return createErrorResponse(error, 'BLS API Proxy');
+      }
+
+      if (!endpointConfig.seriesId) {
+        const error: ProxyError = {
+          type: 'validation',
+          message: `Missing series ID for BLS data type: ${dataType}`,
           statusCode: 400,
           retryable: false,
         };

@@ -13,7 +13,6 @@ import {
   PROXY_API_ENDPOINTS,
 } from '../../types/proxy';
 import {
-  setCorsHeaders,
   createErrorResponse,
   validateRequestBody,
   extractRequestOptionsFromBody,
@@ -25,7 +24,7 @@ import { blsProxyService } from '../../services/bls-proxy';
 /**
  * Handle OPTIONS requests for CORS preflight
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
@@ -40,7 +39,7 @@ export async function OPTIONS(request: NextRequest) {
 /**
  * Main API proxy handler for POST requests
  */
-export async function POST(request: NextRequest): Promise<NextResponse<ProxyApiResponse<StandardDataPoint[]>>> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const startTime = Date.now();
 
   try {
@@ -89,8 +88,8 @@ export async function POST(request: NextRequest): Promise<NextResponse<ProxyApiR
     switch (endpointConfig.provider) {
       case 'FRED':
         response = await fredProxyService.fetchSeries(dataType, {
-          startDate: timeRange?.start,
-          endDate: timeRange?.end,
+          startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
+          endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
           useCache,
         });
         break;
@@ -99,7 +98,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<ProxyApiR
         response = await blsProxyService.fetchSeries(dataType, {
           startYear: timeRange?.start ? timeRange.start.getFullYear() : undefined,
           endYear: timeRange?.end ? timeRange.end.getFullYear() : undefined,
-          useCache,
         });
         break;
 

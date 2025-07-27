@@ -227,8 +227,8 @@ export function validateRequest(req: NextApiRequest): { isValid: boolean; error?
 /**
  * Validate request body (App Router version)
  */
-export function validateRequestBody(body: any): { isValid: boolean; error?: ProxyError } {
-  if (!body || typeof body !== 'object') {
+export function validateRequestBody(body: unknown): { isValid: boolean; error?: ProxyError } {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) {
     return {
       isValid: false,
       error: {
@@ -240,7 +240,8 @@ export function validateRequestBody(body: any): { isValid: boolean; error?: Prox
     };
   }
 
-  if (!body.dataType || typeof body.dataType !== 'string') {
+  const bodyObj = body as Record<string, unknown>;
+  if (!bodyObj.dataType || typeof bodyObj.dataType !== 'string') {
     return {
       isValid: false,
       error: {
@@ -279,16 +280,18 @@ export function extractRequestOptions(req: NextApiRequest): {
 /**
  * Extract request options from request body (App Router version)
  */
-export function extractRequestOptionsFromBody(body: any): {
+export function extractRequestOptionsFromBody(body: Record<string, unknown>): {
   dataType: string;
   timeRange?: { start: Date; end: Date };
   useCache: boolean;
 } {
+  const timeRange = body.timeRange as { start?: string; end?: string } | undefined;
+
   return {
-    dataType: body.dataType,
-    timeRange: body.timeRange ? {
-      start: new Date(body.timeRange.start),
-      end: new Date(body.timeRange.end),
+    dataType: body.dataType as string,
+    timeRange: timeRange && timeRange.start && timeRange.end ? {
+      start: new Date(timeRange.start),
+      end: new Date(timeRange.end),
     } : undefined,
     useCache: body.useCache !== false, // Default to true
   };
