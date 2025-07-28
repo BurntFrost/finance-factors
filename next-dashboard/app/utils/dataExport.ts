@@ -61,7 +61,7 @@ export async function exportToCSV(
         const row = [formatDateForExport(label, dateFormat)];
         chartData.datasets.forEach(dataset => {
           const value = Array.isArray(dataset.data) ? dataset.data[index] : dataset.data;
-          row.push(value || '');
+          row.push(String(value || ''));
         });
         rows.push(row);
       });
@@ -265,10 +265,10 @@ export async function exportMultipleToPDF(
 ): Promise<void> {
   const {
     filename = `dashboard-report-${Date.now()}.pdf`,
-    includeMetadata = true,
-    includeChartImage = true,
-    imageFormat = 'png',
-    imageQuality = 0.95,
+    includeMetadata: _includeMetadata = true,
+    includeChartImage: _includeChartImage = true,
+    imageFormat: _imageFormat = 'png',
+    imageQuality: _imageQuality = 0.95,
     pdfOrientation = 'portrait',
   } = options;
 
@@ -278,7 +278,7 @@ export async function exportMultipleToPDF(
     format: 'a4',
   });
 
-  const pageWidth = pdf.internal.pageSize.getWidth();
+  // const pageWidth = pdf.internal.pageSize.getWidth();
   const margin = 20;
 
   // Add title page
@@ -351,7 +351,7 @@ function formatValueForExport(value: any, type?: string, dateFormat?: string): s
   }
   
   if (value instanceof Date) {
-    return formatDateForExport(value, dateFormat || 'locale');
+    return formatDateForExport(value, (dateFormat as 'iso' | 'locale' | 'timestamp') || 'locale');
   }
   
   return String(value);
@@ -373,15 +373,15 @@ function downloadFile(content: string, filename: string, mimeType: string): void
   URL.revokeObjectURL(url);
 }
 
-function addChartDataTable(pdf: jsPDF, chartData: ChartData, x: number, y: number, width: number): void {
+function addChartDataTable(_pdf: jsPDF, _chartData: ChartData, _x: number, _y: number, _width: number): void {
   // Implementation for adding chart data as table to PDF
   // This would use a library like jsPDF-AutoTable for better table formatting
 }
 
-function addDataTable(pdf: jsPDF, tableData: TableData, x: number, y: number, width: number): void {
+function addDataTable(_pdf: jsPDF, _tableData: TableData, _x: number, _y: number, _width: number): void {
   // Implementation for adding table data to PDF
 }
 
-function addSummaryTable(pdf: jsPDF, summaryData: SummaryCardData[], x: number, y: number, width: number): void {
+function addSummaryTable(_pdf: jsPDF, _summaryData: SummaryCardData[], _x: number, _y: number, _width: number): void {
   // Implementation for adding summary cards as table to PDF
 }

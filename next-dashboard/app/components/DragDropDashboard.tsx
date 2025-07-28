@@ -42,7 +42,7 @@ interface SortableItemProps {
   isDragging?: boolean;
 }
 
-function SortableItem({ id, element, onRemove, isDragging = false }: SortableItemProps) {
+function SortableItem({ id, element, onRemove, isDragging: _isDragging = false }: SortableItemProps) {
   const isEditMode = useIsEditMode();
   const {
     attributes,

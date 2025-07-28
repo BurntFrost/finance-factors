@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
-import { ChartData, DashboardElement } from '../types/dashboard';
+import { DashboardElement } from '../types/dashboard';
 import { useIsEditMode } from '../context/ViewModeContext';
 import styles from './ResizableChartContainer.module.css';
 
@@ -22,7 +22,7 @@ interface ResizableChartContainerProps {
 
 export default function ResizableChartContainer({
   children,
-  element,
+  element: _element,
   onResize,
   onResizeEnd,
   minWidth = 300,
@@ -30,11 +30,12 @@ export default function ResizableChartContainer({
   maxWidth,
   maxHeight,
   aspectRatio,
-  maintainAspectRatio = false,
+  maintainAspectRatio: _maintainAspectRatio = false,
   resizeHandles = ['right', 'bottom', 'bottomRight'],
 }: ResizableChartContainerProps) {
   const isEditMode = useIsEditMode();
   const containerRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<any>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
@@ -71,7 +72,7 @@ export default function ResizableChartContainer({
     if (typeof window === 'undefined') return { width: '100%', height: '400px' };
 
     const screenWidth = window.innerWidth;
-    let width = '100%';
+    const width = '100%';
     let height = '400px';
 
     if (screenWidth < 768) {
@@ -114,7 +115,7 @@ export default function ResizableChartContainer({
     >
       <PanelGroup direction="horizontal" className={styles.panelGroup}>
         <Panel
-          ref={containerRef}
+          ref={panelRef}
           className={styles.chartPanel}
           minSize={20}
           defaultSize={100}
@@ -125,7 +126,7 @@ export default function ResizableChartContainer({
             maxHeight,
           }}
         >
-          <div className={styles.chartContent}>
+          <div ref={containerRef} className={styles.chartContent}>
             {children}
             
             {/* Resize indicators */}

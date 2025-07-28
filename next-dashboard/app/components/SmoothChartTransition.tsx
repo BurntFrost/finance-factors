@@ -6,14 +6,14 @@ import styles from './SmoothChartTransition.module.css';
 
 interface SmoothChartTransitionProps {
   data: ChartData;
-  fromType: VisualizationType;
-  toType: VisualizationType;
+  fromType: VisualizationType['id'];
+  toType: VisualizationType['id'];
   onTransitionComplete: () => void;
   duration?: number;
 }
 
 export default function SmoothChartTransition({
-  data,
+  data: _data,
   fromType,
   toType,
   onTransitionComplete,
@@ -111,7 +111,7 @@ export default function SmoothChartTransition({
   );
 }
 
-function getChartTypeLabel(type: VisualizationType): string {
+function getChartTypeLabel(type: VisualizationType['id']): string {
   switch (type) {
     case 'line-chart':
       return 'Line Chart';
@@ -221,17 +221,17 @@ export function EnhancedVisualizationSwitcher({
 interface TransitionChartContainerProps {
   children: React.ReactNode;
   data: ChartData;
-  currentType: VisualizationType;
+  currentType: VisualizationType['id'];
   isTransitioning: boolean;
-  fromType?: VisualizationType;
-  toType?: VisualizationType;
+  fromType?: VisualizationType['id'];
+  toType?: VisualizationType['id'];
   onTransitionComplete: () => void;
 }
 
 export function TransitionChartContainer({
   children,
   data,
-  currentType,
+  currentType: _currentType,
   isTransitioning,
   fromType,
   toType,

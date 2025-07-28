@@ -59,7 +59,7 @@ function initWebSocketServer() {
   const server = createServer();
   wss = new WebSocketServer({ server });
 
-  wss.on('connection', (ws, request) => {
+  wss.on('connection', (ws, _request) => {
     const connectionId = generateConnectionId();
     connections.set(connectionId, ws);
 
@@ -232,7 +232,7 @@ function startDataBroadcasting() {
 
 // HTTP upgrade handler for WebSocket
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+  const { searchParams: _searchParams } = new URL(request.url);
   
   // Check if this is a WebSocket upgrade request
   const upgrade = request.headers.get('upgrade');

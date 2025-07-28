@@ -150,7 +150,7 @@ export default function DashboardLayoutManager({
 
         dashboardLayouts.save(layout);
         setSavedLayouts(dashboardLayouts.getLayoutNames());
-      } catch (error) {
+      } catch (_error) {
         alert('Failed to import layout. Please check the file format.');
       }
     };

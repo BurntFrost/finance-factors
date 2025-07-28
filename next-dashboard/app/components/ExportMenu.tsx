@@ -306,7 +306,7 @@ export function BulkExportMenu({
       
       if (format === 'pdf') {
         // Export all to single PDF
-        const exportDataList = selectedElementsData.map(element => ({
+        const _exportDataList = selectedElementsData.map(element => ({
           title: element.title,
           type: element.type.includes('chart') ? 'chart' as const : 
                 element.type === 'data-table' ? 'table' as const : 'summary' as const,
@@ -319,7 +319,7 @@ export function BulkExportMenu({
           },
         }));
 
-        const chartElements = selectedElementsData.map((_, index) => 
+        const _chartElements = selectedElementsData.map((_, index) =>
           chartRefs[index]?.current || null
         );
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, lazy, useRef, useState, useCallback, useEffect } from 'react';
+import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import { Chart } from 'chart.js';
 import { ChartData, VisualizationType } from '../types/dashboard';
 import { getDataStatus } from './DataStatusPill';
@@ -80,7 +80,7 @@ export default function EnhancedInteractiveChart({
   const [showControls, setShowControls] = useState(false);
 
   // Handle data point selection
-  const handleDataPointClick = useCallback((dataPoint: any, chart: Chart) => {
+  const handleDataPointClick = useCallback((dataPoint: any, _chart: Chart) => {
     if (enableCrossfilter) {
       const newSelectedPoints = [...selectedPoints];
       const existingIndex = newSelectedPoints.findIndex(
@@ -103,7 +103,7 @@ export default function EnhancedInteractiveChart({
   }, [selectedPoints, enableCrossfilter, onDataPointClick, onDataPointSelect]);
 
   // Handle data point hover for enhanced tooltips
-  const handleDataPointHover = useCallback((dataPoint: any, chart: Chart) => {
+  const handleDataPointHover = useCallback((_dataPoint: any, _chart: Chart) => {
     // Could add hover effects or preview functionality here
   }, []);
 
@@ -164,19 +164,19 @@ export default function EnhancedInteractiveChart({
 
     switch (type) {
       case 'line-chart':
-        return <Line {...commonProps} />;
+        return <Line {...(commonProps as any)} />;
       case 'bar-chart':
-        return <Bar {...commonProps} />;
+        return <Bar {...(commonProps as any)} />;
       case 'pie-chart':
-        return <Pie {...commonProps} />;
+        return <Pie {...(commonProps as any)} />;
       case 'doughnut-chart':
-        return <Doughnut {...commonProps} />;
+        return <Doughnut {...(commonProps as any)} />;
       default:
-        return <Line {...commonProps} />;
+        return <Line {...(commonProps as any)} />;
     }
   };
 
-  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+  const _dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
 
   return (
     <ChartCard className={styles.enhancedChart}>

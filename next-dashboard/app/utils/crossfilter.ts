@@ -57,7 +57,7 @@ export class ChartCrossfilter {
     switch (group.reducer) {
       case 'sum':
         cfGroup = dimension.cfDimension.group().reduceSum(
-          group.valueAccessor || ((d: any) => 1)
+          group.valueAccessor || ((_d: any) => 1)
         );
         break;
       case 'count':
@@ -86,7 +86,7 @@ export class ChartCrossfilter {
             const val = group.valueAccessor ? group.valueAccessor(v) : 1;
             return p === null ? val : Math.min(p, val);
           },
-          (p: any, v: any) => p, // Remove function - simplified
+          (p: any, _v: any) => p, // Remove function - simplified
           () => null
         );
         break;
@@ -96,7 +96,7 @@ export class ChartCrossfilter {
             const val = group.valueAccessor ? group.valueAccessor(v) : 1;
             return p === null ? val : Math.max(p, val);
           },
-          (p: any, v: any) => p, // Remove function - simplified
+          (p: any, _v: any) => p, // Remove function - simplified
           () => null
         );
         break;
@@ -155,6 +155,13 @@ export class ChartCrossfilter {
     });
     this.filters.clear();
     this.notifyListeners();
+  }
+
+  /**
+   * Get a dimension by ID
+   */
+  getDimension(dimensionId: string): CrossfilterDimension | undefined {
+    return this.dimensions.get(dimensionId);
   }
 
   /**
@@ -223,7 +230,7 @@ export class ChartCrossfilter {
    * Convert filtered data to Chart.js format
    */
   toChartData(
-    dimensionId: string,
+    _dimensionId: string,
     valueAccessor?: (d: any) => number,
     labelAccessor?: (d: any) => string
   ): ChartData {
@@ -287,8 +294,14 @@ export function createFinancialCrossfilter(data: any[]): ChartCrossfilter {
   });
 
   // Add groups for common aggregations
-  cf.addGroup('date', { dimension: cf.dimensions.get('date')!, reducer: 'count' });
-  cf.addGroup('value', { dimension: cf.dimensions.get('value')!, reducer: 'average' });
+  const dateDimension = cf.getDimension('date');
+  const valueDimension = cf.getDimension('value');
+  if (dateDimension) {
+    cf.addGroup('date', { dimension: dateDimension, reducer: 'count' });
+  }
+  if (valueDimension) {
+    cf.addGroup('value', { dimension: valueDimension, reducer: 'average' });
+  }
 
   return cf;
 }
@@ -339,7 +352,7 @@ export class MultiChartCrossfilter {
   /**
    * Update other charts when one chart's filter changes
    */
-  private updateOtherCharts(sourceChartId: string, filteredData: any[]): void {
+  private updateOtherCharts(sourceChartId: string, _filteredData: any[]): void {
     this.chartUpdateCallbacks.forEach((callback, chartId) => {
       if (chartId !== sourceChartId) {
         const cf = this.crossfilters.get(chartId);
