@@ -66,7 +66,7 @@ function generateRateLimitKey(provider: string, identifier: string): string {
 async function slidingWindowRateLimit(
   key: string,
   config: RateLimitConfig,
-  identifier: string
+  _identifier: string
 ): Promise<RateLimitResult> {
   return executeRedisCommand(
     async (client) => {
@@ -124,7 +124,7 @@ async function slidingWindowRateLimit(
 async function fixedWindowRateLimit(
   key: string,
   config: RateLimitConfig,
-  identifier: string
+  _identifier: string
 ): Promise<RateLimitResult> {
   return executeRedisCommand(
     async (client) => {
@@ -175,7 +175,7 @@ async function fixedWindowRateLimit(
 async function tokenBucketRateLimit(
   key: string,
   config: RateLimitConfig,
-  identifier: string
+  _identifier: string
 ): Promise<RateLimitResult> {
   return executeRedisCommand(
     async (client) => {
@@ -186,7 +186,7 @@ async function tokenBucketRateLimit(
       const bucketData = await client.hGetAll(key);
       
       let tokens = bucketData.tokens ? parseFloat(bucketData.tokens) : config.maxRequests;
-      let lastRefill = bucketData.lastRefill ? parseInt(bucketData.lastRefill, 10) : now;
+      const lastRefill = bucketData.lastRefill ? parseInt(bucketData.lastRefill, 10) : now;
       
       // Calculate tokens to add based on time elapsed
       const timePassed = now - lastRefill;
@@ -327,9 +327,9 @@ export async function getRateLimitStatus(
 /**
  * Get all rate limit statuses
  */
-export async function getAllRateLimitStatuses(): Promise<Record<string, any>> {
+export async function getAllRateLimitStatuses(): Promise<Record<string, RateLimitResult | null>> {
   const providers = Object.keys(RATE_LIMIT_CONFIGS);
-  const statuses: Record<string, any> = {};
+  const statuses: Record<string, RateLimitResult | null> = {};
   
   for (const provider of providers) {
     if (provider === 'DEFAULT') continue;

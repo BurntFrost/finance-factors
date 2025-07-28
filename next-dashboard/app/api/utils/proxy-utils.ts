@@ -17,13 +17,10 @@ import {
 
 // Redis integration
 import {
-  getCachedApiResponse,
-  cacheApiResponse,
   generateCacheKey,
   CACHE_PREFIXES,
   getCacheData,
-  setCacheData,
-  DEFAULT_TTL
+  setCacheData
 } from '../../lib/redis-cache';
 import {
   checkRateLimit as redisCheckRateLimit,

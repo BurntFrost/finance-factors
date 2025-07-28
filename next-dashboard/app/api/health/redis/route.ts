@@ -6,10 +6,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
-  getRedisInfo, 
-  isRedisAvailable, 
-  executeRedisCommand 
+import {
+  getRedisInfo,
+  executeRedisCommand
 } from '../../../lib/redis';
 import { 
   getCacheStats, 
@@ -43,7 +42,7 @@ export async function OPTIONS() {
  * - Rate limiting status
  * - Configuration information
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   const startTime = Date.now();
   
   try {
@@ -218,7 +217,7 @@ async function getPerformanceMetrics() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, ...params } = body;
+    const { action, ..._params } = body;
 
     // Basic authentication check (in production, use proper auth)
     const authHeader = request.headers.get('authorization');

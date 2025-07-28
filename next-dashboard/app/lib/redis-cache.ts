@@ -5,7 +5,7 @@
  * and cache management with TTL support for the finance-factors dashboard.
  */
 
-import { executeRedisCommand, getRedisClient, isRedisAvailable } from './redis';
+import { executeRedisCommand, isRedisAvailable } from './redis';
 import { StandardDataPoint, ProxyApiResponse } from '../api/types/proxy';
 
 // Cache key prefixes for different data types

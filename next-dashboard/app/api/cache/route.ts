@@ -6,14 +6,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
+import {
   getCacheStats,
   getCacheKeys,
   deleteCacheKey,
   deleteCacheKeys,
   clearCacheByPrefix,
   setCacheData,
-  getCacheData,
   CACHE_PREFIXES,
   DEFAULT_TTL
 } from '../../lib/redis-cache';
@@ -75,7 +74,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const response: any = {
+    const response: {
+      available: boolean;
+      timestamp: string;
+      statistics: import('../../lib/redis-cache').CacheStats;
+      prefixes: string[];
+      defaultTtl: typeof DEFAULT_TTL;
+      keys?: string[];
+      keyCount?: number;
+    } = {
       available: true,
       timestamp: new Date().toISOString(),
       statistics: stats,
@@ -285,7 +292,7 @@ export async function DELETE(request: NextRequest) {
             headers: { 'Access-Control-Allow-Origin': '*' },
           });
         }
-      } catch (parseError) {
+      } catch (_parseError) {
         return NextResponse.json({
           error: 'Invalid JSON',
           message: 'Keys parameter must be valid JSON array',
