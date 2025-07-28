@@ -17,14 +17,15 @@ interface DynamicElementRendererProps {
   onRemove: (id: string) => void;
 }
 
-export default function DynamicElementRenderer({ element, onRemove }: DynamicElementRendererProps) {
+const DynamicElementRenderer = React.memo(function DynamicElementRenderer({ element, onRemove }: DynamicElementRendererProps) {
   const { updateElement } = useDashboard();
   const _crossfilter = useCrossfilter();
   const [isChangingVisualization, setIsChangingVisualization] = useState(false);
 
-  const handleRemove = () => {
+  // Memoize remove handler to prevent recreation
+  const handleRemove = useCallback(() => {
     onRemove(element.id);
-  };
+  }, [onRemove, element.id]);
 
   // Handler for data point interactions
   const handleDataPointClick = useCallback((dataPoint: any) => {
@@ -260,4 +261,6 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
         </div>
       );
   }
-}
+});
+
+export default DynamicElementRenderer;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { TableData, TableColumn, VisualizationType } from '@/shared/types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
@@ -19,7 +19,7 @@ interface DataTableProps {
 
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function DataTable({
+const DataTable = React.memo(function DataTable({
   title,
   data,
   dataType,
@@ -34,22 +34,25 @@ export default function DataTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Memoize search term normalization
+  const normalizedSearchTerm = useMemo(() => searchTerm.toLowerCase(), [searchTerm]);
+
   // Filter data based on search term
   const filteredData = useMemo(() => {
     if (!searchTerm) return data.rows;
-    
+
     return data.rows.filter(row =>
       Object.values(row).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        String(value).toLowerCase().includes(normalizedSearchTerm)
       )
     );
-  }, [data.rows, searchTerm]);
+  }, [data.rows, normalizedSearchTerm, searchTerm]);
 
-  // Sort data
-  const sortedData = useMemo(() => {
-    if (!sortColumn || !sortDirection) return filteredData;
+  // Memoize sort function to prevent recreation
+  const sortFunction = useMemo(() => {
+    if (!sortColumn || !sortDirection) return null;
 
-    return [...filteredData].sort((a, b) => {
+    return (a: any, b: any) => {
       const aValue = a[sortColumn];
       const bValue = b[sortColumn];
 
@@ -66,8 +69,14 @@ export default function DataTable({
       } else {
         return bString.localeCompare(aString);
       }
-    });
-  }, [filteredData, sortColumn, sortDirection]);
+    };
+  }, [sortColumn, sortDirection]);
+
+  // Sort data
+  const sortedData = useMemo(() => {
+    if (!sortFunction) return filteredData;
+    return [...filteredData].sort(sortFunction);
+  }, [filteredData, sortFunction]);
 
   // Paginate data
   const paginatedData = useMemo(() => {
@@ -77,7 +86,8 @@ export default function DataTable({
 
   const totalPages = Math.ceil(sortedData.length / maxRows);
 
-  const handleSort = (columnKey: string) => {
+  // Memoize sort handler to prevent recreation
+  const handleSort = useCallback((columnKey: string) => {
     const column = data.columns.find(col => col.key === columnKey);
     if (!column?.sortable) return;
 
@@ -95,7 +105,7 @@ export default function DataTable({
       setSortDirection('asc');
     }
     setCurrentPage(1);
-  };
+  }, [sortColumn, sortDirection, data.columns]);
 
   const formatCellValue = (value: unknown, column: TableColumn) => {
     if (value === null || value === undefined) return '-';
@@ -120,7 +130,8 @@ export default function DataTable({
     return sortDirection === 'asc' ? '↑' : '↓';
   };
 
-  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+  // Memoize data status to prevent recalculation
+  const dataStatus = useMemo(() => getDataStatus(data.lastUpdated, data.isRealData), [data.lastUpdated, data.isRealData]);
 
   // Prepare header actions
   const headerActions = (
@@ -149,10 +160,10 @@ export default function DataTable({
       onRemove={onRemove}
       headerActions={headerActions}
       searchValue={searchTerm}
-      onSearchChange={(value) => {
+      onSearchChange={useCallback((value: string) => {
         setSearchTerm(value);
         setCurrentPage(1);
-      }}
+      }, [])}
       showSearch={true}
       footerContent={
         totalPages > 1 ? (
@@ -232,4 +243,6 @@ export default function DataTable({
       </div>
     </TableCard>
   );
-}
+});
+
+export default DataTable;

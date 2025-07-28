@@ -1,16 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
-import AutomaticChart from '@/frontend/components/AutomaticChart';
-// import EnhancedInteractiveChart from '@/frontend/components/EnhancedInteractiveChart'; // Will be used by DynamicElementRenderer
-import DragDropDashboard from '@/frontend/components/DragDropDashboard';
-import { ElementType } from '@/frontend/components/AddElementDropdown';
-import DynamicElementRenderer from '@/frontend/components/DynamicElementRenderer';
-import DashboardTabBar from '@/frontend/components/DashboardTabBar';
-import DarkModeToggle from '@/frontend/components/DarkModeToggle';
+import React, { useState, lazy, Suspense } from 'react';
 import HydrationSafeWrapper from '@/frontend/components/HydrationSafeWrapper';
-import ClientOnlyRealTimeFeatures from '@/frontend/components/ClientOnlyRealTimeFeatures';
-import DashboardCustomizationPanel from '@/frontend/components/DashboardCustomizationPanel';
+
+// Lazy load heavy components for better performance
+const AutomaticChart = lazy(() => import('@/frontend/components/AutomaticChart'));
+const DragDropDashboard = lazy(() => import('@/frontend/components/DragDropDashboard'));
+const DynamicElementRenderer = lazy(() => import('@/frontend/components/DynamicElementRenderer'));
+const DashboardTabBar = lazy(() => import('@/frontend/components/DashboardTabBar'));
+const DarkModeToggle = lazy(() => import('@/frontend/components/DarkModeToggle'));
+const ClientOnlyRealTimeFeatures = lazy(() => import('@/frontend/components/ClientOnlyRealTimeFeatures'));
+const DashboardCustomizationPanel = lazy(() => import('@/frontend/components/DashboardCustomizationPanel'));
+
+// Import types separately to avoid bundling components
+import type { ElementType } from '@/frontend/components/AddElementDropdown';
 import { useDashboard } from '@/frontend/context/DashboardContext';
 import { useViewMode } from '@/frontend/context/ViewModeContext';
 // import { useCrossfilter } from '@/frontend/context/CrossfilterContext'; // Temporarily disabled
@@ -112,27 +115,34 @@ export default function Home() {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <HydrationSafeWrapper fallback={<div className="w-12 h-8 bg-gray-200 rounded-lg animate-pulse"></div>}>
-            <DarkModeToggle size="medium" />
+            <Suspense fallback={<div className="w-12 h-8 bg-gray-200 rounded-lg animate-pulse"></div>}>
+              <DarkModeToggle size="medium" />
+            </Suspense>
           </HydrationSafeWrapper>
         </div>
         <h1>Finance Factor Dashboard</h1>
         <div className={styles.headerContent}>
-          <DashboardTabBar
-            onSettingsClick={() => setShowCustomizationPanel(true)}
-            onElementSelect={handleElementSelect}
-            onElementCreate={handleElementCreate}
-            showAddElement={true}
-          />
-          <ClientOnlyRealTimeFeatures
-            enableRealTime={enableRealTime}
-            showRealTimeIndicator={true}
-          />
+          <Suspense fallback={<div className="h-10 bg-gray-200 rounded-lg animate-pulse w-48"></div>}>
+            <DashboardTabBar
+              onSettingsClick={() => setShowCustomizationPanel(true)}
+              onElementSelect={handleElementSelect}
+              onElementCreate={handleElementCreate}
+              showAddElement={true}
+            />
+          </Suspense>
+          <Suspense fallback={<div className="h-6 bg-gray-200 rounded-lg animate-pulse w-32"></div>}>
+            <ClientOnlyRealTimeFeatures
+              enableRealTime={enableRealTime}
+              showRealTimeIndicator={true}
+            />
+          </Suspense>
         </div>
       </div>
 
       {/* Enhanced Dashboard Layout with Drag & Drop */}
       {enableDragDrop ? (
-        <DragDropDashboard
+        <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
+          <DragDropDashboard
           elements={[
             // Convert hardcoded charts to dashboard elements
             ...HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => ({
@@ -160,17 +170,19 @@ export default function Home() {
               removeElement(elementId);
             }
           }}
-          gridColumns={2}
-          gap={24}
-          enableResize={enableDragDrop} // Enable resize when drag & drop is enabled
-        />
+            gridColumns={2}
+            gap={24}
+            enableResize={enableDragDrop} // Enable resize when drag & drop is enabled
+          />
+        </Suspense>
       ) : (
         // Fallback to traditional grid layout
         <div className={styles.dashboardGrid}>
           {/* Render hardcoded charts dynamically */}
           {HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => (
             <div key={chart.id} className={styles.chartContainer}>
-              <AutomaticChart
+              <Suspense fallback={<div className="h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-500">Loading chart...</span></div>}>
+                <AutomaticChart
                 dataType={chart.dataType}
                 title={chart.title}
                 chartType="line"
@@ -193,17 +205,20 @@ export default function Home() {
                 onDataPointClick={(dataPoint, chart) => {
                   console.log(`Chart ${chart.id} data point clicked:`, dataPoint, chart);
                 }}
-              />
+                />
+              </Suspense>
             </div>
           ))}
 
           {/* Dynamic elements */}
           {state.elements.map((element) => (
             <div key={element.id} className={styles.chartContainer}>
-              <DynamicElementRenderer
-                element={element}
-                onRemove={removeElement}
-              />
+              <Suspense fallback={<div className="h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center"><span className="text-gray-500">Loading element...</span></div>}>
+                <DynamicElementRenderer
+                  element={element}
+                  onRemove={removeElement}
+                />
+              </Suspense>
             </div>
           ))}
         </div>
@@ -211,7 +226,8 @@ export default function Home() {
 
       {/* Dashboard Customization Panel - Temporarily disabled */}
       {false && (
-        <DashboardCustomizationPanel
+        <Suspense fallback={<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"><div className="bg-white p-6 rounded-lg">Loading...</div></div>}>
+          <DashboardCustomizationPanel
           isOpen={showCustomizationPanel}
           onClose={() => setShowCustomizationPanel(false)}
           onSettingsChange={(settings) => {
@@ -219,12 +235,13 @@ export default function Home() {
             setEnableRealTime(settings.enableRealTime ?? enableRealTime);
             console.log('Dashboard settings updated:', settings);
           }}
-          currentSettings={{
-            enableDragDrop,
-            enableRealTime,
-            visibleCharts: Array.from(visibleCharts),
-          }}
-        />
+            currentSettings={{
+              enableDragDrop,
+              enableRealTime,
+              visibleCharts: Array.from(visibleCharts),
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );

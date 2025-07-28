@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { SummaryCardData, VisualizationType } from '@/shared/types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
@@ -17,34 +17,45 @@ interface SummaryCardProps {
   onRemove?: () => void;
 }
 
-export default function SummaryCard({ title: _title, data, onRemove }: SummaryCardProps) {
+// Memoized value formatter to prevent recalculation
+const formatValue = (value: string | number): string => {
+  if (typeof value === 'number') {
+    // Format large numbers with appropriate suffixes
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}K`;
+    }
+    return value.toLocaleString();
+  }
+  return value;
+};
+
+const SummaryCard = React.memo(function SummaryCard({ title: _title, data, onRemove }: SummaryCardProps) {
   const isEditMode = useIsEditMode();
 
-  const formatValue = (value: string | number) => {
-    if (typeof value === 'number') {
-      // Format large numbers with appropriate suffixes
-      if (value >= 1000000) {
-        return `${(value / 1000000).toFixed(1)}M`;
-      } else if (value >= 1000) {
-        return `${(value / 1000).toFixed(1)}K`;
-      }
-      return value.toLocaleString();
-    }
-    return value;
-  };
+  // Memoize formatted value to prevent recalculation
+  const formattedValue = useMemo(() => formatValue(data.value), [data.value]);
 
-  // These functions are now handled by FinancialCard
+  // Memoize data status to prevent recalculation
+  const dataStatus = useMemo(() => getDataStatus(data.lastUpdated, data.isRealData), [data.lastUpdated, data.isRealData]);
+
+  // Memoize change data to prevent object recreation
+  const changeData = useMemo(() =>
+    data.change ? {
+      value: data.change.value,
+      period: data.change.period,
+      type: data.change.type
+    } : undefined,
+    [data.change]
+  );
 
   return (
     <FinancialCard
       title={data.title}
-      value={formatValue(data.value)}
-      change={data.change ? {
-        value: data.change.value,
-        period: data.change.period,
-        type: data.change.type
-      } : undefined}
-      status={getDataStatus(data.lastUpdated, data.isRealData)}
+      value={formattedValue}
+      change={changeData}
+      status={dataStatus}
       lastUpdated={data.lastUpdated}
       icon={data.icon}
       color={data.color}
@@ -52,7 +63,9 @@ export default function SummaryCard({ title: _title, data, onRemove }: SummaryCa
       onRemove={onRemove}
     />
   );
-}
+});
+
+export default SummaryCard;
 
 // Grid container for multiple summary cards
 interface SummaryCardGridProps {
@@ -64,7 +77,7 @@ interface SummaryCardGridProps {
   isChangingVisualization?: boolean;
 }
 
-export function SummaryCardGrid({
+export const SummaryCardGrid = React.memo(function SummaryCardGrid({
   title,
   cards,
   dataType,
@@ -74,13 +87,24 @@ export function SummaryCardGrid({
 }: SummaryCardGridProps) {
   const isEditMode = useIsEditMode();
 
-  // Determine overall data status from the cards
-  const hasRealData = cards.some(card => card.isRealData);
-  const latestUpdate = cards.reduce((latest, card) => {
-    if (!card.lastUpdated) return latest;
-    if (!latest) return card.lastUpdated;
-    return card.lastUpdated > latest ? card.lastUpdated : latest;
-  }, undefined as Date | undefined);
+  // Memoize expensive calculations
+  const hasRealData = useMemo(() => cards.some(card => card.isRealData), [cards]);
+
+  const latestUpdate = useMemo(() =>
+    cards.reduce((latest, card) => {
+      if (!card.lastUpdated) return latest;
+      if (!latest) return card.lastUpdated;
+      return card.lastUpdated > latest ? card.lastUpdated : latest;
+    }, undefined as Date | undefined),
+    [cards]
+  );
+
+  const dataStatus = useMemo(() => getDataStatus(latestUpdate, hasRealData), [latestUpdate, hasRealData]);
+
+  // Memoize remove handler to prevent recreation
+  const handleRemove = useCallback(() => {
+    onRemove?.();
+  }, [onRemove]);
 
   return (
     <Card className="relative transition-all duration-200 hover:shadow-md h-full flex flex-col">
@@ -90,7 +114,7 @@ export function SummaryCardGrid({
             {title}
           </CardTitle>
           <ModernStatusPill
-            status={getDataStatus(latestUpdate, hasRealData)}
+            status={dataStatus}
             lastUpdated={latestUpdate}
             size="sm"
             showTimestamp={false}
@@ -115,7 +139,7 @@ export function SummaryCardGrid({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              onClick={onRemove}
+              onClick={handleRemove}
               aria-label="Remove card grid"
             >
               <X className="h-4 w-4" />
@@ -147,4 +171,4 @@ export function SummaryCardGrid({
       </CardContent>
     </Card>
   );
-}
+});

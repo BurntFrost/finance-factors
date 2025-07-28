@@ -21,8 +21,21 @@ const nextConfig: NextConfig = {
   // Performance optimizations
   experimental: {
     // Enable optimized package imports for better tree shaking
-    optimizePackageImports: ['chart.js', 'react-chartjs-2', 'redis'],
+    optimizePackageImports: [
+      'chart.js',
+      'react-chartjs-2',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@dnd-kit/core',
+      '@dnd-kit/sortable',
+      'lucide-react'
+    ],
   },
+
+  // Server external packages (moved from experimental.serverComponentsExternalPackages)
+  serverExternalPackages: ['redis', 'pg', '@prisma/client'],
 
   // Turbopack configuration (for development with --turbopack flag)
   turbopack: {
@@ -60,10 +73,26 @@ const nextConfig: NextConfig = {
           },
           // Chart.js and visualization libraries
           charts: {
-            test: /[\\/]node_modules[\\/](chart\.js|react-chartjs-2)[\\/]/,
+            test: /[\\/]node_modules[\\/](chart\.js|react-chartjs-2|chartjs-.*|html2canvas|jspdf)[\\/]/,
             name: 'charts',
             chunks: 'all',
             priority: 35,
+            enforce: true,
+          },
+          // UI libraries (Radix UI, Lucide)
+          ui: {
+            test: /[\\/]node_modules[\\/](@radix-ui|lucide-react|class-variance-authority|clsx|tailwind-merge)[\\/]/,
+            name: 'ui',
+            chunks: 'all',
+            priority: 32,
+            enforce: true,
+          },
+          // DnD Kit libraries
+          dnd: {
+            test: /[\\/]node_modules[\\/](@dnd-kit)[\\/]/,
+            name: 'dnd',
+            chunks: 'all',
+            priority: 31,
             enforce: true,
           },
           // Redis and caching libraries
@@ -100,6 +129,17 @@ const nextConfig: NextConfig = {
 
       // Minimize bundle size
       config.optimization.minimize = true;
+
+      // Additional performance optimizations
+      config.optimization.moduleIds = 'deterministic';
+      config.optimization.chunkIds = 'deterministic';
+
+      // Optimize module concatenation
+      config.optimization.concatenateModules = true;
+
+      // Remove duplicate modules
+      config.optimization.providedExports = true;
+      config.optimization.innerGraph = true;
     }
 
     return config;

@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/frontend/context/ThemeContext";
 import { CrossfilterProvider } from "@/frontend/context/CrossfilterContext";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import { ToastProvider } from "@/frontend/components/ToastManager";
+import PerformanceMonitor from "@/frontend/components/PerformanceMonitor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,6 +65,7 @@ export default function RootLayout({
                   <CrossfilterProvider>
                     <DashboardProvider>
                       {children}
+                      <PerformanceMonitor enabled={process.env.NODE_ENV === 'development'} />
                     </DashboardProvider>
                   </CrossfilterProvider>
                 </AutomaticDataSourceProvider>
