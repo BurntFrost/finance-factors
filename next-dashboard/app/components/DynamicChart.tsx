@@ -30,6 +30,11 @@ const ChartRegistration = lazy(() =>
   import('./ChartRegistration').then(module => ({ default: module.default }))
 );
 
+// Import the wait function
+const waitForChartJS = lazy(() =>
+  import('./ChartRegistration').then(module => ({ default: module.waitForChartJS }))
+);
+
 interface DynamicChartProps {
   type: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart';
   data: ChartData;
@@ -82,21 +87,14 @@ export default function DynamicChart({
   useEffect(() => {
     const checkChartRegistration = async () => {
       try {
-        // Import Chart.js to check if it's available
-        const chartModule = await import('chart.js');
-        const { Chart: ChartJS } = chartModule;
-
-        // Check if time scale is registered
-        if (ChartJS.registry && ChartJS.registry.getScale('time')) {
-          setIsChartReady(true);
-        } else {
-          // If time scale is not registered, wait a bit and try again
-          setTimeout(checkChartRegistration, 100);
-        }
+        // Import the wait function and wait for registration
+        const { waitForChartJS } = await import('./ChartRegistration');
+        await waitForChartJS();
+        setIsChartReady(true);
       } catch (error) {
-        console.error('Error checking Chart.js registration:', error);
+        console.error('Error waiting for Chart.js registration:', error);
         // Fallback - assume it's ready after a delay
-        setTimeout(() => setIsChartReady(true), 1000);
+        setTimeout(() => setIsChartReady(true), 2000);
       }
     };
 
