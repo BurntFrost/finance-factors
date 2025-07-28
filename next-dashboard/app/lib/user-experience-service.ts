@@ -13,6 +13,7 @@ import {
 } from '../api/types/proxy';
 import { redisFallbackService } from './redis-fallback-service';
 import { redisHealthMonitor } from './redis-health-monitor';
+import { userContextService } from './user-context-service';
 
 /**
  * User Experience Service Class
@@ -336,6 +337,30 @@ export class UserExperienceService {
       dismissible: true,
       autoHide: false,
     };
+  }
+
+  /**
+   * Generate enhanced contextual indicators
+   */
+  public generateContextualUserIndicators(
+    sessionId: string,
+    responseTime: number,
+    cacheHit: boolean,
+    dataSource: 'redis' | 'fallback' | 'direct'
+  ): UserExperienceIndicator[] {
+    // Get contextual indicators
+    const contextualIndicators = userContextService.generateContextualIndicators(
+      sessionId,
+      responseTime,
+      cacheHit,
+      dataSource
+    );
+
+    // Convert to standard indicators with enhanced context
+    return contextualIndicators.map(indicator => ({
+      ...indicator,
+      message: `${indicator.message} - ${indicator.context.userImpact}`,
+    }));
   }
 }
 

@@ -7,6 +7,7 @@
 
 import { redisErrorLogger, RedisErrorType, RedisOperationType } from './redis-error-logger';
 import { ProxyApiResponse } from '../api/types/proxy';
+import { redisPredictiveAnalytics } from './redis-predictive-analytics';
 
 // Fallback mode status
 interface FallbackStatus {
@@ -295,6 +296,28 @@ export class RedisFallbackService {
   public reset(): void {
     this.deactivateFallback();
     redisErrorLogger.reset();
+  }
+
+  /**
+   * Check predictive analytics and proactively prepare fallback
+   */
+  public checkPredictiveFailure(): boolean {
+    const analytics = redisPredictiveAnalytics.analyzePredictiveMetrics();
+    const pattern = redisPredictiveAnalytics.detectPerformancePattern();
+
+    // Proactively prepare fallback for high-risk scenarios
+    if (analytics.predictedFailureRisk === 'critical' || 
+        (analytics.predictedFailureRisk === 'high' && pattern.recommendedAction === 'activate_fallback')) {
+      
+      this.activateFallback(
+        `Predictive analytics detected imminent failure (risk: ${analytics.predictedFailureRisk})`,
+        RedisErrorType.PREDICTIVE_FAILURE
+      );
+      
+      return true;
+    }
+
+    return false;
   }
 }
 
