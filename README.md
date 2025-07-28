@@ -4,15 +4,17 @@ A comprehensive Next.js 15 dashboard application for visualizing real-time finan
 
 ## 🌟 Key Features
 
-- **🔴 Live Government APIs**: Real-time data from FRED, BLS, Census Bureau
-- **📊 Interactive Charts**: Dynamic visualizations with Chart.js 4.5.0
-- **🔄 Smart Data Switching**: Automatic fallback between live APIs and historical data
-- **⚡ Performance Optimized**: Lazy loading, code splitting, intelligent caching with TTL
-- **🚀 Automatic Deployment**: GitHub Actions → Vercel with preview deployments
-- **📱 Responsive Design**: Optimized for all devices and screen sizes
-- **♿ Accessibility**: Full keyboard navigation and screen reader support
-- **🛡️ CORS-Free**: API proxy eliminates cross-origin issues
-- **📈 Real-time Status**: Live API health monitoring and data freshness indicators
+- **🔴 Live Government APIs**: Real-time data from FRED, BLS, Census Bureau, Alpha Vantage
+- **📊 Interactive Charts**: Dynamic visualizations with Chart.js 4.5.0 and react-chartjs-2 5.2.0
+- **🔄 Smart Data Switching**: Automatic fallback between live APIs and historical data with intelligent retry logic
+- **⚡ Performance Optimized**: Lazy loading, code splitting, intelligent caching with Redis and TTL
+- **🚀 Automatic Deployment**: GitHub Actions → Vercel with preview deployments and health checks
+- **📱 Responsive Design**: Optimized for all devices with CSS Modules and responsive layouts
+- **♿ Accessibility**: Full keyboard navigation, screen reader support, and WCAG 2.1 AA compliance
+- **🛡️ CORS-Free**: Next.js API proxy eliminates cross-origin issues with rate limiting
+- **📈 Real-time Status**: Live API health monitoring, data freshness indicators, and error boundaries
+- **🎛️ Context-Driven State**: React Context API with DashboardProvider, AutomaticDataSourceProvider, and ViewModeProvider
+- **🔧 TypeScript Strict**: Full type safety with comprehensive interfaces and strict mode enabled
 
 ## 🌐 Live Demo & Status
 
@@ -70,25 +72,34 @@ npm run dev
 
 ## 🛠 Technology Stack
 
-### Frontend
-- **Framework**: Next.js 15.4.2 with App Router
-- **Language**: TypeScript with strict mode
-- **Visualization**: Chart.js 4.5.0 with react-chartjs-2 5.2.0
-- **Styling**: CSS Modules with responsive design
-- **State Management**: React Context API with custom hooks
+### Frontend Architecture
+- **Framework**: Next.js 15.4.2 with App Router and React 18.2.0
+- **Language**: TypeScript with strict mode and comprehensive type definitions
+- **Visualization**: Chart.js 4.5.0 with react-chartjs-2 5.2.0 for interactive charts
+- **Styling**: CSS Modules with responsive design and CSS custom properties
+- **State Management**: React Context API with three main providers:
+  - `DashboardProvider` - Dashboard element management and layout
+  - `AutomaticDataSourceProvider` - Intelligent data source switching
+  - `ViewModeProvider` - Edit/Live/Preview mode management
+- **Performance**: Lazy loading, code splitting, Suspense boundaries, and dynamic imports
 
-### Backend/API
-- **Serverless**: Vercel Functions
-- **API Proxy**: Next.js API routes for CORS resolution
-- **Caching**: In-memory with TTL (30-minute default)
-- **Data Sources**: Government APIs (FRED, BLS, Census)
+### Backend/API Architecture
+- **Serverless**: Vercel Functions with Node.js runtime
+- **API Proxy**: Next.js API routes for CORS resolution and security
+- **Caching**: Multi-layer caching with Redis and in-memory TTL (30-minute default)
+- **Rate Limiting**: Built-in rate limiting for external API calls
+- **Data Sources**: Government APIs (FRED, BLS, Census Bureau, Alpha Vantage)
+- **Error Handling**: Comprehensive error boundaries and fallback mechanisms
+- **Data Transformation**: Standardized data transformers for Chart.js compatibility
 
-### Development Tools
-- **Build Tool**: Next.js with Turbopack for fast development
-- **Linting**: ESLint with Next.js configuration
-- **Type Checking**: TypeScript compiler with strict mode
-- **Testing**: Built-in API connectivity tests
-- **Deployment**: GitHub Actions CI/CD → Vercel
+### Development & Quality Tools
+- **Build Tool**: Next.js with Turbopack for fast development builds
+- **Linting**: ESLint with Next.js and TypeScript configurations
+- **Type Checking**: TypeScript compiler with strict mode and path mapping
+- **Testing**: Comprehensive API connectivity tests and health checks
+- **Deployment**: GitHub Actions CI/CD → Vercel with automated preview deployments
+- **Monitoring**: Built-in health check endpoints and performance metrics
+- **Bundle Analysis**: Webpack bundle analyzer for performance optimization
 
 ## 🏗 System Architecture
 
@@ -152,28 +163,67 @@ User Interface (Interactive charts & controls)
 
 ### Core Components
 
-#### 1. **AutomaticChart Component**
-- **Purpose**: Intelligent chart component that adapts to data source changes
-- **Features**:
-  - Data source awareness with automatic fallback
-  - Automatic refresh functionality with configurable intervals
-  - Loading states and error boundaries
-  - Chart.js integration with smooth animations
-  - Real-time status indicators
-- **Props**: `dataType`, `chartType`, `title`, `refreshInterval`, `showIndicator`
+#### 1. **AutomaticChart Component** (`app/components/AutomaticChart.tsx`)
+- **Purpose**: Intelligent chart component with automatic data source management
+- **Key Features**:
+  - Data source awareness with automatic fallback to historical data
+  - Configurable auto-refresh with intervals (default: 15 minutes)
+  - Loading states, error boundaries, and retry mechanisms
+  - Chart.js integration with smooth animations and transitions
+  - Real-time status indicators with `DataStatusPill` integration
+  - Visualization type switching (line, bar, pie, doughnut charts)
+  - Lazy loading with React Suspense for performance optimization
+- **Props**: `dataType`, `chartType`, `title`, `refreshInterval`, `showIndicator`, `onVisualizationChange`
+- **Hooks Used**: `useAutomaticDataSource`, `useIsEditMode`
 
-#### 2. **DataStatusPill Component**
-- **Purpose**: Visual indicators for data freshness and authenticity
+#### 2. **DataStatusPill Component** (`app/components/DataStatusPill.tsx`)
+- **Purpose**: Visual indicators for data freshness, authenticity, and source status
 - **Status Types**:
-  - 🟢 Live Data (`recent`) - Recently updated real data
-  - 📊 Historical Data (`historical`) - Real historical financial data
-  - 🔴 Outdated (`stale`) - Real data that may be outdated
-  - ⏳ Loading (`loading`) - Data is being loaded
-- **Features**: Color-coded indicators, responsive design, accessibility support
+  - 🟢 **Live Data** (`recent`) - Recently updated real data from APIs
+  - 📊 **Historical Data** (`historical`) - Real historical financial data for analysis
+  - 🔴 **Outdated** (`stale`) - Real data that may be outdated (>24 hours)
+  - ⏳ **Loading** (`loading`) - Data is being fetched or processed
+- **Features**: Color-coded indicators, timestamp display, responsive design, accessibility support
+- **Utility**: `getDataStatus()` function for automatic status determination
 
-#### 3. **DynamicElementRenderer Component**
-- **Purpose**: Renders dashboard elements dynamically based on configuration
-- **Features**: Supports multiple chart types, lazy loading, error boundaries
+#### 3. **DynamicElementRenderer Component** (`app/components/DynamicElementRenderer.tsx`)
+- **Purpose**: Renders dashboard elements dynamically based on type and configuration
+- **Supported Types**: Line charts, bar charts, pie charts, doughnut charts, data tables, summary cards
+- **Features**:
+  - Type-safe rendering with TypeScript guards
+  - Visualization switching with data conversion
+  - Error boundaries and fallback UI
+  - Integration with dashboard state management
+  - Lazy loading and performance optimization
+
+#### 4. **Context Providers** (`app/context/`)
+- **DashboardProvider**: Global dashboard state, element management, layout configuration
+- **AutomaticDataSourceProvider**: Intelligent data source switching with live-first, fallback strategy
+- **ViewModeProvider**: Edit/Live/Preview mode management with localStorage persistence
+- **Features**: Reducer-based state management, localStorage persistence, error handling
+
+### Custom Hooks & Utilities
+
+#### Data Management Hooks (`app/hooks/`)
+- **`useAutomaticDataSource`**: Primary hook for automatic data fetching with fallback logic
+  - Handles live API → cached data → historical data fallback chain
+  - Configurable auto-refresh intervals and retry mechanisms
+  - Returns data, loading state, error state, and control functions
+- **`useDataSource`**: Lower-level hook for manual data source management
+- **`useChartDataSource`**: Specialized hook for chart-specific data management
+- **`useIsolatedDataSource`**: Component-isolated data fetching without global state impact
+
+#### Utility Functions (`app/utils/`)
+- **`historicalDataGenerators.ts`**: Seeded random data generation for fallback scenarios
+- **`dataConverter.ts`**: Conversion between chart types (line → bar → pie → table → cards)
+- **`localStorage.ts`**: Safe localStorage operations with fallbacks and TTL management
+- **`chartConfiguration.ts`**: Chart.js configuration presets and axis configurations
+
+#### Type System (`app/types/`)
+- **`dashboard.ts`**: Dashboard element types, chart data interfaces, state management types
+- **`dataSource.ts`**: API configuration, data source types, response interfaces
+- **`proxy.ts`**: API proxy types, standardized data points, error handling types
+- **`health.ts`**: Health check interfaces for monitoring and deployment verification
 
 ### Context Providers
 
@@ -352,35 +402,59 @@ Your typical development workflow:
 
 ### API Proxy Architecture
 
-The application uses a Next.js API proxy to eliminate CORS issues:
+The application uses a sophisticated Next.js API proxy system to eliminate CORS issues and provide security:
 
+```mermaid
+graph LR
+    A[Browser] --> B[Next.js API Route]
+    B --> C[Rate Limiter]
+    C --> D[Cache Layer]
+    D --> E[External API]
+    E --> F[Data Transformer]
+    F --> G[Response]
 ```
-Browser → Next.js API Route → Government API → Response
-```
 
-### Intelligent Caching
+**Key Components:**
+- **Proxy Services**: `fredProxyService`, `blsProxyService`, `censusProxyService`, `alphaVantageProxyService`
+- **Main Endpoint**: `/api/proxy/data` - Unified data fetching endpoint
+- **Health Checks**: `/api/proxy/health` - API status monitoring
+- **Error Handling**: Comprehensive error boundaries with retry logic
 
-- **TTL-based caching**: 30-minute default cache duration
-- **Memory-efficient**: In-memory cache with automatic cleanup
-- **API-aware**: Different cache strategies per API provider
-- **Fallback support**: Automatic fallback to cached data on API failures
+### Multi-Layer Caching Strategy
 
-### Data Source Priority
+- **Redis Cache**: Primary caching layer with TTL and persistence
+- **In-Memory Cache**: Secondary cache for frequently accessed data
+- **Request Deduplication**: Prevents duplicate API calls for same data
+- **Cache Keys**: Structured with prefixes (`api:response:`, `rate:limit:`, `chart:data:`)
+- **TTL Configuration**:
+  - API responses: 30 minutes (configurable)
+  - Rate limit data: 1 hour
+  - Chart data: 15 minutes
 
-The system uses intelligent fallback mechanisms:
+### Intelligent Data Source Management
 
-1. **Primary**: Live API data (if available and fresh)
-2. **Secondary**: Cached API data (if within TTL)
-3. **Tertiary**: Historical sample data (always available)
+The system implements a sophisticated fallback strategy:
 
-### Rate Limiting
+1. **Live API Data** (Primary): Real-time government API data with freshness validation
+2. **Cached API Data** (Secondary): Previously fetched data within TTL window
+3. **Historical Data** (Tertiary): Generated sample data for demonstration and fallback
+4. **Error Recovery**: Automatic retry with exponential backoff
 
-Built-in rate limiting respects API provider limits:
+### Rate Limiting & API Management
 
-- **FRED API**: 120 requests/minute
-- **BLS API**: 10 requests/minute (500/day with key)
-- **Census API**: 100 requests/minute
-- **Alpha Vantage**: 5 requests/minute (25/day free tier)
+Built-in rate limiting respects each API provider's limits:
+
+- **FRED API**: 120 requests/minute (Federal Reserve Economic Data)
+- **BLS API**: 10 requests/minute without key, 500/day with API key
+- **Census API**: 100 requests/minute (US Census Bureau)
+- **Alpha Vantage**: 5 requests/minute, 25/day on free tier
+
+### Data Transformation Pipeline
+
+- **Standardization**: All API responses transformed to `StandardDataPoint[]` format
+- **Chart.js Compatibility**: Automatic conversion to Chart.js dataset format
+- **Type Safety**: Full TypeScript coverage with interface validation
+- **Error Handling**: Graceful handling of malformed or missing data
 
 ## 📚 Project Structure
 
@@ -417,32 +491,48 @@ finance-factors/
 
 ## 🧪 Testing & Quality
 
-### Available Tests
+### Comprehensive Testing Suite
 
 ```bash
-# Test API connectivity
-npm run test:apis
+# API Connectivity Tests
+npm run test:apis              # Test all government API connections
+npm run test:proxy             # Test API proxy endpoints specifically
+npm run test:house-prices      # Test FRED house prices endpoint
+npm run test:new-services      # Test newly added API services
 
-# Test specific API proxy endpoints
-npm run test:proxy
+# Health & Monitoring Tests
+npm run test:health            # Test health check endpoints
+npm run test:health:verbose    # Detailed health check with verbose output
+npm run test:health:production # Test production deployment health
 
-# Test house prices data endpoint
-npm run test:house-prices
+# Deployment & Infrastructure Tests
+npm run test:deployment        # Test deployment readiness
+npm run test:redis-queue       # Test Redis caching functionality
+npm run deploy:manual          # Manual deployment verification
 
-# Test deployment readiness
-npm run test:deployment
-
-# Run linting
-npm run lint
+# Code Quality
+npm run lint                   # ESLint with TypeScript rules
+npm run build                  # Production build verification
+npm run build:analyze          # Bundle analysis for performance
 ```
 
-### Code Quality
+### Testing Infrastructure
 
-- **TypeScript**: Strict mode enabled for type safety
-- **ESLint**: Next.js configuration with custom rules
-- **Error Boundaries**: Comprehensive error handling
-- **Accessibility**: WCAG 2.1 AA compliance
-- **Performance**: Lazy loading, code splitting, caching
+- **API Connectivity**: Automated tests for all external API endpoints
+- **Health Checks**: Multi-layer health monitoring (API, Vercel, Dashboard, Deployment)
+- **Redis Testing**: Cache functionality and queue management verification
+- **Deployment Verification**: Automated checks for deployment readiness
+- **Environment Validation**: API key verification and configuration checks
+
+### Code Quality & Standards
+
+- **TypeScript**: Strict mode with comprehensive type coverage
+- **ESLint**: Next.js + TypeScript configuration with custom rules
+- **Error Boundaries**: React error boundaries with fallback UI
+- **Accessibility**: WCAG 2.1 AA compliance with keyboard navigation
+- **Performance**: Lazy loading, code splitting, bundle optimization
+- **Security**: API key protection, rate limiting, CORS handling
+- **Monitoring**: Real-time health checks and performance metrics
 
 ## 📋 Recent Updates & Changes
 
@@ -483,6 +573,51 @@ npm run lint
 - **Performance**: ✅ Optimized for Core Web Vitals
 - **Accessibility**: ✅ WCAG 2.1 AA compliant
 - **Type Safety**: ✅ Full TypeScript coverage
+
+## 🛠️ Development Workflow & Best Practices
+
+### Local Development Setup
+
+```bash
+# 1. Clone and setup
+git clone https://github.com/BurntFrost/finance-factors.git
+cd finance-factors/next-dashboard
+
+# 2. Install dependencies
+npm install
+
+# 3. Setup environment variables
+cp .env.example .env.local
+# Add your API keys to .env.local
+
+# 4. Start development server
+npm run dev
+
+# 5. Run tests to verify setup
+npm run test:apis
+npm run test:health
+```
+
+### Development Best Practices
+
+#### Code Organization
+- **Components**: Place in `app/components/` with co-located CSS modules
+- **Hooks**: Custom hooks in `app/hooks/` with clear naming conventions
+- **Services**: API services in `app/services/` with proper error handling
+- **Types**: TypeScript definitions in `app/types/` with comprehensive interfaces
+- **Utils**: Helper functions in `app/utils/` with unit test coverage
+
+#### State Management Patterns
+- **Context Providers**: Use for global state (dashboard, data sources, view mode)
+- **Local State**: Use `useState` for component-specific state
+- **Data Fetching**: Use custom hooks (`useAutomaticDataSource`, `useDataSource`)
+- **Caching**: Leverage built-in caching with TTL and Redis integration
+
+#### Performance Guidelines
+- **Lazy Loading**: Use `React.lazy()` for heavy components
+- **Code Splitting**: Dynamic imports for large dependencies
+- **Memoization**: Use `React.memo`, `useMemo`, `useCallback` appropriately
+- **Bundle Analysis**: Run `npm run build:analyze` to monitor bundle size
 
 ## 🤝 Contributing
 
@@ -528,6 +663,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using Next.js 15, Chart.js, and government open data APIs**
+**Built with ❤️ using Next.js 15, TypeScript, Chart.js, React Context API, and government open data APIs**
 
-*Last updated: July 2024*
+*Last updated: January 2025 - Comprehensive codebase analysis and documentation enhancement*
