@@ -60,7 +60,7 @@ const ChartSkeleton = () => (
 );
 
 // Refresh button component
-const RefreshButton = ({ onClick, isRefreshing }: { onClick: () => void; isRefreshing: boolean }) => (
+const _RefreshButton = ({ onClick, isRefreshing }: { onClick: () => void; isRefreshing: boolean }) => (
   <button
     className={styles.refreshButton}
     onClick={onClick}

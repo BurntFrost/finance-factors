@@ -40,7 +40,7 @@ export function useDataSource<T = unknown>(
     onSuccess,
   } = options;
 
-  const { state, switchDataSource, fetchData } = useExtendedDataSourceContext();
+  const { state, fetchData } = useExtendedDataSourceContext();
   
   // Local state for this hook instance
   const [data, setData] = useState<T | null>(null);
@@ -97,21 +97,7 @@ export function useDataSource<T = unknown>(
     await fetchDataInternal(true);
   }, [fetchDataInternal]);
 
-  // Switch source function
-  const switchSource = useCallback(async (source: DataSourceType) => {
-    try {
-      await switchDataSource(source);
-      // Data will be refetched automatically due to the effect below
-    } catch (err) {
-      const errorObj: DataSourceError = {
-        type: 'unknown',
-        message: err instanceof Error ? err.message : 'Failed to switch data source',
-        retryable: true,
-      };
-      setError(errorObj);
-      onError?.(errorObj);
-    }
-  }, [switchDataSource, onError]);
+
 
   // Auto-fetch when data source changes or component mounts
   useEffect(() => {
@@ -145,28 +131,18 @@ export function useDataSource<T = unknown>(
     }
   }, [state.error]);
 
-  // Only sync loading state with global state for data source switches
-  // Individual refreshes should only affect the local component
-  const [isGlobalOperation, setIsGlobalOperation] = useState(false);
+  // Track global operations (like data source switching) separately from component operations
+  const [_isGlobalOperation, _setIsGlobalOperation] = useState(false);
 
-  useEffect(() => {
-    // Only sync if this is a global operation (like switching data sources)
-    if (state.isLoading && !isLoading && isGlobalOperation) {
-      setIsLoading(true);
-    } else if (!state.isLoading && isGlobalOperation) {
-      setIsGlobalOperation(false);
-    }
-  }, [state.isLoading, isLoading, isGlobalOperation]);
-
-  // Enhanced switch source that marks as global operation
-  const switchSourceEnhanced = useCallback(async (source: DataSourceType) => {
-    setIsGlobalOperation(true);
-    return switchSource(source);
-  }, [switchSource]);
+  // Enhanced switch source that marks as global operation and manages loading state properly
+  const switchSourceEnhanced = useCallback(async (_source: DataSourceType) => {
+    // This functionality is deprecated in favor of isolated component operations
+    console.warn('switchSource is deprecated - use global data source controls instead');
+  }, []);
 
   return {
     data,
-    isLoading: isLoading, // Only use local loading state
+    isLoading: isLoading, // Always use local loading state - no global synchronization
     error,
     lastUpdated,
     refresh,

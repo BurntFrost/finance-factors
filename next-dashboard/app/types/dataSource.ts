@@ -405,7 +405,7 @@ export type ExtendedDataSourceAction = DataSourceAction
 
 // Extended context type for per-chart management
 export interface ExtendedDataSourceContextType extends Omit<DataSourceContextType, 'fetchData'> {
-  fetchData: <T = unknown>(options: DataFetchOptions & { chartId?: string }) => Promise<ApiResponse<T>>;
+  fetchData: <T = unknown>(options: DataFetchOptions & { chartId?: string; isGlobalOperation?: boolean }) => Promise<ApiResponse<T>>;
   setChartDataSource: (chartId: string, dataType: string, source: DataSourceType) => Promise<void>;
   getChartDataSource: (chartId: string) => DataSourceType;
   removeChartConfig: (chartId: string) => void;

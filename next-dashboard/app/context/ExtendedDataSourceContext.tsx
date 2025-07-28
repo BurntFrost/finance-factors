@@ -153,6 +153,7 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
   // Switch global data source
   const switchDataSource = useCallback(async (source: DataSourceType): Promise<void> => {
     try {
+      // Data source switching is always a global operation
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'SET_ERROR', payload: null });
 
@@ -217,9 +218,9 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
 
   // Fetch data based on current or chart-specific source
   const fetchData = useCallback(async <T = unknown>(
-    options: DataFetchOptions & { chartId?: string }
+    options: DataFetchOptions & { chartId?: string; isGlobalOperation?: boolean }
   ): Promise<ApiResponse<T>> => {
-    const { dataType, useCache = true, forceRefresh = false, chartId } = options;
+    const { dataType, useCache = true, forceRefresh = false, chartId, isGlobalOperation = false } = options;
     
     // Determine which data source to use
     const effectiveSource = chartId ? getChartDataSource(chartId) : state.currentSource;
@@ -313,11 +314,22 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
             ttl: 15 * 60 * 1000, // 15 minutes
           },
         });
+
+        // Only update global timestamp for global operations
+        if (isGlobalOperation) {
+          dispatch({ type: 'SET_LAST_UPDATED', payload: response.timestamp });
+        }
       }
 
       return response;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
+
+      // Only set global error for global operations
+      if (isGlobalOperation) {
+        dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      }
+
       return {
         data: null as T,
         success: false,
@@ -325,6 +337,11 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
         error: errorMessage,
         source: DATA_SOURCE_CONFIGS[effectiveSource].name,
       };
+    } finally {
+      // Only clear global loading state for global operations
+      if (isGlobalOperation) {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
     }
   }, [state.cache, state.currentSource, getChartDataSource]);
 
