@@ -34,10 +34,23 @@ const DEFAULT_CONFIG: Partial<RedisConfig> = {
   commandTimeout: 5000, // 5 seconds
 };
 
+// Redis queue configuration
+const REDIS_QUEUE_CONFIG = {
+  commandsQueueMaxLength: 1000, // Increased from 3 to handle concurrent operations
+  enableAutoPipelining: true, // Enable automatic pipelining for better performance
+};
+
 // Global Redis client instance
 let redisClient: RedisClient | null = null;
 let isConnecting = false;
 let connectionPromise: Promise<RedisClient> | null = null;
+
+// Circuit breaker for Redis operations
+let circuitBreakerOpen = false;
+let circuitBreakerOpenTime = 0;
+const CIRCUIT_BREAKER_TIMEOUT = 30000; // 30 seconds
+const CIRCUIT_BREAKER_FAILURE_THRESHOLD = 5;
+let consecutiveFailures = 0;
 
 /**
  * Get Redis configuration from environment variables
@@ -78,7 +91,8 @@ function createRedisClient(): RedisClient {
         return delay + jitter;
       },
     },
-    commandsQueueMaxLength: config.maxRetriesPerRequest,
+    commandsQueueMaxLength: REDIS_QUEUE_CONFIG.commandsQueueMaxLength,
+    enableAutoPipelining: REDIS_QUEUE_CONFIG.enableAutoPipelining,
   });
 
   // Error handling
@@ -209,24 +223,112 @@ export async function closeRedisConnection(): Promise<void> {
 }
 
 /**
+ * Check if circuit breaker should allow operation
+ */
+function shouldAllowOperation(): boolean {
+  if (!circuitBreakerOpen) {
+    return true;
+  }
+
+  // Check if circuit breaker timeout has passed
+  if (Date.now() - circuitBreakerOpenTime > CIRCUIT_BREAKER_TIMEOUT) {
+    circuitBreakerOpen = false;
+    consecutiveFailures = 0;
+    console.log('Redis circuit breaker closed - attempting operations again');
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Handle operation success
+ */
+function handleOperationSuccess(): void {
+  if (consecutiveFailures > 0) {
+    consecutiveFailures = 0;
+    console.log('Redis operation succeeded - resetting failure count');
+  }
+}
+
+/**
+ * Handle operation failure
+ */
+function handleOperationFailure(error: unknown): void {
+  consecutiveFailures++;
+
+  // Check for queue full error specifically
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const isQueueFullError = errorMessage.includes('queue is full') || errorMessage.includes('commandsQueueMaxLength');
+
+  if (isQueueFullError) {
+    console.warn(`Redis queue full error (attempt ${consecutiveFailures}):`, errorMessage);
+  }
+
+  if (consecutiveFailures >= CIRCUIT_BREAKER_FAILURE_THRESHOLD) {
+    circuitBreakerOpen = true;
+    circuitBreakerOpenTime = Date.now();
+    console.error(`Redis circuit breaker opened after ${consecutiveFailures} consecutive failures`);
+  }
+}
+
+/**
  * Execute Redis command with error handling and retry logic
  */
 export async function executeRedisCommand<T>(
   command: (client: RedisClient) => Promise<T>,
   fallback?: T
 ): Promise<T | null> {
+  // Check circuit breaker
+  if (!shouldAllowOperation()) {
+    console.warn('Redis circuit breaker is open - using fallback');
+    return fallback !== undefined ? fallback : null;
+  }
+
   try {
     const client = await getRedisClient();
-    return await command(client);
+    const result = await command(client);
+    handleOperationSuccess();
+    return result;
   } catch (error) {
     console.error('Redis command execution failed:', error);
-    
+    handleOperationFailure(error);
+
     if (fallback !== undefined) {
       return fallback;
     }
-    
+
     return null;
   }
+}
+
+/**
+ * Get circuit breaker status for monitoring
+ */
+export function getCircuitBreakerStatus(): {
+  isOpen: boolean;
+  consecutiveFailures: number;
+  openTime?: number;
+  timeUntilRetry?: number;
+} {
+  return {
+    isOpen: circuitBreakerOpen,
+    consecutiveFailures,
+    openTime: circuitBreakerOpen ? circuitBreakerOpenTime : undefined,
+    timeUntilRetry: circuitBreakerOpen
+      ? Math.max(0, CIRCUIT_BREAKER_TIMEOUT - (Date.now() - circuitBreakerOpenTime))
+      : undefined,
+  };
+}
+
+/**
+ * Manually reset circuit breaker (for admin/debugging purposes)
+ */
+export function resetCircuitBreaker(): void {
+  circuitBreakerOpen = false;
+  consecutiveFailures = 0;
+  circuitBreakerOpenTime = 0;
+  console.log('Redis circuit breaker manually reset');
 }
 
 // Graceful shutdown handling

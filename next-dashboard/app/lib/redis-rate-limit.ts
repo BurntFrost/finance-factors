@@ -73,36 +73,65 @@ async function slidingWindowRateLimit(
       const now = Date.now();
       const windowStart = now - config.windowMs;
 
-      // Use Redis pipeline for atomic operations
-      const pipeline = client.multi();
+      try {
+        // Use Redis pipeline for atomic operations
+        const pipeline = client.multi();
 
-      // Remove expired entries
-      pipeline.zRemRangeByScore(key, 0, windowStart);
+        // Remove expired entries
+        pipeline.zRemRangeByScore(key, 0, windowStart);
 
-      // Count current requests in window
-      pipeline.zCard(key);
+        // Count current requests in window
+        pipeline.zCard(key);
 
-      // Add current request
-      pipeline.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
+        // Add current request
+        pipeline.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
 
-      // Set expiration
-      pipeline.expire(key, Math.ceil(config.windowMs / 1000));
+        // Set expiration
+        pipeline.expire(key, Math.ceil(config.windowMs / 1000));
 
-      const results = await pipeline.exec();
+        const results = await pipeline.exec();
 
-      if (!results) {
-        throw new Error('Redis pipeline execution failed');
+        if (!results || !Array.isArray(results)) {
+          console.warn('Redis pipeline execution returned invalid results, falling back');
+          throw new Error('Redis pipeline execution failed - invalid results');
+        }
+
+        // Check if any command in the pipeline failed
+        const hasErrors = results.some(result => result && result[0] !== null);
+        if (hasErrors) {
+          console.warn('Some Redis pipeline commands failed:', results);
+        }
+
+        const currentCount = Number(results[1]?.[1]) || 0;
+        const allowed = currentCount < config.maxRequests;
+
+        return {
+          allowed,
+          remaining: Math.max(0, config.maxRequests - currentCount - 1),
+          resetTime: now + config.windowMs,
+          totalRequests: currentCount + 1,
+        };
+      } catch (pipelineError) {
+        console.error('Redis pipeline error in sliding window rate limit:', pipelineError);
+        // Fallback to individual commands if pipeline fails
+        try {
+          await client.zRemRangeByScore(key, 0, windowStart);
+          const currentCount = await client.zCard(key);
+          await client.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
+          await client.expire(key, Math.ceil(config.windowMs / 1000));
+
+          const allowed = currentCount < config.maxRequests;
+          return {
+            allowed,
+            remaining: Math.max(0, config.maxRequests - currentCount - 1),
+            resetTime: now + config.windowMs,
+            totalRequests: currentCount + 1,
+          };
+        } catch (fallbackError) {
+          console.error('Redis fallback commands also failed:', fallbackError);
+          throw fallbackError;
+        }
       }
-
-      const currentCount = Number(results[1]) || 0;
-      const allowed = currentCount < config.maxRequests;
-
-      return {
-        allowed,
-        remaining: Math.max(0, config.maxRequests - currentCount - 1),
-        resetTime: now + config.windowMs,
-        totalRequests: currentCount + 1,
-      };
     },
     {
       allowed: false,

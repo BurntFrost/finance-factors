@@ -8,7 +8,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getRedisInfo,
-  executeRedisCommand
+  executeRedisCommand,
+  getCircuitBreakerStatus,
+  resetCircuitBreaker
 } from '../../../lib/redis';
 import { 
   getCacheStats, 
@@ -88,11 +90,12 @@ export async function GET(_request: NextRequest) {
     const cacheStatsData = cacheStats.status === 'fulfilled' ? cacheStats.value : null;
     const rateLimitData = rateLimitStatuses.status === 'fulfilled' ? rateLimitStatuses.value : null;
 
-    // Get additional performance metrics
+    // Get additional performance metrics and circuit breaker status
     const performanceMetrics = await getPerformanceMetrics();
+    const circuitBreakerStatus = getCircuitBreakerStatus();
 
     const response = {
-      status: 'healthy',
+      status: circuitBreakerStatus.isOpen ? 'degraded' : 'healthy',
       timestamp: new Date().toISOString(),
       redis: {
         connected: redisInfoData?.connected || false,
@@ -127,6 +130,17 @@ export async function GET(_request: NextRequest) {
         available: true,
         providers: rateLimitData || {},
         performance: performanceMetrics.rateLimit,
+      },
+      circuitBreaker: {
+        isOpen: circuitBreakerStatus.isOpen,
+        consecutiveFailures: circuitBreakerStatus.consecutiveFailures,
+        openTime: circuitBreakerStatus.openTime
+          ? new Date(circuitBreakerStatus.openTime).toISOString()
+          : null,
+        timeUntilRetry: circuitBreakerStatus.timeUntilRetry
+          ? `${Math.ceil(circuitBreakerStatus.timeUntilRetry / 1000)}s`
+          : null,
+        status: circuitBreakerStatus.isOpen ? 'open' : 'closed',
       },
       environment: {
         redisUrl: process.env.REDIS_URL ? 'configured' : 'not configured',
@@ -259,10 +273,24 @@ export async function POST(request: NextRequest) {
           timestamp: new Date().toISOString(),
         });
 
+      case 'reset-circuit-breaker':
+        const previousStatus = getCircuitBreakerStatus();
+        resetCircuitBreaker();
+
+        return NextResponse.json({
+          success: true,
+          message: 'Circuit breaker has been reset',
+          previousStatus: {
+            isOpen: previousStatus.isOpen,
+            consecutiveFailures: previousStatus.consecutiveFailures,
+          },
+          timestamp: new Date().toISOString(),
+        });
+
       default:
         return NextResponse.json({
           error: 'Invalid action',
-          message: 'Supported actions: flush-cache, clear-rate-limits',
+          message: 'Supported actions: flush-cache, clear-rate-limits, reset-circuit-breaker',
         }, { status: 400 });
     }
 
