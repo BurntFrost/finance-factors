@@ -274,14 +274,14 @@ export function AutomaticDataSourceProvider({
       const liveResponse = await attemptLiveData<T>(options);
       
       if (liveResponse && liveResponse.success) {
-        // Cache successful live data
+        // Cache successful live data with 24-hour TTL (matching Redis cache)
         if (useCache && liveResponse.data) {
           dispatch({
             type: 'SET_CACHE_DATA',
             payload: {
               key: cacheKey,
               data: liveResponse.data,
-              ttl: 15 * 60 * 1000, // 15 minutes
+              ttl: 24 * 60 * 60 * 1000, // 24 hours - as per requirements
             },
           });
         }
@@ -294,14 +294,14 @@ export function AutomaticDataSourceProvider({
       console.info(`Falling back to historical data for ${dataType}`);
       const historicalResponse = await fetchHistoricalData<T>(options);
 
-      // Cache historical data with shorter TTL
+      // Cache historical data with 24-hour TTL (consistent with Redis cache)
       if (useCache && historicalResponse.data) {
         dispatch({
           type: 'SET_CACHE_DATA',
           payload: {
             key: cacheKey,
             data: historicalResponse.data,
-            ttl: 5 * 60 * 1000, // 5 minutes for historical data
+            ttl: 24 * 60 * 60 * 1000, // 24 hours - as per requirements
           },
         });
       }

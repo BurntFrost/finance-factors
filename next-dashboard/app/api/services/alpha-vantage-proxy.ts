@@ -201,9 +201,9 @@ export class AlphaVantageProxyService {
         }
       );
 
-      // Cache the response for longer due to rate limits
+      // Cache the response with default 24-hour TTL
       if (useCache) {
-        await setCachedResponse(cacheKey, successResponse, 4 * 60 * 60 * 1000, 'Alpha Vantage API'); // Cache for 4 hours
+        await setCachedResponse(cacheKey, successResponse, undefined, 'Alpha Vantage API'); // Uses default 24-hour TTL
       }
 
       logApiRequest('ALPHA_VANTAGE', dataType, true, Date.now() - startTime);

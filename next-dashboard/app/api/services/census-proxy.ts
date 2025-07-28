@@ -129,9 +129,9 @@ export class CensusProxyService {
         }
       );
 
-      // Cache the response
+      // Cache the response with default 24-hour TTL
       if (useCache) {
-        await setCachedResponse(cacheKey, response, 60 * 60 * 1000, 'Census API'); // Cache for 1 hour
+        await setCachedResponse(cacheKey, response, undefined, 'Census API'); // Uses default 24-hour TTL
       }
 
       logApiRequest('CENSUS', dataType, true, Date.now() - startTime);

@@ -152,14 +152,14 @@ export const REFRESH_INTERVALS = {
   daily: 86400000,    // 24 hours
 } as const;
 
-// Cache TTL for different data types (in seconds)
+// Cache TTL for different data types (in seconds) - Updated to 24 hours as per requirements
 export const DATA_CACHE_TTL = {
-  'house-prices': 3600,        // 1 hour
+  'house-prices': 86400,       // 24 hours - as per requirements
   'household-income': 86400,   // 24 hours
-  'unemployment-rate': 3600,   // 1 hour
-  'inflation-rate': 3600,      // 1 hour
+  'unemployment-rate': 86400,  // 24 hours - as per requirements
+  'inflation-rate': 86400,     // 24 hours - as per requirements
   'gdp-growth': 86400,         // 24 hours
-  'stock-market': 300,         // 5 minutes
-  'interest-rates': 3600,      // 1 hour
-  'consumer-spending': 3600,   // 1 hour
+  'stock-market': 86400,       // 24 hours - as per requirements (was 5 minutes)
+  'interest-rates': 86400,     // 24 hours - as per requirements
+  'consumer-spending': 86400,  // 24 hours - as per requirements
 } as const;

@@ -187,7 +187,7 @@ export function useHousePricesDataAutomatic(): UseAutomaticDataSourceResult<Char
   return useAutomaticDataSource<ChartData>({
     dataType: 'house-prices',
     autoFetch: true,
-    refreshInterval: 15 * 60 * 1000, // 15 minutes
+    refreshInterval: 24 * 60 * 60 * 1000, // 24 hours - matches cache TTL
   });
 }
 
@@ -219,7 +219,7 @@ export function useGdpDataAutomatic(): UseAutomaticDataSourceResult<ChartData> {
   return useAutomaticDataSource<ChartData>({
     dataType: 'gdp-growth',
     autoFetch: true,
-    refreshInterval: 60 * 60 * 1000, // 1 hour
+    refreshInterval: 24 * 60 * 60 * 1000, // 24 hours - matches cache TTL
   });
 }
 
@@ -228,7 +228,7 @@ export function useTableDataAutomatic(dataType: string): UseAutomaticDataSourceR
   return useAutomaticDataSource<TableData>({
     dataType,
     autoFetch: true,
-    refreshInterval: 30 * 60 * 1000, // 30 minutes
+    refreshInterval: 24 * 60 * 60 * 1000, // 24 hours - matches cache TTL
   });
 }
 
@@ -237,6 +237,6 @@ export function useSummaryCardDataAutomatic(dataType: string): UseAutomaticDataS
   return useAutomaticDataSource<SummaryCardData[]>({
     dataType,
     autoFetch: true,
-    refreshInterval: 10 * 60 * 1000, // 10 minutes
+    refreshInterval: 24 * 60 * 60 * 1000, // 24 hours - matches cache TTL
   });
 }

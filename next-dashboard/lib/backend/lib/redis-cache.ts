@@ -21,7 +21,7 @@ export const CACHE_PREFIXES = {
 
 // Default TTL values (in seconds)
 export const DEFAULT_TTL = {
-  API_RESPONSE: 30 * 60, // 30 minutes
+  API_RESPONSE: 24 * 60 * 60, // 24 hours (86400 seconds) - as per requirements
   RATE_LIMIT: 60, // 1 minute
   HEALTH_CHECK: 5 * 60, // 5 minutes
   USER_SESSION: 24 * 60 * 60, // 24 hours

@@ -84,7 +84,7 @@ export const RATE_LIMITS = {
 // Cache configurations
 export const CACHE_CONFIG = {
   DEFAULT_TTL: {
-    API_RESPONSE: 900, // 15 minutes
+    API_RESPONSE: 86400, // 24 hours (86400 seconds) - as per requirements
     HEALTH_CHECK: 60, // 1 minute
     RATE_LIMIT: 3600, // 1 hour
     USER_SESSION: 86400, // 24 hours

@@ -165,11 +165,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
     }
 
-    // Cache successful responses
+    // Cache successful responses with 24-hour TTL as per requirements
     if (response.success && useCache) {
       const cacheKey = `api:${dataType}:${JSON.stringify(timeRange)}`;
       await cache.set(cacheKey, response, {
-        ttl: 900, // 15 minutes
+        ttl: 24 * 60 * 60, // 24 hours (86400 seconds) - as per requirements
         tags: [dataType, endpointConfig.provider, 'api-response'],
         priority: 'normal',
       });

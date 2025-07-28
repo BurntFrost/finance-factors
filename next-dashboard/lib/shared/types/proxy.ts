@@ -384,6 +384,6 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
 
 // Cache configuration
 export const CACHE_CONFIG: CacheConfig = {
-  ttl: 15 * 60 * 1000, // 15 minutes
+  ttl: 24 * 60 * 60 * 1000, // 24 hours (86400000 milliseconds) - as per requirements
   maxSize: 1000, // Maximum 1000 cached items
 };

@@ -355,11 +355,11 @@ export const STORAGE_KEYS = {
   CHART_DIMENSIONS: 'finance-dashboard-chart-dimensions',
 } as const;
 
-// Default cache TTL values (in milliseconds)
+// Default cache TTL values (in milliseconds) - Updated to 24 hours as per requirements
 export const CACHE_TTL = {
-  HISTORICAL_DATA: 5 * 60 * 1000, // 5 minutes
-  LIVE_DATA: 15 * 60 * 1000, // 15 minutes
-  ERROR_CACHE: 2 * 60 * 1000, // 2 minutes
+  HISTORICAL_DATA: 24 * 60 * 60 * 1000, // 24 hours - as per requirements
+  LIVE_DATA: 24 * 60 * 60 * 1000, // 24 hours - as per requirements
+  ERROR_CACHE: 2 * 60 * 1000, // 2 minutes (keep short for errors)
 } as const;
 
 // Data type mappings for API endpoints

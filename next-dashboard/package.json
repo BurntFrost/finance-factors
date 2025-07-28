@@ -26,6 +26,8 @@
     "test:redis": "node test-redis-connection.js",
     "test:redis:caching": "node test-redis-caching.js",
     "test:redis:api": "node test-api-caching.js",
+    "test:redis:24h": "node test-redis-24hour-caching.js",
+    "verify:cache-config": "node verify-cache-config.js",
     "db:cleanup": "node scripts/cleanup-connections.js",
     "db:health": "curl -s http://localhost:3000/api/db-health | jq .",
     "db:monitor": "curl -s 'http://localhost:3000/api/db-health?monitoring=true' | jq .",
