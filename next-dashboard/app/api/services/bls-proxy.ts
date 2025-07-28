@@ -80,7 +80,7 @@ class BlsProxyService {
 
     try {
       // Check rate limit
-      if (!checkRateLimit('BLS')) {
+      if (!(await checkRateLimit('BLS'))) {
         const error: ProxyError = {
           type: 'rate_limit',
           message: 'BLS API rate limit exceeded',

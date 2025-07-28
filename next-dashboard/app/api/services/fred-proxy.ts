@@ -75,7 +75,7 @@ export class FredProxyService {
       }
 
       // Check rate limits
-      if (!checkRateLimit('FRED')) {
+      if (!(await checkRateLimit('FRED'))) {
         const error: ProxyError = {
           type: 'rate_limit',
           message: 'FRED API rate limit exceeded',
@@ -105,7 +105,7 @@ export class FredProxyService {
 
       // Check cache if enabled
       if (options.useCache !== false) {
-        const cached = getCachedResponse<StandardDataPoint[]>(cacheKey);
+        const cached = await getCachedResponse<StandardDataPoint[]>(cacheKey);
         if (cached) {
           logApiRequest('FRED', dataType, true, Date.now() - startTime);
           return createSuccessResponse(
@@ -166,7 +166,7 @@ export class FredProxyService {
 
       // Cache the response
       if (options.useCache !== false) {
-        setCachedResponse(cacheKey, transformedData);
+        await setCachedResponse(cacheKey, transformedData, undefined, 'FRED API');
       }
 
       const duration = Date.now() - startTime;

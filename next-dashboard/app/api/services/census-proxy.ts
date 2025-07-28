@@ -69,7 +69,7 @@ export class CensusProxyService {
       }
 
       // Check rate limits
-      if (!checkRateLimit('CENSUS')) {
+      if (!(await checkRateLimit('CENSUS'))) {
         const error: ProxyError = {
           type: 'rate_limit',
           message: 'Census API rate limit exceeded',
@@ -88,7 +88,7 @@ export class CensusProxyService {
 
       // Check cache if enabled
       if (useCache) {
-        const cachedResponse = getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
+        const cachedResponse = await getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
         if (cachedResponse) {
           logApiRequest('CENSUS', dataType, true, Date.now() - startTime, 'Cache hit');
           return cachedResponse;
@@ -131,7 +131,7 @@ export class CensusProxyService {
 
       // Cache the response
       if (useCache) {
-        setCachedResponse(cacheKey, response, 60 * 60 * 1000); // Cache for 1 hour
+        await setCachedResponse(cacheKey, response, 60 * 60 * 1000, 'Census API'); // Cache for 1 hour
       }
 
       logApiRequest('CENSUS', dataType, true, Date.now() - startTime);

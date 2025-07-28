@@ -10,7 +10,6 @@
     "lint": "next lint",
     "deploy": "echo 'Deployment is handled automatically by GitHub Actions. Push to main branch to deploy to Vercel.'",
     "deploy:manual": "./deploy-vercel.sh",
-
     "setup:vercel": "./setup-vercel-env.sh",
     "verify:vercel": "./verify-vercel-setup.sh",
     "dev:vercel": "vercel dev",
@@ -33,7 +32,8 @@
     "next": "15.4.2",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "redis": "^5.6.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

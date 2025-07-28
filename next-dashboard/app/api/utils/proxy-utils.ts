@@ -1,7 +1,7 @@
 /**
  * API Proxy Utilities
- * 
- * Utility functions for the serverless API proxy
+ *
+ * Utility functions for the serverless API proxy with Redis integration
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
@@ -15,9 +15,25 @@ import {
   CACHE_CONFIG,
 } from '../types/proxy';
 
-// In-memory cache for rate limiting and response caching
-const rateLimit = new Map<string, { requests: number; resetTime: number }>();
-const responseCache = new Map<string, { data: unknown; timestamp: number; ttl: number }>();
+// Redis integration
+import {
+  getCachedApiResponse,
+  cacheApiResponse,
+  generateCacheKey,
+  CACHE_PREFIXES,
+  getCacheData,
+  setCacheData,
+  DEFAULT_TTL
+} from '../../lib/redis-cache';
+import {
+  checkRateLimit as redisCheckRateLimit,
+  RateLimitResult
+} from '../../lib/redis-rate-limit';
+import { isRedisAvailable } from '../../lib/redis';
+
+// Fallback in-memory cache for when Redis is unavailable
+const fallbackRateLimit = new Map<string, { requests: number; resetTime: number }>();
+const fallbackResponseCache = new Map<string, { data: unknown; timestamp: number; ttl: number }>();
 
 /**
  * Handle CORS headers for all API responses
@@ -78,64 +94,105 @@ export function createSuccessResponse<T>(
 }
 
 /**
- * Check rate limits for a provider
+ * Check rate limits for a provider with Redis fallback
  */
-export function checkRateLimit(provider: string, clientId: string = 'default'): boolean {
+export async function checkRateLimit(provider: string, clientId: string = 'default'): Promise<boolean> {
+  try {
+    // Try Redis-based rate limiting first
+    if (await isRedisAvailable()) {
+      const result: RateLimitResult = await redisCheckRateLimit(provider, clientId);
+      return result.allowed;
+    }
+  } catch (error) {
+    console.warn('Redis rate limiting failed, falling back to in-memory:', error);
+  }
+
+  // Fallback to in-memory rate limiting
   const key = `${provider}-${clientId}`;
   const now = Date.now();
   const limits = RATE_LIMITS[provider];
-  
+
   if (!limits) return true; // No limits configured
-  
-  const current = rateLimit.get(key);
-  
+
+  const current = fallbackRateLimit.get(key);
+
   if (!current || now > current.resetTime) {
     // Reset or initialize rate limit
-    rateLimit.set(key, {
+    fallbackRateLimit.set(key, {
       requests: 1,
       resetTime: now + 60000, // 1 minute window
     });
     return true;
   }
-  
+
   if (current.requests >= limits.requestsPerMinute) {
     return false; // Rate limit exceeded
   }
-  
+
   current.requests++;
   return true;
 }
 
 /**
- * Get cached response if available and not expired
+ * Get cached response with Redis fallback
  */
-export function getCachedResponse<T>(cacheKey: string): T | null {
-  const cached = responseCache.get(cacheKey);
-  
+export async function getCachedResponse<T>(cacheKey: string): Promise<T | null> {
+  try {
+    // Try Redis cache first
+    if (await isRedisAvailable()) {
+      const redisKey = generateCacheKey(CACHE_PREFIXES.API_RESPONSE, cacheKey);
+      const cached = await getCacheData<T>(redisKey);
+      if (cached) return cached;
+    }
+  } catch (error) {
+    console.warn('Redis cache retrieval failed, falling back to in-memory:', error);
+  }
+
+  // Fallback to in-memory cache
+  const cached = fallbackResponseCache.get(cacheKey);
+
   if (!cached) return null;
-  
+
   const now = Date.now();
   if (now > cached.timestamp + cached.ttl) {
-    responseCache.delete(cacheKey);
+    fallbackResponseCache.delete(cacheKey);
     return null;
   }
-  
+
   return cached.data as T;
 }
 
 /**
- * Cache a response
+ * Cache a response with Redis fallback
  */
-export function setCachedResponse(cacheKey: string, data: unknown, ttl: number = CACHE_CONFIG.ttl): void {
+export async function setCachedResponse(
+  cacheKey: string,
+  data: unknown,
+  ttl: number = CACHE_CONFIG.ttl,
+  source: string = 'API Proxy'
+): Promise<void> {
+  try {
+    // Try Redis cache first
+    if (await isRedisAvailable()) {
+      const redisKey = generateCacheKey(CACHE_PREFIXES.API_RESPONSE, cacheKey);
+      const ttlSeconds = Math.floor(ttl / 1000);
+      await setCacheData(redisKey, data, ttlSeconds, source);
+      return;
+    }
+  } catch (error) {
+    console.warn('Redis cache storage failed, falling back to in-memory:', error);
+  }
+
+  // Fallback to in-memory cache
   // Clean up old entries if cache is too large
-  if (responseCache.size >= CACHE_CONFIG.maxSize) {
-    const oldestKey = responseCache.keys().next().value;
+  if (fallbackResponseCache.size >= CACHE_CONFIG.maxSize) {
+    const oldestKey = fallbackResponseCache.keys().next().value;
     if (oldestKey) {
-      responseCache.delete(oldestKey);
+      fallbackResponseCache.delete(oldestKey);
     }
   }
-  
-  responseCache.set(cacheKey, {
+
+  fallbackResponseCache.set(cacheKey, {
     data,
     timestamp: Date.now(),
     ttl,
@@ -143,15 +200,22 @@ export function setCachedResponse(cacheKey: string, data: unknown, ttl: number =
 }
 
 /**
- * Generate a cache key for a request
+ * Generate a cache key for a request (legacy function for backward compatibility)
  */
 export function generateCacheKey(provider: string, seriesId: string, params: Record<string, string>): string {
   const paramString = Object.keys(params)
     .sort()
     .map(key => `${key}=${params[key]}`)
     .join('&');
-  
+
   return `${provider}-${seriesId}-${paramString}`;
+}
+
+/**
+ * Enhanced cache key generation with Redis integration
+ */
+export function generateApiCacheKey(provider: string, seriesId: string, params: Record<string, string>): string {
+  return generateCacheKey(provider, seriesId, params);
 }
 
 /**

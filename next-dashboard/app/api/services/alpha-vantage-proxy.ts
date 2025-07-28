@@ -110,7 +110,7 @@ export class AlphaVantageProxyService {
       }
 
       // Check rate limits (Alpha Vantage has strict limits)
-      if (!checkRateLimit('ALPHA_VANTAGE')) {
+      if (!(await checkRateLimit('ALPHA_VANTAGE'))) {
         const error: ProxyError = {
           type: 'rate_limit',
           message: 'Alpha Vantage API rate limit exceeded',
@@ -130,7 +130,7 @@ export class AlphaVantageProxyService {
 
       // Check cache if enabled (important for Alpha Vantage due to rate limits)
       if (useCache) {
-        const cachedResponse = getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
+        const cachedResponse = await getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
         if (cachedResponse) {
           logApiRequest('ALPHA_VANTAGE', dataType, true, Date.now() - startTime, 'Cache hit');
           return cachedResponse;
@@ -203,7 +203,7 @@ export class AlphaVantageProxyService {
 
       // Cache the response for longer due to rate limits
       if (useCache) {
-        setCachedResponse(cacheKey, successResponse, 4 * 60 * 60 * 1000); // Cache for 4 hours
+        await setCachedResponse(cacheKey, successResponse, 4 * 60 * 60 * 1000, 'Alpha Vantage API'); // Cache for 4 hours
       }
 
       logApiRequest('ALPHA_VANTAGE', dataType, true, Date.now() - startTime);
