@@ -11,7 +11,7 @@
 import React, { Suspense } from 'react';
 import { useAutomaticDataSource } from '../hooks/useAutomaticDataSource';
 import { useIsEditMode } from '../context/ViewModeContext';
-import { ChartData } from '../types/dashboard';
+import { ChartData, VisualizationType } from '../types/dashboard';
 import DataSourceIndicator from './DataSourceIndicator';
 import ChartSkeleton from './ChartSkeleton';
 import { getChartConfig } from '../config/chartConfiguration';
@@ -32,6 +32,8 @@ export interface AutomaticChartProps {
   fallbackData?: ChartData;
   onDataChange?: (data: ChartData | null, status: string) => void;
   onRemove?: () => void;
+  showVisualizationSwitcher?: boolean;
+  onVisualizationChange?: (newType: 'line' | 'bar' | 'pie' | 'doughnut') => void;
 }
 
 export default function AutomaticChart({
@@ -46,8 +48,13 @@ export default function AutomaticChart({
   fallbackData,
   onDataChange,
   onRemove,
+  showVisualizationSwitcher = true,
+  onVisualizationChange,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
+  const [currentChartType, setCurrentChartType] = React.useState(chartType);
+  const [isChangingVisualization, setIsChangingVisualization] = React.useState(false);
+
   const {
     data,
     isLoading,
@@ -70,6 +77,33 @@ export default function AutomaticChart({
       onDataChange(data, status);
     }
   }, [data, status, onDataChange]);
+
+  // Handle visualization type changes
+  const handleVisualizationChange = React.useCallback(async (newVisualization: VisualizationType) => {
+    if (newVisualization.id === `${currentChartType}-chart`) {
+      return; // No change needed
+    }
+
+    setIsChangingVisualization(true);
+
+    try {
+      // Extract chart type from visualization ID (e.g., 'line-chart' -> 'line')
+      const newChartType = newVisualization.id.replace('-chart', '') as 'line' | 'bar' | 'pie' | 'doughnut';
+      setCurrentChartType(newChartType);
+
+      // Notify parent component if callback provided
+      if (onVisualizationChange) {
+        onVisualizationChange(newChartType);
+      }
+    } catch (error) {
+      console.error('Failed to change visualization type:', error);
+    } finally {
+      // Add a small delay for smooth transition
+      setTimeout(() => {
+        setIsChangingVisualization(false);
+      }, 300);
+    }
+  }, [currentChartType, onVisualizationChange]);
 
   // Determine which data to display
   const displayData = data || fallbackData;
@@ -173,11 +207,14 @@ export default function AutomaticChart({
             <div className={styles.chartContainer}>
               <DynamicChart
                 data={displayData}
-                title=""
-                type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
+                title={showVisualizationSwitcher ? title : ""}
+                type={`${currentChartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
                 dataType={dataType}
-                hideHeader={true}
+                hideHeader={!showVisualizationSwitcher}
                 hideFooter={true}
+                onVisualizationChange={showVisualizationSwitcher ? handleVisualizationChange : undefined}
+                onRemove={onRemove}
+                isChangingVisualization={isChangingVisualization}
               />
               
               {/* Loading overlay for refresh */}

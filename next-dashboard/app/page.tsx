@@ -111,6 +111,12 @@ export default function Home() {
               indicatorPosition="top-right"
               refreshInterval={15 * 60 * 1000} // 15 minutes
               onRemove={() => handleRemoveHardcodedChart(chart.id)}
+              showVisualizationSwitcher={true}
+              onVisualizationChange={(newType) => {
+                console.log(`Chart ${chart.id} visualization changed to ${newType}`);
+                // Note: For hardcoded charts, we could store the preference in localStorage
+                // or update the chart state if needed
+              }}
             />
           </div>
         ))}
