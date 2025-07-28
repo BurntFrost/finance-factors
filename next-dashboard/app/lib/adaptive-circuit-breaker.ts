@@ -5,7 +5,7 @@
  * that adjust based on historical performance patterns.
  */
 
-import { redisErrorLogger, RedisOperationType } from './redis-error-logger';
+// Unused imports removed to fix linting warnings
 
 interface CircuitState {
   state: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
@@ -109,7 +109,7 @@ class AdaptiveCircuitBreaker {
       }
       
       return result;
-    } catch (error) {
+    } catch (_error) {
       const responseTime = Date.now() - startTime;
       
       // Record failure

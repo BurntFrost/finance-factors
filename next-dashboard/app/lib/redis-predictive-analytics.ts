@@ -5,7 +5,7 @@
  * before issues impact users.
  */
 
-import { redisErrorLogger, RedisOperationType } from './redis-error-logger';
+// Unused imports removed to fix linting warnings
 import { redisHealthMonitor } from './redis-health-monitor';
 
 interface PredictiveMetrics {

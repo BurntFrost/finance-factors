@@ -119,7 +119,7 @@ class SmartCacheOptimizer {
     const dataTypeMultiplier = this.getDataTypeMultiplier(dataType);
 
     // Calculate optimized TTL
-    let optimizedTTL = defaultTTL * 
+    const optimizedTTL = defaultTTL *
       accessFrequencyMultiplier * 
       hitRateMultiplier * 
       volatilityMultiplier * 
