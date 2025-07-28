@@ -129,16 +129,26 @@ export function useAutomaticDataSource<T = unknown>({
     }
   }, [dataType, autoFetch, fetchDataInternal]);
 
-  // Set up refresh interval
+  // Set up refresh interval with randomization to prevent synchronization
   useEffect(() => {
     if (refreshInterval && refreshInterval > 0) {
-      refreshIntervalRef.current = setInterval(() => {
-        if (!isLoading) {
-          fetchDataInternal();
-        }
-      }, refreshInterval);
+      // Add random delay (±10% of interval) to prevent all components from refreshing simultaneously
+      const randomOffset = Math.random() * 0.2 - 0.1; // -10% to +10%
+      const randomizedInterval = refreshInterval * (1 + randomOffset);
+
+      // Add small initial delay to stagger the start of intervals
+      const initialDelay = Math.random() * 5000; // 0-5 seconds
+
+      const timeoutId = setTimeout(() => {
+        refreshIntervalRef.current = setInterval(() => {
+          if (!isLoading) {
+            fetchDataInternal();
+          }
+        }, randomizedInterval);
+      }, initialDelay);
 
       return () => {
+        clearTimeout(timeoutId);
         if (refreshIntervalRef.current) {
           clearInterval(refreshIntervalRef.current);
         }
@@ -161,7 +171,7 @@ export function useAutomaticDataSource<T = unknown>({
 
   return {
     data,
-    isLoading: isLoading || state.isLoading,
+    isLoading: isLoading, // Only use local loading state for individual refreshes
     error,
     status: state.status,
     lastUpdated: state.lastUpdated,

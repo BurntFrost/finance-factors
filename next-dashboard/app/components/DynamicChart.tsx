@@ -220,7 +220,6 @@ export default function DynamicChart({ type, data, title, dataType, onRemove, co
             />
           </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <RefreshButton onClick={handleRefresh} isRefreshing={isRefreshing} />
             {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
           </div>
         </div>
@@ -230,6 +229,34 @@ export default function DynamicChart({ type, data, title, dataType, onRemove, co
           <ChartRegistration />
           {renderChart()}
         </Suspense>
+      </div>
+
+      {/* Footer with data source info and refresh button */}
+      <div className={styles.footer}>
+        <div className={styles.dataInfo}>
+          {data.lastUpdated && (
+            <span className={styles.timestamp}>
+              Updated: {data.lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+
+          <span className={styles.source}>
+            Source: Live API Data
+          </span>
+        </div>
+
+        {/* Refresh button in footer */}
+        <button
+          className={styles.footerRefreshButton}
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          title="Refresh data"
+          aria-label="Refresh chart data"
+        >
+          <span className={isRefreshing ? styles.spinning : ''}>
+            🔄
+          </span>
+        </button>
       </div>
     </div>
   );

@@ -128,19 +128,6 @@ export default function AutomaticChart({
             </button>
           )}
 
-          {/* Refresh button */}
-          <button
-            className={styles.refreshButton}
-            onClick={handleRefresh}
-            disabled={isLoading}
-            title="Refresh data"
-            aria-label="Refresh chart data"
-          >
-            <span className={isLoading ? styles.spinning : ''}>
-              🔄
-            </span>
-          </button>
-
           {/* Remove button */}
           {onRemove && isEditMode && (
             <button
@@ -221,7 +208,7 @@ export default function AutomaticChart({
         )}
       </div>
 
-      {/* Footer with data source info */}
+      {/* Footer with data source info and refresh button */}
       {displayData && (
         <div className={styles.footer}>
           <div className={styles.dataInfo}>
@@ -230,13 +217,24 @@ export default function AutomaticChart({
                 Updated: {lastUpdated.toLocaleTimeString()}
               </span>
             )}
-            
-            {displayData.dataSource && (
-              <span className={styles.source}>
-                Source: {displayData.dataSource}
-              </span>
-            )}
+
+            <span className={styles.source}>
+              Source: Live API Data
+            </span>
           </div>
+
+          {/* Refresh button in footer */}
+          <button
+            className={styles.footerRefreshButton}
+            onClick={handleRefresh}
+            disabled={isLoading}
+            title="Refresh data"
+            aria-label="Refresh chart data"
+          >
+            <span className={isLoading ? styles.spinning : ''}>
+              🔄
+            </span>
+          </button>
         </div>
       )}
     </div>

@@ -56,6 +56,33 @@
   cursor: not-allowed;
 }
 
+/* Footer refresh button */
+.footerRefreshButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: transparent;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.footerRefreshButton:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.footerRefreshButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .retryButton {
   display: flex;
   align-items: center;
@@ -248,6 +275,10 @@
   padding: 0.75rem 1.5rem;
   border-top: 1px solid #f3f4f6;
   background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .dataInfo {
@@ -256,6 +287,7 @@
   align-items: center;
   font-size: 0.75rem;
   color: #6b7280;
+  flex: 1;
 }
 
 .timestamp,
@@ -378,12 +410,19 @@
   
   .footer {
     padding: 0.5rem 1rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
   }
-  
+
   .dataInfo {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.25rem;
+  }
+
+  .footerRefreshButton {
+    align-self: center;
   }
 }
 
@@ -412,14 +451,16 @@
   
   .refreshButton,
   .retryButton,
-  .compactRetry {
+  .compactRetry,
+  .footerRefreshButton {
     border-color: #4b5563;
     color: #d1d5db;
   }
 
   .refreshButton:hover:not(:disabled),
   .retryButton:hover:not(:disabled),
-  .compactRetry:hover:not(:disabled) {
+  .compactRetry:hover:not(:disabled),
+  .footerRefreshButton:hover:not(:disabled) {
     background: #374151;
     border-color: #6b7280;
   }

@@ -252,14 +252,14 @@ export function AutomaticDataSourceProvider({
     const cacheKey = `auto-${dataType}`;
 
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+      // Don't set global loading state for individual component refreshes
+      // Each component manages its own loading state
       dispatch({ type: 'SET_ERROR', payload: null });
 
       // Check cache first if enabled
       if (useCache) {
         const cachedData = getCachedData<T>(cacheKey);
         if (cachedData) {
-          dispatch({ type: 'SET_LOADING', payload: false });
           return {
             data: cachedData,
             success: true,
@@ -325,7 +325,8 @@ export function AutomaticDataSourceProvider({
         source: 'Automatic Data Source',
       };
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      // Individual components manage their own loading state
+      // Don't set global loading state here
     }
   }, [attemptLiveData, fetchHistoricalData, getCachedData, scheduleRetry]);
 

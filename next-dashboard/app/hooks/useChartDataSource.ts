@@ -163,22 +163,40 @@ export function useChartDataSource(options: UseChartDataSourceOptions): UseChart
     }
   }, [refreshInterval, isLoading, fetchDataInternal]);
 
-  // Sync loading state with global state when needed
+  // Only sync loading state with global state for global operations
+  // Individual chart refreshes should only affect the local component
+  const [isGlobalOperation, setIsGlobalOperation] = useState(false);
+
   useEffect(() => {
-    if (state.isLoading && !isLoading) {
+    // Only sync if this is a global operation (like switching data sources)
+    if (state.isLoading && !isLoading && isGlobalOperation) {
       setIsLoading(true);
+    } else if (!state.isLoading && isGlobalOperation) {
+      setIsGlobalOperation(false);
     }
-  }, [state.isLoading, isLoading]);
+  }, [state.isLoading, isLoading, isGlobalOperation]);
+
+  // Enhanced switch source that marks as global operation
+  const switchSourceEnhanced = useCallback(async (source: DataSourceType) => {
+    setIsGlobalOperation(true);
+    return switchSource(source);
+  }, [switchSource]);
+
+  // Enhanced reset to global that marks as global operation
+  const resetToGlobalEnhanced = useCallback(() => {
+    setIsGlobalOperation(true);
+    return resetToGlobal();
+  }, [resetToGlobal]);
 
   return {
     data,
-    isLoading: isLoading || state.isLoading,
+    isLoading: isLoading, // Only use local loading state
     error,
     lastUpdated,
     currentSource,
     refresh,
-    switchSource,
-    resetToGlobal,
+    switchSource: switchSourceEnhanced,
+    resetToGlobal: resetToGlobalEnhanced,
     isUsingCustomSource,
   };
 }
