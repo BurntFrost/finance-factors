@@ -351,6 +351,8 @@ export const STORAGE_KEYS = {
   API_CACHE: 'finance-dashboard-api-cache',
   USER_PREFERENCES: 'finance-dashboard-preferences',
   VISUALIZATION_PREFERENCES: 'finance-dashboard-viz-preferences',
+  DASHBOARD_LAYOUTS: 'finance-dashboard-layouts',
+  CHART_DIMENSIONS: 'finance-dashboard-chart-dimensions',
 } as const;
 
 // Default cache TTL values (in milliseconds)

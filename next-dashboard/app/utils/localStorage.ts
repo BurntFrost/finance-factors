@@ -351,12 +351,175 @@ export const visualizationPreferences = {
   },
 };
 
+// Dashboard layout persistence
+interface DashboardLayout {
+  id: string;
+  name: string;
+  elements: Array<{
+    id: string;
+    type: string;
+    dataType: string;
+    title: string;
+    position: { row: number; col: number };
+    size: { width: number; height: number };
+    config?: Record<string, unknown>;
+  }>;
+  gridColumns: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SavedDashboardLayouts {
+  [layoutId: string]: DashboardLayout;
+}
+
+export const dashboardLayouts = {
+  /**
+   * Save a dashboard layout
+   */
+  save: (layout: DashboardLayout): void => {
+    safeLocalStorageOperation(() => {
+      const existing = dashboardLayouts.loadAll();
+      existing[layout.id] = {
+        ...layout,
+        updatedAt: new Date(),
+      };
+      localStorage.setItem(STORAGE_KEYS.DASHBOARD_LAYOUTS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load a specific dashboard layout
+   */
+  load: (layoutId: string): DashboardLayout | null => {
+    return safeLocalStorageOperation(() => {
+      const layouts = dashboardLayouts.loadAll();
+      return layouts[layoutId] || null;
+    }, null);
+  },
+
+  /**
+   * Load all dashboard layouts
+   */
+  loadAll: (): SavedDashboardLayouts => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.DASHBOARD_LAYOUTS);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Delete a dashboard layout
+   */
+  delete: (layoutId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = dashboardLayouts.loadAll();
+      delete existing[layoutId];
+      localStorage.setItem(STORAGE_KEYS.DASHBOARD_LAYOUTS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Get layout names for dropdown/selection
+   */
+  getLayoutNames: (): Array<{ id: string; name: string; updatedAt: Date }> => {
+    return safeLocalStorageOperation(() => {
+      const layouts = dashboardLayouts.loadAll();
+      return Object.values(layouts).map(layout => ({
+        id: layout.id,
+        name: layout.name,
+        updatedAt: layout.updatedAt,
+      }));
+    }, []);
+  },
+
+  /**
+   * Clear all dashboard layouts
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.DASHBOARD_LAYOUTS),
+      undefined
+    );
+  },
+};
+
+// Chart dimensions persistence
+interface ChartDimensions {
+  [chartId: string]: {
+    width: number;
+    height: number;
+    updatedAt: Date;
+  };
+}
+
+export const chartDimensions = {
+  /**
+   * Save chart dimensions
+   */
+  save: (chartId: string, width: number, height: number): void => {
+    safeLocalStorageOperation(() => {
+      const existing = chartDimensions.loadAll();
+      existing[chartId] = {
+        width,
+        height,
+        updatedAt: new Date(),
+      };
+      localStorage.setItem(STORAGE_KEYS.CHART_DIMENSIONS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load chart dimensions
+   */
+  load: (chartId: string): { width: number; height: number } | null => {
+    return safeLocalStorageOperation(() => {
+      const dimensions = chartDimensions.loadAll();
+      const saved = dimensions[chartId];
+      return saved ? { width: saved.width, height: saved.height } : null;
+    }, null);
+  },
+
+  /**
+   * Load all chart dimensions
+   */
+  loadAll: (): ChartDimensions => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.CHART_DIMENSIONS);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Remove chart dimensions
+   */
+  remove: (chartId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = chartDimensions.loadAll();
+      delete existing[chartId];
+      localStorage.setItem(STORAGE_KEYS.CHART_DIMENSIONS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Clear all chart dimensions
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.CHART_DIMENSIONS),
+      undefined
+    );
+  },
+};
+
 // Utility to clear all app data
 export const clearAllData = (): void => {
   dataSourcePreference.clear();
   apiCache.clear();
   userPreferences.clear();
   visualizationPreferences.clear();
+  dashboardLayouts.clear();
+  chartDimensions.clear();
 };
 
 // Initialize cleanup on app start (call this in your app initialization)

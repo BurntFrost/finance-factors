@@ -1,0 +1,302 @@
+.enhancedChart {
+  position: relative;
+  background: var(--background-primary, #ffffff);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.enhancedChart:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-secondary, #f8f9fa);
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.chartTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin: 0;
+}
+
+.selectionCount {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+  background: var(--accent-color, #3b82f6);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.controlButton {
+  background: none;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.controlButton:hover {
+  background: var(--background-secondary, #f3f4f6);
+  border-color: var(--border-hover, #d1d5db);
+}
+
+.removeButton {
+  background: none;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: pointer;
+  color: #ef4444;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.removeButton:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.controlsPanel {
+  padding: 0.75rem 1.25rem;
+  background: var(--background-tertiary, #f1f5f9);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.controlGroup {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.controlBtn {
+  background: var(--background-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.controlBtn:hover {
+  background: var(--background-secondary, #f3f4f6);
+  border-color: var(--border-hover, #d1d5db);
+  color: var(--text-primary, #1f2937);
+}
+
+.controlBtn.active {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+}
+
+.controlBtn.active:hover {
+  background: var(--accent-hover, #2563eb);
+  border-color: var(--accent-hover, #2563eb);
+}
+
+.chartWrapper {
+  position: relative;
+  padding: 1.25rem;
+  min-height: 400px;
+  background: var(--background-primary, #ffffff);
+}
+
+.chartWrapper canvas {
+  cursor: crosshair;
+  transition: cursor 0.2s ease;
+}
+
+.chartWrapper canvas:hover {
+  cursor: grab;
+}
+
+.chartWrapper canvas:active {
+  cursor: grabbing;
+}
+
+.chartFooter {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-secondary, #f8f9fa);
+  display: flex;
+  justify-content: center;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .enhancedChart {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .chartHeader {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .chartTitle {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .controlButton {
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .controlButton:hover {
+    background: var(--background-secondary-dark, #374151);
+    border-color: var(--border-hover-dark, #4b5563);
+  }
+
+  .controlsPanel {
+    background: var(--background-tertiary-dark, #0f172a);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .controlBtn {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .controlBtn:hover {
+    background: var(--background-secondary-dark, #374151);
+    border-color: var(--border-hover-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .chartWrapper {
+    background: var(--background-primary-dark, #1f2937);
+  }
+
+  .chartFooter {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .chartHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .titleSection {
+    justify-content: center;
+  }
+
+  .headerControls {
+    justify-content: center;
+  }
+
+  .controlsPanel {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .controlGroup {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .chartWrapper {
+    padding: 1rem;
+    min-height: 300px;
+  }
+
+  .controlBtn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+/* Animation for chart type transitions */
+.chartWrapper.transitioning {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+/* Selection highlight styles */
+.chartWrapper canvas.hasSelection {
+  box-shadow: inset 0 0 0 2px var(--accent-color, #3b82f6);
+  border-radius: 4px;
+}
+
+/* Loading state */
+.chartWrapper.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary, #f8f9fa);
+}
+
+.chartWrapper.loading::before {
+  content: '';
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color, #e5e7eb);
+  border-top: 3px solid var(--accent-color, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

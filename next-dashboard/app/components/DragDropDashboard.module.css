@@ -1,0 +1,400 @@
+.dashboard {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: var(--background-primary, #ffffff);
+  transition: all 0.3s ease;
+}
+
+.dashboard.editMode {
+  background: var(--background-secondary, #f8f9fa);
+  border: 2px dashed var(--accent-color, #3b82f6);
+  border-radius: 12px;
+}
+
+.editModeHeader {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--accent-color, #3b82f6);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.editModeIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.editIcon {
+  font-size: 1rem;
+}
+
+.grid {
+  position: relative;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.sortableItem {
+  position: relative;
+  background: var(--background-primary, #ffffff);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  cursor: default;
+}
+
+.sortableItem:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.sortableItem.editMode {
+  cursor: grab;
+  border-color: var(--accent-color, #3b82f6);
+}
+
+.sortableItem.editMode:hover {
+  border-color: var(--accent-hover, #2563eb);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.sortableItem.dragging {
+  cursor: grabbing;
+  transform: rotate(5deg) scale(1.05);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.dragHandle {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 10;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 0.5rem;
+  cursor: grab;
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sortableItem.editMode .dragHandle {
+  opacity: 1;
+}
+
+.dragHandle:hover {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+  transform: scale(1.1);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  transform: scale(0.95);
+}
+
+.dragIcon {
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  transform: rotate(90deg);
+}
+
+.elementContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+.dragOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(59, 130, 246, 0.1);
+  border: 2px solid var(--accent-color, #3b82f6);
+  border-radius: 12px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Drag Overlay Content */
+.dragOverlayContent {
+  background: var(--background-primary, #ffffff);
+  border: 2px solid var(--accent-color, #3b82f6);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transform: rotate(5deg);
+  opacity: 0.9;
+}
+
+.dragPreview {
+  padding: 1rem;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+.dragPreviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.dragPreviewHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.dragPreviewType {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary, #6b7280);
+  background: var(--background-secondary, #f3f4f6);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.dragPreviewBody {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dragPreviewPlaceholder {
+  font-size: 2rem;
+  color: var(--text-secondary, #6b7280);
+  opacity: 0.5;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+  padding: 2rem;
+}
+
+.emptyStateIcon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyState h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.8;
+}
+
+/* Grid Guidelines */
+.gridGuidelines {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  background: var(--background-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0.9;
+}
+
+.gridInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.gridInfo span {
+  display: flex;
+  justify-content: space-between;
+  min-width: 120px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0.5rem;
+  }
+
+  .editModeHeader {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .sortableItem {
+    min-height: 250px;
+  }
+
+  .elementContent {
+    min-height: 250px;
+  }
+
+  .dragHandle {
+    top: 0.25rem;
+    right: 0.25rem;
+    padding: 0.375rem;
+  }
+
+  .emptyState {
+    min-height: 300px;
+    padding: 1rem;
+  }
+
+  .emptyStateIcon {
+    font-size: 3rem;
+  }
+
+  .gridGuidelines {
+    bottom: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .dashboard {
+    background: var(--background-primary-dark, #1f2937);
+  }
+
+  .dashboard.editMode {
+    background: var(--background-secondary-dark, #111827);
+  }
+
+  .sortableItem {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .dragHandle {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .dragOverlayContent {
+    background: var(--background-primary-dark, #1f2937);
+  }
+
+  .dragPreviewHeader {
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .dragPreviewHeader h4 {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .dragPreviewType {
+    background: var(--background-secondary-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .emptyState h3 {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .gridGuidelines {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+}
+
+/* Animation for smooth transitions */
+.sortableItem {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Accessibility improvements */
+.dragHandle:focus {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.sortableItem:focus-within {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .sortableItem {
+    border-width: 2px;
+  }
+
+  .sortableItem.editMode {
+    border-width: 3px;
+  }
+
+  .dragHandle {
+    border-width: 2px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .sortableItem,
+  .dragHandle,
+  .dashboard,
+  .grid {
+    transition: none;
+    animation: none;
+  }
+
+  .sortableItem:hover,
+  .sortableItem.dragging {
+    transform: none;
+  }
+
+  .dragHandle:hover {
+    transform: none;
+  }
+}

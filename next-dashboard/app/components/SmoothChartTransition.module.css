@@ -1,0 +1,350 @@
+.transitionContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-primary, #ffffff);
+  z-index: 10;
+  border-radius: 8px;
+}
+
+.transitionOverlay {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 2rem;
+}
+
+.transitionMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.transitionIcon {
+  font-size: 3rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.transitionText {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  opacity: 0.8;
+}
+
+.transitionBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.1;
+  z-index: 1;
+}
+
+.animatedBars {
+  display: flex;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.animatedBar {
+  width: 8px;
+  height: 20px;
+  background: var(--accent-color, #3b82f6);
+  border-radius: 4px;
+  animation: barAnimation 1.5s ease-in-out infinite;
+}
+
+/* Transition phases */
+.fadeOut {
+  animation: fadeOut 0.375s ease-out forwards;
+}
+
+.fadeIn {
+  animation: fadeIn 0.375s ease-in forwards;
+}
+
+.complete {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Animations */
+@keyframes fadeOut {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+@keyframes barAnimation {
+  0%, 100% {
+    height: 20px;
+    opacity: 0.6;
+  }
+  50% {
+    height: 40px;
+    opacity: 1;
+  }
+}
+
+/* Visualization Switcher Styles */
+.visualizationSwitcher {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e5e7eb);
+}
+
+.typeButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
+}
+
+.typeButton:hover {
+  background: var(--background-primary, #ffffff);
+  border-color: var(--border-color, #e5e7eb);
+  transform: translateY(-1px);
+}
+
+.typeButton.active {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.typeButton.transitioning {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.typeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.typeIcon {
+  font-size: 1.25rem;
+  display: block;
+}
+
+.typeLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.typeButton.active .typeLabel {
+  color: white;
+}
+
+/* Chart Container Styles */
+.chartContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chartContent {
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.3s ease;
+}
+
+.chartContent.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .transitionContainer {
+    background: var(--background-primary-dark, #1f2937);
+  }
+
+  .transitionText {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .visualizationSwitcher {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .typeButton:hover {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .typeButton.active .typeLabel {
+    color: white;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .transitionIcon {
+    font-size: 2rem;
+  }
+
+  .transitionText {
+    font-size: 1rem;
+  }
+
+  .visualizationSwitcher {
+    gap: 0.25rem;
+    padding: 0.25rem;
+  }
+
+  .typeButton {
+    min-width: 50px;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .typeIcon {
+    font-size: 1rem;
+  }
+
+  .typeLabel {
+    font-size: 0.7rem;
+  }
+}
+
+/* Accessibility improvements */
+.typeButton:focus {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.typeButton:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .typeButton {
+    border-width: 2px;
+  }
+
+  .typeButton.active {
+    border-width: 3px;
+  }
+
+  .transitionText {
+    font-weight: 600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .transitionContainer,
+  .typeButton,
+  .chartContent {
+    animation: none;
+    transition: none;
+  }
+
+  .transitionIcon {
+    animation: none;
+  }
+
+  .animatedBar {
+    animation: none;
+  }
+
+  .fadeOut,
+  .fadeIn {
+    animation: none;
+  }
+
+  .typeButton:hover,
+  .typeButton.active {
+    transform: none;
+  }
+}
+
+/* Loading state for transition */
+.transitionContainer.loading {
+  background: linear-gradient(
+    90deg,
+    var(--background-primary, #ffffff) 25%,
+    var(--background-secondary, #f8f9fa) 50%,
+    var(--background-primary, #ffffff) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Smooth entrance animation for new charts */
+.chartContent.entering {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

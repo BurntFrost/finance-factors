@@ -5,6 +5,7 @@ import { DashboardProvider } from "./context/DashboardContext";
 import { AutomaticDataSourceProvider } from "./context/AutomaticDataSourceContext";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { CrossfilterProvider } from "./context/CrossfilterContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/ToastManager";
 
@@ -60,9 +61,11 @@ export default function RootLayout({
             <ThemeProvider>
               <ViewModeProvider>
                 <AutomaticDataSourceProvider>
-                  <DashboardProvider>
-                    {children}
-                  </DashboardProvider>
+                  <CrossfilterProvider>
+                    <DashboardProvider>
+                      {children}
+                    </DashboardProvider>
+                  </CrossfilterProvider>
                 </AutomaticDataSourceProvider>
               </ViewModeProvider>
             </ThemeProvider>

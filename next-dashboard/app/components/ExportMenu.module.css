@@ -1,0 +1,524 @@
+.exportMenu {
+  position: relative;
+  display: inline-block;
+}
+
+.exportButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.exportButton:hover:not(:disabled) {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.exportButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  background: var(--background-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 280px;
+  max-width: 400px;
+  margin-top: 0.5rem;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 8px 8px 0 0;
+}
+
+.dropdownHeader h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+}
+
+.optionsToggle {
+  background: none;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.optionsToggle:hover {
+  background: var(--background-primary, #ffffff);
+  border-color: var(--border-hover, #d1d5db);
+}
+
+.optionsPanel {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-tertiary, #f1f5f9);
+}
+
+.optionGroup {
+  margin-bottom: 0.75rem;
+}
+
+.optionGroup:last-child {
+  margin-bottom: 0;
+}
+
+.optionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1f2937);
+  cursor: pointer;
+  margin-bottom: 0.25rem;
+}
+
+.optionLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-color, #3b82f6);
+}
+
+.optionSelect {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 4px;
+  background: var(--background-primary, #ffffff);
+  color: var(--text-primary, #1f2937);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.optionSelect:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.optionSelect:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--background-secondary, #f3f4f6);
+}
+
+.exportButtons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.formatButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  transition: all 0.2s ease;
+}
+
+.formatButton:hover:not(:disabled) {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.formatButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.exportingIndicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color, #e5e7eb);
+  background: var(--background-secondary, #f8f9fa);
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.875rem;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-color, #e5e7eb);
+  border-top: 2px solid var(--accent-color, #3b82f6);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Bulk Export Menu Styles */
+.bulkExportMenu {
+  position: relative;
+  display: inline-block;
+}
+
+.bulkExportButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.bulkExportButton:hover:not(:disabled) {
+  background: var(--accent-color, #3b82f6);
+  border-color: var(--accent-color, #3b82f6);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.bulkExportButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.bulkDropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  background: var(--background-primary, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  min-width: 320px;
+  max-width: 450px;
+  margin-top: 0.5rem;
+  animation: slideDown 0.2s ease;
+}
+
+.selectionControls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.selectButton {
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  transition: all 0.2s ease;
+}
+
+.selectButton:hover {
+  background: var(--background-primary, #ffffff);
+  border-color: var(--border-hover, #d1d5db);
+  color: var(--text-primary, #1f2937);
+}
+
+.elementList {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+}
+
+.elementCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-primary, #1f2937);
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+  transition: all 0.2s ease;
+}
+
+.elementCheckbox:last-child {
+  border-bottom: none;
+}
+
+.elementCheckbox:hover {
+  background: var(--background-secondary, #f8f9fa);
+  margin: 0 -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.elementCheckbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-color, #3b82f6);
+}
+
+.elementType {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  opacity: 0.8;
+}
+
+.bulkExportButtons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .exportButton,
+  .bulkExportButton {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .dropdown,
+  .bulkDropdown {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .dropdownHeader {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .dropdownHeader h4 {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .optionsToggle,
+  .selectButton {
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .optionsToggle:hover,
+  .selectButton:hover {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-hover-dark, #4b5563);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .optionsPanel {
+    background: var(--background-tertiary-dark, #0f172a);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .optionLabel {
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .optionSelect {
+    background: var(--background-primary-dark, #1f2937);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .optionSelect:disabled {
+    background: var(--background-secondary-dark, #374151);
+  }
+
+  .formatButton {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-primary-dark, #f9fafb);
+  }
+
+  .exportingIndicator {
+    background: var(--background-secondary-dark, #111827);
+    border-color: var(--border-color-dark, #374151);
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+
+  .spinner {
+    border-color: var(--border-color-dark, #374151);
+    border-top-color: var(--accent-color, #3b82f6);
+  }
+
+  .elementList {
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .elementCheckbox {
+    color: var(--text-primary-dark, #f9fafb);
+    border-color: var(--border-color-dark, #374151);
+  }
+
+  .elementCheckbox:hover {
+    background: var(--background-secondary-dark, #111827);
+  }
+
+  .elementType {
+    color: var(--text-secondary-dark, #9ca3af);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .dropdown,
+  .bulkDropdown {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%);
+    min-width: 300px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  .dropdownHeader {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .selectionControls {
+    justify-content: center;
+  }
+
+  .exportButtons,
+  .bulkExportButtons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .formatButton {
+    padding: 1rem;
+  }
+
+  .elementList {
+    max-height: 150px;
+  }
+
+  .elementCheckbox {
+    padding: 0.75rem 0;
+  }
+}
+
+/* Accessibility improvements */
+.exportButton:focus,
+.bulkExportButton:focus,
+.optionsToggle:focus,
+.selectButton:focus,
+.formatButton:focus {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.optionSelect:focus {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+}
+
+.elementCheckbox:focus-within {
+  outline: 2px solid var(--accent-color, #3b82f6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .exportButton,
+  .bulkExportButton,
+  .formatButton {
+    border-width: 2px;
+  }
+
+  .dropdown,
+  .bulkDropdown {
+    border-width: 2px;
+  }
+
+  .optionLabel,
+  .elementCheckbox {
+    font-weight: 600;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .dropdown,
+  .bulkDropdown,
+  .exportButton,
+  .bulkExportButton,
+  .formatButton {
+    animation: none;
+    transition: none;
+  }
+
+  .exportButton:hover,
+  .bulkExportButton:hover,
+  .formatButton:hover {
+    transform: none;
+  }
+
+  .spinner {
+    animation: none;
+  }
+}
