@@ -177,12 +177,99 @@ class DistributedHealthDashboard {
     setInterval(() => {
       const snapshot = this.captureHealthSnapshot();
       this.healthHistory.push(snapshot);
-      
+
       // Maintain history size
       if (this.healthHistory.length > this.MAX_HISTORY_SIZE) {
         this.healthHistory.shift();
       }
     }, 30000); // Every 30 seconds
+  }
+
+  /**
+   * Generate recommendations based on trends and alerts
+   */
+  private generateRecommendations(trends: HealthTrend[], alerts: HealthAlert[]): string[] {
+    const recommendations: string[] = [];
+
+    // Critical alerts get immediate recommendations
+    const criticalAlerts = alerts.filter(a => a.severity === 'critical');
+    if (criticalAlerts.length > 0) {
+      recommendations.push('🚨 Immediate action required: Scale resources or investigate critical issues');
+    }
+
+    // Trend-based recommendations
+    trends.forEach(trend => {
+      switch (trend.metric) {
+        case 'redis_latency':
+          if (trend.trend === 'degrading') {
+            recommendations.push('🔧 Consider Redis connection pooling optimization or cluster scaling');
+          }
+          break;
+        case 'error_rate':
+          if (trend.trend === 'degrading') {
+            recommendations.push('🐛 Investigate error patterns and implement additional error handling');
+          }
+          break;
+        case 'memory_usage':
+          if (trend.trend === 'degrading') {
+            recommendations.push('💾 Monitor memory leaks and consider garbage collection tuning');
+          }
+          break;
+      }
+    });
+
+    // General health recommendations
+    if (recommendations.length === 0) {
+      recommendations.push('✅ System health is stable - continue monitoring');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Calculate linear regression slope for trend analysis
+   */
+  private calculateLinearRegression(values: number[]): number {
+    const n = values.length;
+    if (n < 2) return 0;
+
+    const sumX = (n * (n - 1)) / 2; // Sum of indices 0, 1, 2, ..., n-1
+    const sumY = values.reduce((a, b) => a + b, 0);
+    const sumXY = values.reduce((sum, y, x) => sum + x * y, 0);
+    const sumXX = (n * (n - 1) * (2 * n - 1)) / 6; // Sum of squares of indices
+
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    return slope;
+  }
+
+  /**
+   * Get threshold value for a specific metric
+   */
+  private getThresholdForMetric(metric: string): number {
+    const thresholds: Record<string, number> = {
+      redis_latency: 100, // ms
+      error_rate: 0.05, // 5%
+      memory_usage: 0.8, // 80%
+      cpu_usage: 0.7, // 70%
+      active_connections: 1000,
+      requests_per_minute: 10000,
+    };
+
+    return thresholds[metric] || 0;
+  }
+
+  /**
+   * Collect current system metrics
+   */
+  private collectSystemMetrics(): SystemMetrics {
+    // In a real implementation, these would come from actual system monitoring
+    // For now, return mock data that would be replaced with actual metrics
+    return {
+      memoryUsage: Math.random() * 0.8, // 0-80% usage
+      cpuUsage: Math.random() * 0.6, // 0-60% usage
+      activeConnections: Math.floor(Math.random() * 500) + 100, // 100-600 connections
+      requestsPerMinute: Math.floor(Math.random() * 5000) + 1000, // 1000-6000 RPM
+    };
   }
 }
 

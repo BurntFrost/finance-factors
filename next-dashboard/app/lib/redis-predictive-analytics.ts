@@ -7,6 +7,7 @@
 
 // Unused imports removed to fix linting warnings
 import { redisHealthMonitor } from './redis-health-monitor';
+import { redisErrorLogger } from './redis-error-logger';
 
 interface PredictiveMetrics {
   latencyTrend: number[]; // Last 20 measurements
@@ -133,6 +134,66 @@ class RedisPredictiveAnalytics {
     } else {
       this.metrics.predictedFailureRisk = 'low';
     }
+  }
+
+  /**
+   * Update error rate window with new error rate
+   */
+  private updateErrorRateWindow(errorRate: number): void {
+    this.metrics.errorRateWindow.push(errorRate);
+    if (this.metrics.errorRateWindow.length > this.ERROR_WINDOW_SIZE) {
+      this.metrics.errorRateWindow.shift();
+    }
+  }
+
+  /**
+   * Calculate connection stability based on error metrics
+   */
+  private calculateConnectionStability(_errorMetrics: ReturnType<typeof redisErrorLogger.getMetrics>): void {
+    const recentErrorRate = this.metrics.errorRateWindow.slice(-5).reduce((a, b) => a + b, 0) / 5;
+    const errorVariance = this.calculateVariance(this.metrics.errorRateWindow);
+
+    // Stability decreases with higher error rates and higher variance
+    const errorPenalty = Math.min(recentErrorRate * 2, 0.8); // Max 80% penalty
+    const variancePenalty = Math.min(errorVariance * 10, 0.5); // Max 50% penalty
+
+    this.metrics.connectionStability = Math.max(0, 1 - errorPenalty - variancePenalty);
+  }
+
+  /**
+   * Generate recommendations based on current metrics
+   */
+  private generateRecommendations(): void {
+    this.metrics.recommendedActions = [];
+
+    if (this.metrics.predictedFailureRisk === 'critical') {
+      this.metrics.recommendedActions.push('🚨 Immediate fallback activation recommended');
+      this.metrics.recommendedActions.push('🔧 Scale Redis cluster immediately');
+    } else if (this.metrics.predictedFailureRisk === 'high') {
+      this.metrics.recommendedActions.push('⚠️ Prepare fallback systems');
+      this.metrics.recommendedActions.push('📊 Monitor connection pool usage');
+    } else if (this.metrics.predictedFailureRisk === 'medium') {
+      this.metrics.recommendedActions.push('👀 Increase monitoring frequency');
+      this.metrics.recommendedActions.push('🔍 Review recent error patterns');
+    } else {
+      this.metrics.recommendedActions.push('✅ System operating normally');
+    }
+
+    // Connection stability specific recommendations
+    if (this.metrics.connectionStability < 0.5) {
+      this.metrics.recommendedActions.push('🔗 Check Redis connection pool configuration');
+    }
+  }
+
+  /**
+   * Calculate variance of a set of values
+   */
+  private calculateVariance(values: number[]): number {
+    if (values.length < 2) return 0;
+
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const squaredDiffs = values.map(value => Math.pow(value - mean, 2));
+    return squaredDiffs.reduce((a, b) => a + b, 0) / values.length;
   }
 }
 

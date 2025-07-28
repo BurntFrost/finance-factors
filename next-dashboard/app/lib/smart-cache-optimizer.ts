@@ -185,6 +185,80 @@ class SmartCacheOptimizer {
 
     return (sampleSizeConfidence + hitRateConsistency + patternConsistency) / 3;
   }
+
+  /**
+   * Generate human-readable reasoning for TTL optimization
+   */
+  private generateReasoning(metrics: CacheMetrics, optimizedTTL: number, defaultTTL: number): string {
+    const change = optimizedTTL - defaultTTL;
+    const changePercent = Math.round((change / defaultTTL) * 100);
+
+    if (Math.abs(changePercent) < 10) {
+      return `TTL maintained near default (${changePercent > 0 ? '+' : ''}${changePercent}%) - stable access patterns`;
+    }
+
+    if (change > 0) {
+      const reasons = [];
+      if (metrics.hitRate > 0.7) reasons.push('high hit rate');
+      if (metrics.averageAccessInterval > 10 * 60 * 1000) reasons.push('infrequent access');
+      if (metrics.dataVolatility < 0.3) reasons.push('stable data');
+
+      return `TTL increased by ${changePercent}% due to: ${reasons.join(', ')}`;
+    } else {
+      const reasons = [];
+      if (metrics.hitRate < 0.5) reasons.push('low hit rate');
+      if (metrics.averageAccessInterval < 2 * 60 * 1000) reasons.push('frequent access');
+      if (metrics.dataVolatility > 0.7) reasons.push('volatile data');
+
+      return `TTL decreased by ${Math.abs(changePercent)}% due to: ${reasons.join(', ')}`;
+    }
+  }
+
+  /**
+   * Get review interval based on confidence level
+   */
+  private getReviewInterval(confidence: number): number {
+    // Higher confidence = longer review intervals
+    const baseInterval = 24 * 60 * 60 * 1000; // 24 hours
+    const multiplier = Math.max(0.5, Math.min(7, confidence * 7)); // 0.5 to 7 days
+    return baseInterval * multiplier;
+  }
+
+  /**
+   * Create initial metrics for a new cache key
+   */
+  private createInitialMetrics(key: string): CacheMetrics {
+    return {
+      key,
+      accessCount: 0,
+      lastAccessed: new Date(),
+      hitRate: 0,
+      averageAccessInterval: 0,
+      dataVolatility: 0.5, // Default moderate volatility
+      userPatterns: [],
+    };
+  }
+
+  /**
+   * Update average access interval
+   */
+  private updateAccessInterval(metrics: CacheMetrics, currentTime: Date): void {
+    if (metrics.accessCount <= 1) {
+      metrics.averageAccessInterval = 0;
+      return;
+    }
+
+    const timeSinceLastAccess = currentTime.getTime() - metrics.lastAccessed.getTime();
+
+    // Exponential moving average for access interval
+    const alpha = 0.1; // Smoothing factor
+    if (metrics.averageAccessInterval === 0) {
+      metrics.averageAccessInterval = timeSinceLastAccess;
+    } else {
+      metrics.averageAccessInterval =
+        alpha * timeSinceLastAccess + (1 - alpha) * metrics.averageAccessInterval;
+    }
+  }
 }
 
 export const smartCacheOptimizer = new SmartCacheOptimizer();

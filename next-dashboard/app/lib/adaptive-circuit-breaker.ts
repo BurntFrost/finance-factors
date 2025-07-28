@@ -205,6 +205,66 @@ class AdaptiveCircuitBreaker {
     }
     return this.circuits.get(operationKey)!;
   }
+
+  /**
+   * Open the circuit breaker
+   */
+  private openCircuit(circuit: CircuitState): void {
+    circuit.state = 'OPEN';
+    circuit.lastFailureTime = Date.now();
+  }
+
+  /**
+   * Close the circuit breaker
+   */
+  private closeCircuit(circuit: CircuitState): void {
+    circuit.state = 'CLOSED';
+    circuit.failureCount = 0;
+    circuit.successCount = 0;
+  }
+
+  /**
+   * Set circuit to half-open state
+   */
+  private halfOpenCircuit(circuit: CircuitState): void {
+    circuit.state = 'HALF_OPEN';
+    circuit.successCount = 0;
+  }
+
+  /**
+   * Check if circuit should attempt reset from open to half-open
+   */
+  private shouldAttemptReset(circuit: CircuitState): boolean {
+    return Date.now() - circuit.lastFailureTime >= this.config.openStateTimeoutMs;
+  }
+
+  /**
+   * Record successful operation
+   */
+  private recordSuccess(operationKey: string, responseTime: number): void {
+    const circuit = this.circuits.get(operationKey)!;
+    circuit.successCount++;
+    circuit.lastSuccessTime = Date.now();
+
+    // Update performance history
+    const history = this.performanceHistory.get(operationKey) || [];
+    history.push(responseTime);
+    this.performanceHistory.set(operationKey, history);
+  }
+
+  /**
+   * Record failed operation
+   */
+  private recordFailure(operationKey: string, responseTime: number): void {
+    const circuit = this.circuits.get(operationKey)!;
+    circuit.failureCount++;
+    circuit.lastFailureTime = Date.now();
+
+    // Update performance history
+    const history = this.performanceHistory.get(operationKey) || [];
+    history.push(responseTime);
+    this.performanceHistory.set(operationKey, history);
+  }
 }
 
 export const adaptiveCircuitBreaker = new AdaptiveCircuitBreaker();
