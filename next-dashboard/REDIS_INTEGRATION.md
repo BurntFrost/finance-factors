@@ -28,12 +28,14 @@ The Redis integration is **completely optional** and provides:
 - **Performance Monitoring**: Cache hit rates, latency metrics, and health checks
 - **Scalability**: Horizontal scaling support for multiple application instances
 
-**When Redis is disabled (default):**
+**When Redis is disabled (development default):**
 - ✅ All core functionality works normally
 - ✅ In-memory caching for API responses
 - ✅ Simple per-instance rate limiting
 - ✅ No external dependencies required
 - ✅ Easy deployment to any platform (Vercel, Netlify, etc.)
+
+**Redis is now ENABLED in production on Vercel for optimal performance!**
 
 ## 🧪 Testing Redis Functionality
 
