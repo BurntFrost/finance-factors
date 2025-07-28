@@ -1,12 +1,73 @@
 :root {
+  /* Light theme variables */
   --background: #ffffff;
   --foreground: #171717;
+  --background-secondary: #f8f9fa;
+  --background-tertiary: #e9ecef;
+  --foreground-secondary: #666666;
+  --border-color: #e0e0e0;
+  --primary-color: #007bff;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+
+  /* Chart and data visualization colors */
+  --chart-grid-color: #f0f0f0;
+  --chart-text-color: #333333;
+  --chart-background: #ffffff;
+
+  /* Shadow and elevation */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
+/* Dark theme variables - applied via data-theme attribute */
+[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --background-secondary: #1a1a1a;
+  --background-tertiary: #2a2a2a;
+  --foreground-secondary: #a0a0a0;
+  --border-color: #404040;
+  --primary-color: #4dabf7;
+  --success-color: #51cf66;
+  --warning-color: #ffd43b;
+  --danger-color: #ff6b6b;
+  --info-color: #74c0fc;
+
+  /* Chart and data visualization colors for dark mode */
+  --chart-grid-color: #2a2a2a;
+  --chart-text-color: #e0e0e0;
+  --chart-background: #1a1a1a;
+
+  /* Shadow and elevation for dark mode */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Fallback for system preference when no manual theme is set */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --background-secondary: #1a1a1a;
+    --background-tertiary: #2a2a2a;
+    --foreground-secondary: #a0a0a0;
+    --border-color: #404040;
+    --primary-color: #4dabf7;
+    --success-color: #51cf66;
+    --warning-color: #ffd43b;
+    --danger-color: #ff6b6b;
+    --info-color: #74c0fc;
+    --chart-grid-color: #2a2a2a;
+    --chart-text-color: #e0e0e0;
+    --chart-background: #1a1a1a;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -39,8 +100,34 @@ a {
   text-decoration: none;
 }
 
+/* Color scheme support */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Fallback for system preference */
 @media (prefers-color-scheme: dark) {
-  html {
+  html:not([data-theme]) {
     color-scheme: dark;
   }
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-theme]) {
+    color-scheme: light;
+  }
+}
+
+/* Smooth transitions for theme changes */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Disable transitions during theme change to prevent flash */
+.theme-transitioning * {
+  transition: none !important;
 }

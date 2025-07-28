@@ -1,0 +1,259 @@
+/* Dark Mode Toggle Button */
+.toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--background-secondary, #f8f9fa);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 24px;
+  color: var(--foreground-secondary, #666);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  min-width: 48px;
+  height: 32px;
+  outline: none;
+}
+
+.toggle:hover:not(:disabled) {
+  background: var(--background-tertiary, #e9ecef);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.toggle:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid var(--primary-color, #007bff);
+  outline-offset: 2px;
+}
+
+.toggle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Icon Container */
+.iconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+}
+
+.icon {
+  position: absolute;
+  font-size: 1rem;
+  line-height: 1;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sun Icon (Light Mode) */
+.sunIcon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+.dark .sunIcon {
+  opacity: 0;
+  transform: rotate(180deg) scale(0.8);
+}
+
+/* Moon Icon (Dark Mode) */
+.moonIcon {
+  opacity: 0;
+  transform: rotate(-180deg) scale(0.8);
+}
+
+.dark .moonIcon {
+  opacity: 1;
+  transform: rotate(0deg) scale(1);
+}
+
+/* Label */
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--foreground-secondary, #666);
+  transition: color 0.3s ease;
+  z-index: 2;
+}
+
+/* Slider Background */
+.slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  background: var(--background);
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Size Variants */
+.small {
+  padding: 0.25rem;
+  min-width: 40px;
+  height: 28px;
+  border-radius: 20px;
+}
+
+.small .iconContainer {
+  width: 20px;
+  height: 20px;
+}
+
+.small .icon {
+  font-size: 0.875rem;
+}
+
+.small .label {
+  font-size: 0.625rem;
+}
+
+.small .slider {
+  border-radius: 16px;
+}
+
+.medium {
+  /* Default styles already applied */
+}
+
+.large {
+  padding: 0.75rem;
+  min-width: 56px;
+  height: 40px;
+  border-radius: 28px;
+}
+
+.large .iconContainer {
+  width: 28px;
+  height: 28px;
+}
+
+.large .icon {
+  font-size: 1.25rem;
+}
+
+.large .label {
+  font-size: 0.875rem;
+}
+
+.large .slider {
+  border-radius: 24px;
+}
+
+/* Theme States */
+.light {
+  background: var(--background-secondary, #f8f9fa);
+  border-color: var(--border-color, #e0e0e0);
+  color: var(--foreground-secondary, #666);
+}
+
+.light:hover:not(:disabled) {
+  background: var(--background-tertiary, #e9ecef);
+}
+
+.dark {
+  background: var(--background-secondary-dark, #2a2a2a);
+  border-color: var(--border-color-dark, #404040);
+  color: var(--foreground-secondary-dark, #a0a0a0);
+}
+
+.dark:hover:not(:disabled) {
+  background: var(--background-tertiary-dark, #3a3a3a);
+}
+
+.dark .slider {
+  background: var(--background-dark, #1a1a1a);
+}
+
+.dark .label {
+  color: var(--foreground-secondary-dark, #a0a0a0);
+}
+
+/* Animation for theme transitions */
+@keyframes themeTransition {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.toggle {
+  animation: themeTransition 0.3s ease-out;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .toggle {
+    min-width: 44px;
+    height: 30px;
+  }
+  
+  .iconContainer {
+    width: 22px;
+    height: 22px;
+  }
+  
+  .icon {
+    font-size: 0.875rem;
+  }
+  
+  .label {
+    font-size: 0.625rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .toggle {
+    border-width: 2px;
+  }
+  
+  .light {
+    border-color: #000;
+  }
+  
+  .dark {
+    border-color: #fff;
+  }
+  
+  .slider {
+    box-shadow: 0 0 0 1px var(--foreground);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .toggle,
+  .icon,
+  .slider,
+  .label {
+    transition: none;
+  }
+  
+  .toggle {
+    animation: none;
+  }
+}

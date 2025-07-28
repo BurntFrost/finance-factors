@@ -4,6 +4,7 @@ import "./globals.css";
 import { DashboardProvider } from "./context/DashboardContext";
 import { AutomaticDataSourceProvider } from "./context/AutomaticDataSourceContext";
 import { ViewModeProvider } from "./context/ViewModeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ToastProvider } from "./components/ToastManager";
 
@@ -56,13 +57,15 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
           <ToastProvider>
-            <ViewModeProvider>
-              <AutomaticDataSourceProvider>
-                <DashboardProvider>
-                  {children}
-                </DashboardProvider>
-              </AutomaticDataSourceProvider>
-            </ViewModeProvider>
+            <ThemeProvider>
+              <ViewModeProvider>
+                <AutomaticDataSourceProvider>
+                  <DashboardProvider>
+                    {children}
+                  </DashboardProvider>
+                </AutomaticDataSourceProvider>
+              </ViewModeProvider>
+            </ThemeProvider>
           </ToastProvider>
         </ErrorBoundary>
       </body>

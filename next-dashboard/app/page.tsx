@@ -5,6 +5,7 @@ import AutomaticChart from './components/AutomaticChart';
 import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
 import ViewModeToggle from './components/ViewModeToggle';
+import DarkModeToggle from './components/DarkModeToggle';
 import ApiHealthStatus from './components/ApiHealthStatus';
 import HydrationSafeWrapper from './components/HydrationSafeWrapper';
 import { useDashboard } from './context/DashboardContext';
@@ -82,6 +83,11 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
+        <div className={styles.headerLeft}>
+          <HydrationSafeWrapper fallback={<div className="w-12 h-8 bg-gray-200 rounded-lg animate-pulse"></div>}>
+            <DarkModeToggle size="medium" />
+          </HydrationSafeWrapper>
+        </div>
         <h1>Finance Factor Dashboard</h1>
         <div className={styles.headerContent}>
           <ViewModeToggle size="medium" />
