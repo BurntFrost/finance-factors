@@ -2,8 +2,16 @@
 
 import { useEffect, useState } from 'react';
 
-// Dynamic Chart.js registration with optimized imports
-let chartRegistered = false;
+// Shared global registration state to prevent conflicts between registration components
+declare global {
+  var __CHART_JS_REGISTERED__: boolean | undefined;
+}
+
+// Track registration status globally using a shared variable
+const getChartRegistered = () => globalThis.__CHART_JS_REGISTERED__ ?? false;
+const setChartRegistered = (value: boolean) => {
+  globalThis.__CHART_JS_REGISTERED__ = value;
+};
 
 /**
  * Optimized Chart.js Registration Component
@@ -15,10 +23,10 @@ let chartRegistered = false;
  * - Performance monitoring
  */
 export default function OptimizedChartRegistration() {
-  const [, setIsRegistered] = useState(chartRegistered);
+  const [, setIsRegistered] = useState(getChartRegistered());
 
   useEffect(() => {
-    if (chartRegistered) {
+    if (getChartRegistered()) {
       setIsRegistered(true);
       return;
     }
@@ -58,11 +66,11 @@ export default function OptimizedChartRegistration() {
           includeInvisible: false,
         } as any;
 
-        chartRegistered = true;
+        setChartRegistered(true);
         setIsRegistered(true);
 
         const endTime = performance.now();
-        
+
         // Performance logging in development
         if (process.env.NODE_ENV === 'development') {
           console.log(`Chart.js registration completed in ${(endTime - startTime).toFixed(2)}ms`);
@@ -72,7 +80,7 @@ export default function OptimizedChartRegistration() {
         // Fallback registration attempt
         try {
           await import('chart.js/auto');
-          chartRegistered = true;
+          setChartRegistered(true);
           setIsRegistered(true);
         } catch (fallbackError) {
           console.error('Fallback Chart.js registration failed:', fallbackError);
@@ -88,4 +96,4 @@ export default function OptimizedChartRegistration() {
 }
 
 // Export registration status for other components
-export const isChartJSRegistered = () => chartRegistered;
+export const isChartJSRegistered = () => getChartRegistered();

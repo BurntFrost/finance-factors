@@ -128,6 +128,7 @@ const RefreshableChart = ({ data, title }: LazyChartProps) => {
                   },
                 },
                 x: {
+                  type: 'category',
                   grid: {
                     color: 'rgba(0, 0, 0, 0.1)',
                   },

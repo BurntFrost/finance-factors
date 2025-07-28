@@ -153,6 +153,7 @@ export default function DynamicChart({
             },
           },
           x: {
+            type: axisConfig?.x.type === 'time' ? 'category' : (axisConfig?.x.type ?? 'category'),
             title: {
               display: true,
               text: axisConfig?.x.label ?? 'Time',

@@ -91,6 +91,7 @@ function ChartContent({
                   },
                 },
                 x: {
+                  type: 'category',
                   grid: {
                     color: 'rgba(0, 0, 0, 0.1)',
                   },

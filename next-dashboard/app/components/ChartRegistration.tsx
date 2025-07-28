@@ -2,15 +2,23 @@
 
 import { useEffect, useState } from 'react';
 
-// Track registration status globally
-let chartRegistered = false;
+// Shared global registration state to prevent conflicts between registration components
+declare global {
+  var __CHART_JS_REGISTERED__: boolean | undefined;
+}
+
+// Track registration status globally using a shared variable
+const getChartRegistered = () => globalThis.__CHART_JS_REGISTERED__ ?? false;
+const setChartRegistered = (value: boolean) => {
+  globalThis.__CHART_JS_REGISTERED__ = value;
+};
 
 // This component doesn't render anything, it just registers Chart.js components
 export default function ChartRegistration() {
-  const [_isRegistered, setIsRegistered] = useState(chartRegistered);
+  const [_isRegistered, setIsRegistered] = useState(getChartRegistered());
 
   useEffect(() => {
-    if (chartRegistered) {
+    if (getChartRegistered()) {
       setIsRegistered(true);
       return;
     }
@@ -18,7 +26,7 @@ export default function ChartRegistration() {
     // Dynamic import and registration to avoid SSR issues
     const registerChartJS = async () => {
       try {
-        // Import Chart.js components dynamically
+        // Import Chart.js components individually for better control
         const [
           chartModule,
           zoomPluginModule
@@ -91,7 +99,7 @@ export default function ChartRegistration() {
           (ChartJS.defaults.hover as any).animationDuration = 200;
         }
 
-        chartRegistered = true;
+        setChartRegistered(true);
         setIsRegistered(true);
 
         if (process.env.NODE_ENV === 'development') {
@@ -99,6 +107,26 @@ export default function ChartRegistration() {
         }
       } catch (error) {
         console.error('Failed to register Chart.js:', error);
+        // Fallback registration attempt with chart.js/auto
+        try {
+          const chartModule = await import('chart.js/auto');
+          const { Chart: ChartJS } = chartModule;
+
+          // Try to register zoom plugin again
+          try {
+            const zoomPluginModule = await import('chartjs-plugin-zoom');
+            const zoomPlugin = zoomPluginModule.default;
+            ChartJS.register(zoomPlugin);
+          } catch (zoomError) {
+            console.warn('Failed to load chartjs-plugin-zoom in fallback:', zoomError);
+          }
+
+          setChartRegistered(true);
+          setIsRegistered(true);
+          console.log('Chart.js fallback registration completed');
+        } catch (fallbackError) {
+          console.error('Fallback Chart.js registration failed:', fallbackError);
+        }
       }
     };
 
@@ -109,4 +137,4 @@ export default function ChartRegistration() {
 }
 
 // Export registration status for other components
-export const isChartJSRegistered = () => chartRegistered;
+export const isChartJSRegistered = () => getChartRegistered();
