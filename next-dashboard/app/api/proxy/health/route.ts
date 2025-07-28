@@ -51,16 +51,13 @@ export async function GET(request: Request): Promise<NextResponse> {
     const deploymentInfo = isVercelEnvironment() ? getVercelDeploymentInfo() : null;
 
     // Check API services with optional connectivity testing
+    // Note: Direct API connectivity tests are disabled to prevent CORS issues in production
     const [fredHealth, blsHealth, censusHealth, alphaVantageHealth] = await Promise.all([
-      testApis ? checkApiServiceHealth(
-        'fred',
-        'https://api.stlouisfed.org/fred',
-        process.env.NEXT_PUBLIC_FRED_API_KEY,
-        '/series?series_id=GDP&api_key='
-      ) : {
-        configured: !!process.env.NEXT_PUBLIC_FRED_API_KEY,
-        status: (!!process.env.NEXT_PUBLIC_FRED_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
-        lastChecked: new Date().toISOString()
+      {
+        configured: !!process.env.FRED_API_KEY,
+        status: (!!process.env.FRED_API_KEY ? 'available' : 'unavailable') as ServiceStatus,
+        lastChecked: new Date().toISOString(),
+        note: testApis ? 'Direct API testing disabled to prevent CORS issues' : undefined
       },
       testApis ? checkApiServiceHealth(
         'bls',

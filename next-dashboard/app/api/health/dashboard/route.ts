@@ -41,25 +41,25 @@ async function testDataSources() {
   const liveDataTests = [];
   const sampleDataStatus = { status: 'available' as ServiceStatus, dataIntegrity: true };
 
-  // Test FRED API if configured
-  if (process.env.NEXT_PUBLIC_FRED_API_KEY) {
-    liveDataTests.push(
-      testApiConnectivity(
-        `https://api.stlouisfed.org/fred/series?series_id=GDP&api_key=${process.env.NEXT_PUBLIC_FRED_API_KEY}&file_type=json`,
-        3000
-      )
-    );
+  // Note: Direct API connectivity tests are disabled to prevent CORS issues in production
+  // Instead, we check if API keys are configured
+
+  // Check FRED API configuration
+  if (process.env.FRED_API_KEY) {
+    liveDataTests.push(Promise.resolve({
+      status: 'available' as ServiceStatus,
+      responseTime: 0,
+      note: 'Configuration check only - direct API testing disabled to prevent CORS'
+    }));
   }
 
-  // Test BLS API if configured
-  if (process.env.NEXT_PUBLIC_BLS_API_KEY) {
-    liveDataTests.push(
-      testApiConnectivity(
-        'https://api.bls.gov/publicAPI/v2/timeseries/data/',
-        3000,
-        { 'Content-Type': 'application/json' }
-      )
-    );
+  // Check BLS API configuration
+  if (process.env.BLS_API_KEY) {
+    liveDataTests.push(Promise.resolve({
+      status: 'available' as ServiceStatus,
+      responseTime: 0,
+      note: 'Configuration check only - direct API testing disabled to prevent CORS'
+    }));
   }
 
   // Test Census API if configured

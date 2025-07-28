@@ -128,6 +128,15 @@ export default function ChartRegistration() {
           console.log('Chart.js fallback registration completed');
         } catch (fallbackError) {
           console.error('Fallback Chart.js registration failed:', fallbackError);
+          // Final fallback - try chart.js/auto which includes everything
+          try {
+            await import('chart.js/auto');
+            setChartRegistered(true);
+            setIsRegistered(true);
+            console.log('Chart.js auto registration completed as final fallback');
+          } catch (autoError) {
+            console.error('Chart.js auto registration failed:', autoError);
+          }
         }
       }
     };

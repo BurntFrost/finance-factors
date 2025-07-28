@@ -75,7 +75,33 @@ export default function DynamicChart({
 }: DynamicChartProps) {
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isChartReady, setIsChartReady] = useState(false);
   const isEditMode = useIsEditMode();
+
+  // Wait for Chart.js to be properly registered
+  useEffect(() => {
+    const checkChartRegistration = async () => {
+      try {
+        // Import Chart.js to check if it's available
+        const chartModule = await import('chart.js');
+        const { Chart: ChartJS } = chartModule;
+
+        // Check if time scale is registered
+        if (ChartJS.registry && ChartJS.registry.getScale('time')) {
+          setIsChartReady(true);
+        } else {
+          // If time scale is not registered, wait a bit and try again
+          setTimeout(checkChartRegistration, 100);
+        }
+      } catch (error) {
+        console.error('Error checking Chart.js registration:', error);
+        // Fallback - assume it's ready after a delay
+        setTimeout(() => setIsChartReady(true), 1000);
+      }
+    };
+
+    checkChartRegistration();
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     if (!chartRef.current || isRefreshing) return;
@@ -241,7 +267,7 @@ export default function DynamicChart({
     >
       <Suspense fallback={<ChartSkeleton />}>
         <ChartRegistration />
-        {isChangingVisualization ? <ChartSkeleton /> : renderChart()}
+        {!isChartReady || isChangingVisualization ? <ChartSkeleton /> : renderChart()}
       </Suspense>
       {isChangingVisualization && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
