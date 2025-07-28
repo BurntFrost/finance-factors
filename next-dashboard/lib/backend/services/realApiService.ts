@@ -8,6 +8,7 @@
  */
 
 import { ApiResponse, DataFetchOptions, REAL_API_ENDPOINTS } from '@/shared/types/dataSource';
+import { RATE_LIMITS } from '@/shared/constants/api-endpoints';
 import { fredApiService } from './fredApiService';
 import { blsApiService } from './blsApiService';
 import { censusApiService } from './censusApiService';
@@ -235,15 +236,9 @@ class RealApiService {
     const now = Date.now();
     const tracker = this.rateLimitTracker.get(provider);
     
-    // Rate limits per provider (per minute)
-    const limits = {
-      FRED: 120,
-      BLS: 10,
-      CENSUS: 100,
-      ALPHA_VANTAGE: 5,
-    };
-
-    const limit = limits[provider as keyof typeof limits] || 60;
+    // Use centralized rate limits configuration
+    const providerConfig = RATE_LIMITS[provider as keyof typeof RATE_LIMITS];
+    const limit = providerConfig?.requestsPerMinute || 60;
     
     if (!tracker || now > tracker.resetTime) {
       // Reset or initialize tracker

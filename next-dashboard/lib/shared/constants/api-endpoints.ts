@@ -52,32 +52,62 @@ export const HEALTH_CHECK_ENDPOINTS = {
   VERCEL: '/api/health/vercel',
 } as const;
 
-// Rate limiting configurations
+// Centralized Rate Limiting Configurations
+// These are the official API limits based on provider documentation
 export const RATE_LIMITS = {
   FRED: {
-    requestsPerMinute: 120,
-    requestsPerHour: 1000,
-    requestsPerDay: 10000,
+    requestsPerMinute: 120, // FRED allows 120 requests per minute
+    requestsPerHour: 7200,  // 120 * 60
+    requestsPerDay: 172800, // 120 * 60 * 24
   },
   BLS: {
-    requestsPerMinute: 25,
-    requestsPerHour: 500,
-    requestsPerDay: 5000,
+    requestsPerMinute: 25,  // BLS allows 25 requests per minute with API key
+    requestsPerHour: 1500,  // 25 * 60
+    requestsPerDay: 36000,  // 25 * 60 * 24
   },
   CENSUS: {
-    requestsPerMinute: 500,
-    requestsPerHour: 5000,
-    requestsPerDay: 50000,
+    requestsPerMinute: 500, // Census allows 500 requests per minute
+    requestsPerHour: 30000, // 500 * 60
+    requestsPerDay: 720000, // 500 * 60 * 24
   },
   ALPHA_VANTAGE: {
-    requestsPerMinute: 5,
-    requestsPerHour: 25,
-    requestsPerDay: 500,
+    requestsPerMinute: 5,   // Alpha Vantage allows 5 requests per minute (free tier)
+    requestsPerHour: 300,   // 5 * 60
+    requestsPerDay: 7200,   // 5 * 60 * 24
   },
   INTERNAL: {
-    requestsPerMinute: 1000,
-    requestsPerHour: 10000,
-    requestsPerDay: 100000,
+    requestsPerMinute: 1000, // Internal API limits
+    requestsPerHour: 60000,  // 1000 * 60
+    requestsPerDay: 1440000, // 1000 * 60 * 24
+  },
+} as const;
+
+// Redis-compatible rate limit configurations
+export const REDIS_RATE_LIMIT_CONFIGS = {
+  FRED: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 120,
+    algorithm: 'sliding' as const,
+  },
+  BLS: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 25,
+    algorithm: 'fixed' as const,
+  },
+  CENSUS: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 500,
+    algorithm: 'sliding' as const,
+  },
+  ALPHA_VANTAGE: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 5,
+    algorithm: 'fixed' as const,
+  },
+  DEFAULT: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 60,
+    algorithm: 'sliding' as const,
   },
 } as const;
 

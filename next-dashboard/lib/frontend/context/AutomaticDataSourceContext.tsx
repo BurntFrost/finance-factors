@@ -10,9 +10,20 @@
 
 import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
+import { rateLimitLogger } from '@/shared/utils/rateLimitLogger';
 
 // Data source status types
 export type DataSourceStatus = 'live' | 'historical-fallback' | 'loading' | 'error';
+
+// Circuit breaker states
+export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
+
+export interface CircuitBreakerInfo {
+  state: CircuitBreakerState;
+  failureCount: number;
+  lastFailureTime: Date | null;
+  nextRetryTime: Date | null;
+}
 
 export interface AutomaticDataSourceState {
   status: DataSourceStatus;
@@ -22,6 +33,8 @@ export interface AutomaticDataSourceState {
   lastLiveAttempt: Date | null;
   retryCount: number;
   cache: Map<string, { data: unknown; timestamp: Date; ttl: number }>;
+  circuitBreakers: Map<string, CircuitBreakerInfo>; // Track circuit breaker state per provider
+  pendingRequests: Set<string>; // Track pending requests to prevent duplicates
 }
 
 export interface AutomaticDataSourceContextType {
@@ -30,6 +43,13 @@ export interface AutomaticDataSourceContextType {
   clearCache: () => void;
   forceRetryLive: () => Promise<void>;
   getDataSourceStatus: () => DataSourceStatus;
+  getCircuitBreakerStatus: (provider?: string) => Map<string, CircuitBreakerInfo> | CircuitBreakerInfo | null;
+  getMonitoringData: () => {
+    events: any[];
+    patterns: Map<string, any>;
+    stats: any;
+    report: string;
+  };
 }
 
 // Action types for reducer
@@ -42,7 +62,10 @@ type AutomaticDataSourceAction =
   | { type: 'INCREMENT_RETRY_COUNT' }
   | { type: 'RESET_RETRY_COUNT' }
   | { type: 'SET_CACHE_DATA'; payload: { key: string; data: unknown; ttl: number } }
-  | { type: 'CLEAR_CACHE' };
+  | { type: 'CLEAR_CACHE' }
+  | { type: 'SET_CIRCUIT_BREAKER'; payload: { provider: string; info: CircuitBreakerInfo } }
+  | { type: 'ADD_PENDING_REQUEST'; payload: string }
+  | { type: 'REMOVE_PENDING_REQUEST'; payload: string };
 
 // Initial state
 const initialState: AutomaticDataSourceState = {
@@ -53,6 +76,8 @@ const initialState: AutomaticDataSourceState = {
   lastLiveAttempt: null,
   retryCount: 0,
   cache: new Map(),
+  circuitBreakers: new Map(),
+  pendingRequests: new Set(),
 };
 
 // Reducer
@@ -85,9 +110,102 @@ function automaticDataSourceReducer(
       return { ...state, cache: newCache };
     case 'CLEAR_CACHE':
       return { ...state, cache: new Map() };
+    case 'SET_CIRCUIT_BREAKER':
+      const newCircuitBreakers = new Map(state.circuitBreakers);
+      newCircuitBreakers.set(action.payload.provider, action.payload.info);
+      return { ...state, circuitBreakers: newCircuitBreakers };
+    case 'ADD_PENDING_REQUEST':
+      const newPendingRequests = new Set(state.pendingRequests);
+      newPendingRequests.add(action.payload);
+      return { ...state, pendingRequests: newPendingRequests };
+    case 'REMOVE_PENDING_REQUEST':
+      const updatedPendingRequests = new Set(state.pendingRequests);
+      updatedPendingRequests.delete(action.payload);
+      return { ...state, pendingRequests: updatedPendingRequests };
     default:
       return state;
   }
+}
+
+// Circuit breaker configuration
+const CIRCUIT_BREAKER_CONFIG = {
+  failureThreshold: 3, // Number of failures before opening circuit
+  recoveryTimeout: 60000, // 1 minute before attempting recovery
+  halfOpenMaxAttempts: 1, // Max attempts in half-open state
+};
+
+// Circuit breaker utility functions
+function isRateLimitError(error: string, apiResponse?: any): boolean {
+  // Check error message
+  const messageCheck = error.toLowerCase().includes('rate limit') ||
+                      error.toLowerCase().includes('too many requests') ||
+                      error.includes('429');
+
+  // Check API response metadata for rate limit error type
+  const metadataCheck = apiResponse?.metadata?.reason === 'rate_limit' ||
+                       apiResponse?.error?.includes('rate limit') ||
+                       apiResponse?.statusCode === 429;
+
+  return messageCheck || metadataCheck;
+}
+
+function getProviderFromDataType(dataType: string): string {
+  // Map data types to their providers
+  const providerMap: Record<string, string> = {
+    'treasury-2y': 'FRED',
+    'treasury-10y': 'FRED',
+    'fed-funds-rate': 'FRED',
+    'unemployment-rate': 'BLS',
+    'inflation-rate': 'BLS',
+    'gdp-growth': 'FRED',
+    'sp500': 'ALPHA_VANTAGE',
+    'nasdaq': 'ALPHA_VANTAGE',
+    'population': 'CENSUS',
+  };
+
+  return providerMap[dataType] || 'UNKNOWN';
+}
+
+function shouldAllowRequest(circuitBreaker: CircuitBreakerInfo | undefined): boolean {
+  if (!circuitBreaker) return true;
+
+  const now = new Date();
+
+  switch (circuitBreaker.state) {
+    case 'closed':
+      return true;
+    case 'open':
+      // Check if recovery timeout has passed
+      if (circuitBreaker.nextRetryTime && now >= circuitBreaker.nextRetryTime) {
+        return true; // Allow one request to test if service is recovered
+      }
+      return false;
+    case 'half-open':
+      return true; // Allow limited requests in half-open state
+    default:
+      return true;
+  }
+}
+
+function shouldImmediatelyFallback(error: string, apiResponse?: any): boolean {
+  // Immediately fall back for rate limit errors
+  if (isRateLimitError(error, apiResponse)) {
+    return true;
+  }
+
+  // Immediately fall back for certain API errors that won't recover quickly
+  const immediateFailurePatterns = [
+    'api key',
+    'unauthorized',
+    'forbidden',
+    'invalid key',
+    'authentication',
+    'quota exceeded'
+  ];
+
+  return immediateFailurePatterns.some(pattern =>
+    error.toLowerCase().includes(pattern)
+  );
 }
 
 // Context
@@ -133,24 +251,166 @@ export function AutomaticDataSourceProvider({
     return state.cache.get(key)?.data as T || null;
   }, [isCacheValid, state.cache]);
 
-  // Attempt to fetch live data
+  // Update circuit breaker state
+  const updateCircuitBreaker = useCallback((provider: string, success: boolean, error?: string, apiResponse?: any) => {
+    const currentBreaker = state.circuitBreakers.get(provider);
+    const now = new Date();
+
+    if (success) {
+      // Reset circuit breaker on success
+      const wasOpen = currentBreaker?.state === 'open';
+
+      dispatch({
+        type: 'SET_CIRCUIT_BREAKER',
+        payload: {
+          provider,
+          info: {
+            state: 'closed',
+            failureCount: 0,
+            lastFailureTime: null,
+            nextRetryTime: null,
+          },
+        },
+      });
+
+      // Log circuit breaker recovery
+      if (wasOpen) {
+        rateLimitLogger.logEvent({
+          provider,
+          dataType: 'unknown', // Will be updated when we have dataType context
+          eventType: 'circuit_breaker_close',
+          success: true,
+          metadata: {
+            circuitBreakerState: 'closed',
+          },
+        });
+      }
+    } else {
+      const failureCount = (currentBreaker?.failureCount || 0) + 1;
+      const isRateLimit = error && isRateLimitError(error, apiResponse);
+
+      // Open circuit breaker if threshold reached or rate limit error
+      const shouldOpen = failureCount >= CIRCUIT_BREAKER_CONFIG.failureThreshold || isRateLimit;
+
+      // For rate limit errors, use a longer recovery timeout
+      const recoveryTimeout = isRateLimit
+        ? CIRCUIT_BREAKER_CONFIG.recoveryTimeout * 2 // 2 minutes for rate limits
+        : CIRCUIT_BREAKER_CONFIG.recoveryTimeout;
+
+      dispatch({
+        type: 'SET_CIRCUIT_BREAKER',
+        payload: {
+          provider,
+          info: {
+            state: shouldOpen ? 'open' : 'closed',
+            failureCount,
+            lastFailureTime: now,
+            nextRetryTime: shouldOpen ? new Date(now.getTime() + recoveryTimeout) : null,
+          },
+        },
+      });
+
+      // Log circuit breaker events
+      if (isRateLimit) {
+        console.warn(`Circuit breaker opened for ${provider} due to rate limit. Recovery in ${recoveryTimeout / 1000} seconds.`);
+
+        rateLimitLogger.logEvent({
+          provider,
+          dataType: 'unknown', // Will be updated when we have dataType context
+          eventType: 'rate_limit_hit',
+          success: false,
+          error: error || 'Rate limit exceeded',
+          metadata: {
+            circuitBreakerState: shouldOpen ? 'open' : 'closed',
+            retryCount: failureCount,
+            resetTime: shouldOpen ? new Date(now.getTime() + recoveryTimeout) : undefined,
+          },
+        });
+
+        if (shouldOpen) {
+          rateLimitLogger.logEvent({
+            provider,
+            dataType: 'unknown',
+            eventType: 'circuit_breaker_open',
+            success: false,
+            error: 'Rate limit circuit breaker opened',
+            metadata: {
+              circuitBreakerState: 'open',
+              retryCount: failureCount,
+            },
+          });
+        }
+      } else if (shouldOpen) {
+        console.warn(`Circuit breaker opened for ${provider} after ${failureCount} failures. Recovery in ${recoveryTimeout / 1000} seconds.`);
+
+        rateLimitLogger.logEvent({
+          provider,
+          dataType: 'unknown',
+          eventType: 'circuit_breaker_open',
+          success: false,
+          error: error || 'Multiple failures',
+          metadata: {
+            circuitBreakerState: 'open',
+            retryCount: failureCount,
+          },
+        });
+      }
+    }
+  }, [state.circuitBreakers]);
+
+  // Attempt to fetch live data with circuit breaker protection
   const attemptLiveData = useCallback(async <T = unknown>(
     options: DataFetchOptions
   ): Promise<ApiResponse<T> | null> => {
+    const { dataType } = options;
+    const provider = getProviderFromDataType(dataType);
+    const requestKey = `${provider}-${dataType}`;
+
+    // Check if request is already pending (deduplication)
+    if (state.pendingRequests.has(requestKey)) {
+      console.log(`Request already pending for ${dataType}, skipping duplicate`);
+      return null;
+    }
+
+    // Check circuit breaker
+    const circuitBreaker = state.circuitBreakers.get(provider);
+    if (!shouldAllowRequest(circuitBreaker)) {
+      const nextRetry = circuitBreaker?.nextRetryTime;
+      console.log(`Circuit breaker open for ${provider}, next retry: ${nextRetry?.toISOString()}`);
+      return null;
+    }
+
     try {
+      // Mark request as pending
+      dispatch({ type: 'ADD_PENDING_REQUEST', payload: requestKey });
       dispatch({ type: 'SET_LAST_LIVE_ATTEMPT', payload: new Date() });
-      
+
+      const startTime = Date.now();
+
       // Import real API service dynamically
       const { realApiService } = await import('../../backend/services/realApiService');
       const { transformers } = await import('../../backend/services/dataTransformers');
 
       const apiResponse = await realApiService.fetchData(options);
+      const duration = Date.now() - startTime;
 
       if (apiResponse.success && apiResponse.data) {
         const transformedData = transformers.chartData.transform(
           apiResponse.data as Array<{ date: string; value: number; label?: string }>,
           options.dataType
         );
+
+        // Log successful request
+        rateLimitLogger.logEvent({
+          provider,
+          dataType,
+          eventType: 'request',
+          success: true,
+          duration,
+        });
+
+        // Update circuit breaker on success
+        updateCircuitBreaker(provider, true);
 
         dispatch({ type: 'RESET_RETRY_COUNT' });
         dispatch({ type: 'SET_STATUS', payload: 'live' });
@@ -163,14 +423,46 @@ export function AutomaticDataSourceProvider({
           source: apiResponse.source,
           metadata: apiResponse.metadata,
         };
+      } else {
+        // Log failed request
+        rateLimitLogger.logEvent({
+          provider,
+          dataType,
+          eventType: 'request',
+          success: false,
+          duration,
+          error: apiResponse.error,
+          metadata: {
+            requestsRemaining: apiResponse.metadata?.rateLimit?.remaining,
+            resetTime: apiResponse.metadata?.rateLimit?.resetTime,
+          },
+        });
+
+        // Update circuit breaker on failure with API response for better error detection
+        updateCircuitBreaker(provider, false, apiResponse.error, apiResponse);
+
+        // Log detailed error information for debugging
+        console.warn(`API request failed for ${dataType}:`, {
+          error: apiResponse.error,
+          metadata: apiResponse.metadata,
+          provider,
+          timestamp: apiResponse.timestamp
+        });
+
+        return null;
       }
-      
-      return null;
     } catch (error) {
-      console.warn('Live data fetch failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`Live data fetch failed for ${dataType}:`, errorMessage);
+
+      // Update circuit breaker on error
+      updateCircuitBreaker(provider, false, errorMessage);
       return null;
+    } finally {
+      // Remove from pending requests
+      dispatch({ type: 'REMOVE_PENDING_REQUEST', payload: requestKey });
     }
-  }, []);
+  }, [state.circuitBreakers, state.pendingRequests, updateCircuitBreaker]);
 
   // Fetch historical data as fallback
   const fetchHistoricalData = useCallback(async <T = unknown>(
@@ -271,8 +563,16 @@ export function AutomaticDataSourceProvider({
       }
 
       // Attempt live data first
+      const provider = getProviderFromDataType(dataType);
+      const circuitBreaker = state.circuitBreakers.get(provider);
+
+      // Log circuit breaker status
+      if (circuitBreaker && circuitBreaker.state !== 'closed') {
+        console.info(`Circuit breaker status for ${provider}: ${circuitBreaker.state}, failures: ${circuitBreaker.failureCount}, next retry: ${circuitBreaker.nextRetryTime?.toISOString()}`);
+      }
+
       const liveResponse = await attemptLiveData<T>(options);
-      
+
       if (liveResponse && liveResponse.success) {
         // Cache successful live data with 24-hour TTL (matching Redis cache)
         if (useCache && liveResponse.data) {
@@ -290,9 +590,44 @@ export function AutomaticDataSourceProvider({
         return liveResponse;
       }
 
-      // Fall back to historical data
-      console.info(`Falling back to historical data for ${dataType}`);
+      // Fall back to historical data with detailed reasoning
+      let fallbackReason = `Live API unavailable for ${dataType}`;
+      let shouldScheduleRetry = true;
+
+      if (circuitBreaker?.state === 'open') {
+        const nextRetry = circuitBreaker.nextRetryTime;
+        const timeUntilRetry = nextRetry ? Math.round((nextRetry.getTime() - Date.now()) / 1000) : 0;
+
+        if (circuitBreaker.lastFailureTime && isRateLimitError('', { metadata: { reason: 'rate_limit' } })) {
+          fallbackReason = `Rate limit exceeded for ${provider}. Next retry in ${timeUntilRetry}s`;
+          shouldScheduleRetry = false; // Don't schedule additional retries for rate limits
+        } else {
+          fallbackReason = `Circuit breaker open for ${provider} (${circuitBreaker.failureCount} failures). Next retry in ${timeUntilRetry}s`;
+        }
+      }
+
+      console.info(`Falling back to historical data: ${fallbackReason}`);
+
+      // Log fallback event
+      rateLimitLogger.logEvent({
+        provider,
+        dataType,
+        eventType: 'fallback_triggered',
+        success: true,
+        metadata: {
+          fallbackReason,
+          circuitBreakerState: circuitBreaker?.state,
+        },
+      });
+
       const historicalResponse = await fetchHistoricalData<T>(options);
+
+      // Add fallback reason to metadata
+      if (historicalResponse.metadata) {
+        historicalResponse.metadata.reason = fallbackReason;
+      } else {
+        historicalResponse.metadata = { reason: fallbackReason, isFallback: true };
+      }
 
       // Cache historical data with 24-hour TTL (consistent with Redis cache)
       if (useCache && historicalResponse.data) {
@@ -306,8 +641,12 @@ export function AutomaticDataSourceProvider({
         });
       }
 
-      // Schedule retry for live data
-      scheduleRetry();
+      // Schedule retry for live data only if circuit breaker allows it
+      if (shouldScheduleRetry) {
+        scheduleRetry();
+      } else {
+        console.info(`Skipping retry scheduling due to circuit breaker state for ${provider}`);
+      }
 
       dispatch({ type: 'SET_LAST_UPDATED', payload: new Date() });
       return historicalResponse;
@@ -396,6 +735,24 @@ export function AutomaticDataSourceProvider({
     return state.status;
   }, [state.status]);
 
+  // Get circuit breaker status
+  const getCircuitBreakerStatus = useCallback((provider?: string): Map<string, CircuitBreakerInfo> | CircuitBreakerInfo | null => {
+    if (provider) {
+      return state.circuitBreakers.get(provider) || null;
+    }
+    return state.circuitBreakers;
+  }, [state.circuitBreakers]);
+
+  // Get monitoring data
+  const getMonitoringData = useCallback(() => {
+    return {
+      events: rateLimitLogger.getRecentEvents(100),
+      patterns: rateLimitLogger.getPatterns(),
+      stats: rateLimitLogger.getRateLimitStats(),
+      report: rateLimitLogger.generateReport(),
+    };
+  }, []);
+
   // Context value
   const contextValue: AutomaticDataSourceContextType = {
     state,
@@ -403,6 +760,8 @@ export function AutomaticDataSourceProvider({
     clearCache,
     forceRetryLive,
     getDataSourceStatus,
+    getCircuitBreakerStatus,
+    getMonitoringData,
   };
 
   return (

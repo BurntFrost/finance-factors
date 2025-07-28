@@ -5,6 +5,7 @@
  */
 
 import { NextApiRequest, NextApiResponse } from 'next';
+import { RATE_LIMITS as CENTRALIZED_RATE_LIMITS } from '@/shared/constants/api-endpoints';
 
 // User experience indicator types
 export interface UserExperienceIndicator {
@@ -358,29 +359,8 @@ export const PROXY_API_ENDPOINTS: Record<string, ApiEndpointConfig> = {
   },
 };
 
-// Rate limit configurations by provider
-export const RATE_LIMITS: Record<string, RateLimitConfig> = {
-  FRED: {
-    requestsPerMinute: 120,
-    requestsPerHour: 7200,
-    requestsPerDay: 172800,
-  },
-  BLS: {
-    requestsPerMinute: 25,
-    requestsPerHour: 1500,
-    requestsPerDay: 36000,
-  },
-  CENSUS: {
-    requestsPerMinute: 500,
-    requestsPerHour: 30000,
-    requestsPerDay: 720000,
-  },
-  ALPHA_VANTAGE: {
-    requestsPerMinute: 5,
-    requestsPerHour: 300,
-    requestsPerDay: 7200,
-  },
-};
+// Use centralized rate limit configurations
+export const RATE_LIMITS: Record<string, RateLimitConfig> = CENTRALIZED_RATE_LIMITS;
 
 // Cache configuration
 export const CACHE_CONFIG: CacheConfig = {

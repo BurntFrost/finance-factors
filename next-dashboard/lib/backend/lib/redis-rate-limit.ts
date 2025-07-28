@@ -7,6 +7,7 @@
 
 import { executeRedisCommand } from './redis';
 import { generateCacheKey, CACHE_PREFIXES } from './redis-cache';
+import { REDIS_RATE_LIMIT_CONFIGS } from '@/shared/constants/api-endpoints';
 
 // Rate limit configuration interface
 export interface RateLimitConfig {
@@ -24,34 +25,8 @@ export interface RateLimitResult {
   totalRequests: number;
 }
 
-// Default rate limit configurations for different providers
-export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = {
-  FRED: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 120,
-    algorithm: 'sliding',
-  },
-  BLS: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 10,
-    algorithm: 'fixed',
-  },
-  CENSUS: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100,
-    algorithm: 'sliding',
-  },
-  ALPHA_VANTAGE: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 5,
-    algorithm: 'fixed',
-  },
-  DEFAULT: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 60,
-    algorithm: 'sliding',
-  },
-};
+// Use centralized rate limit configurations
+export const RATE_LIMIT_CONFIGS: Record<string, RateLimitConfig> = REDIS_RATE_LIMIT_CONFIGS;
 
 /**
  * Generate rate limit key

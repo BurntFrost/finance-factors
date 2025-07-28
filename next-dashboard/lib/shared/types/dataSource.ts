@@ -5,6 +5,8 @@
  * configuration feature, allowing users to switch between historical and live API data.
  */
 
+import { RATE_LIMITS } from '../constants/api-endpoints';
+
 // Core data source types
 export type DataSourceType = 'historical' | 'live-api';
 
@@ -45,28 +47,40 @@ export const API_PROVIDERS: Record<string, ApiProvider> = {
   FRED: {
     name: 'Federal Reserve Economic Data',
     baseUrl: 'https://api.stlouisfed.org/fred',
-    rateLimit: { requestsPerMinute: 120 },
+    rateLimit: {
+      requestsPerMinute: RATE_LIMITS.FRED.requestsPerMinute,
+      requestsPerDay: RATE_LIMITS.FRED.requestsPerDay
+    },
     timeout: 10000,
     retryAttempts: 3,
   },
   CENSUS: {
     name: 'U.S. Census Bureau',
     baseUrl: 'https://api.census.gov/data',
-    rateLimit: { requestsPerMinute: 100 },
+    rateLimit: {
+      requestsPerMinute: RATE_LIMITS.CENSUS.requestsPerMinute,
+      requestsPerDay: RATE_LIMITS.CENSUS.requestsPerDay
+    },
     timeout: 10000,
     retryAttempts: 3,
   },
   BLS: {
     name: 'Bureau of Labor Statistics',
     baseUrl: 'https://api.bls.gov/publicAPI/v2',
-    rateLimit: { requestsPerMinute: 10, requestsPerDay: 500 },
+    rateLimit: {
+      requestsPerMinute: RATE_LIMITS.BLS.requestsPerMinute,
+      requestsPerDay: RATE_LIMITS.BLS.requestsPerDay
+    },
     timeout: 15000,
     retryAttempts: 3,
   },
   ALPHA_VANTAGE: {
     name: 'Alpha Vantage',
     baseUrl: 'https://www.alphavantage.co/query',
-    rateLimit: { requestsPerMinute: 5, requestsPerDay: 25 },
+    rateLimit: {
+      requestsPerMinute: RATE_LIMITS.ALPHA_VANTAGE.requestsPerMinute,
+      requestsPerDay: RATE_LIMITS.ALPHA_VANTAGE.requestsPerDay
+    },
     timeout: 10000,
     retryAttempts: 2,
   },
