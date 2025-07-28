@@ -163,7 +163,7 @@ export class DatabaseConnectionPool {
       }
       
       return { status, latency, connections };
-    } catch (error) {
+    } catch (_error) {
       return {
         status: 'unhealthy',
         latency: Date.now() - startTime,
@@ -249,7 +249,7 @@ export class HttpConnectionPool {
    */
   async request(url: string, options: RequestInit = {}): Promise<Response> {
     const urlObj = new URL(url);
-    const agent = this.getAgent(urlObj.hostname);
+    const _agent = this.getAgent(urlObj.hostname);
     
     // Add the agent to the request options
     const requestOptions = {

@@ -9,9 +9,7 @@ import { GraphQLScalarType, Kind } from 'graphql';
 import { prisma } from '../../lib/prisma';
 import { cache } from '../../lib/advanced-cache';
 import { batchRequest } from '../../lib/request-batcher';
-import { fredProxyService } from '../services/fred-proxy';
-import { blsProxyService } from '../services/bls-proxy';
-import { censusProxyService } from '../services/census-proxy';
+
 import { PROXY_API_ENDPOINTS } from '../types/proxy';
 
 // Custom scalar types
@@ -71,7 +69,7 @@ export const resolvers = {
   // Query resolvers
   Query: {
     // Data queries
-    async getChartData(_: any, { input }: { input: any }, context: GraphQLContext) {
+    async getChartData(_: any, { input }: { input: any }, _context: GraphQLContext) {
       try {
         const { dataType, timeRange, useCache = true, priority = 'normal' } = input;
         

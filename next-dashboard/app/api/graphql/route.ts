@@ -164,7 +164,7 @@ export async function OPTIONS() {
 }
 
 // Handle GET requests (for GraphQL Playground in development)
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     // Return GraphQL Playground HTML
     const playgroundHtml = `

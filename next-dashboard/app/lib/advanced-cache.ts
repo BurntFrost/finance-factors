@@ -11,7 +11,7 @@
  */
 
 import { executeRedisCommand } from './redis';
-import { prisma, withTransaction } from './prisma';
+import { prisma } from './prisma';
 import { RedisOperationType } from './redis-error-logger';
 
 // Cache configuration

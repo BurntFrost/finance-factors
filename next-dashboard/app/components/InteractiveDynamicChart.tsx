@@ -27,8 +27,7 @@ const Doughnut = lazy(() =>
   import('react-chartjs-2').then(module => ({ default: module.Doughnut }))
 );
 
-// Type for chart ref - use any to support all chart types (ESLint error ignored)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// Type for chart ref - use any to support all chart types
 type ChartRef = any;
 
 // Lazy load components

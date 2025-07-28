@@ -201,7 +201,7 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
           avgResponseTime: Object.values(cacheStats).reduce((sum, stat) => sum + stat.avgResponseTime, 0) / Object.keys(cacheStats).length,
         },
       };
-    } catch (error) {
+    } catch (_error) {
       metrics.cache = { error: 'Failed to collect cache metrics' };
     }
   }
@@ -218,7 +218,7 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
           totalBytesSaved: Object.values(compressionStats).reduce((sum, stat) => sum + stat.totalBytesSaved, 0),
         },
       };
-    } catch (error) {
+    } catch (_error) {
       metrics.compression = { error: 'Failed to collect compression metrics' };
     }
   }
@@ -228,7 +228,7 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
     try {
       const batchingStats = requestBatcher.getMetrics();
       metrics.batching = batchingStats;
-    } catch (error) {
+    } catch (_error) {
       metrics.batching = { error: 'Failed to collect batching metrics' };
     }
   }
@@ -244,8 +244,8 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
           status: dbHealth.status === 'healthy' ? 'operational' : 'degraded',
         },
       };
-    } catch (error) {
-      metrics.database = { 
+    } catch (_error) {
+      metrics.database = {
         health: { status: 'unhealthy', error: 'Database check failed' },
         connectionPool: { status: 'unknown' },
       };
@@ -260,8 +260,8 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
         available: redisAvailable,
         status: redisAvailable ? 'operational' : 'unavailable',
       };
-    } catch (error) {
-      metrics.redis = { 
+    } catch (_error) {
+      metrics.redis = {
         available: false,
         status: 'error',
         error: 'Redis check failed',
@@ -283,7 +283,7 @@ async function collectPerformanceMetrics(includeDetails: boolean = false, catego
           graphql: apiChecks[1].status === 'fulfilled' ? apiChecks[1].value : { status: 'error' },
         },
       };
-    } catch (error) {
+    } catch (_error) {
       metrics.api = { error: 'Failed to check API endpoints' };
     }
   }
@@ -330,7 +330,7 @@ async function checkApiEndpoint(endpoint: string): Promise<{ status: string; res
       status: response.ok ? 'healthy' : 'degraded',
       responseTime,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       status: 'unhealthy',
       responseTime: Date.now() - startTime,

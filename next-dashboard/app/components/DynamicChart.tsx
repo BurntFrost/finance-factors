@@ -103,7 +103,6 @@ export default function DynamicChart({
   hideFooter = false,
   isChangingVisualization = false
 }: DynamicChartProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const isEditMode = useIsEditMode();

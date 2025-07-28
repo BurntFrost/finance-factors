@@ -15,7 +15,7 @@ let chartRegistered = false;
  * - Performance monitoring
  */
 export default function OptimizedChartRegistration() {
-  const [isRegistered, setIsRegistered] = useState(chartRegistered);
+  const [, setIsRegistered] = useState(chartRegistered);
 
   useEffect(() => {
     if (chartRegistered) {
@@ -71,8 +71,7 @@ export default function OptimizedChartRegistration() {
         console.error('Failed to register Chart.js:', error);
         // Fallback registration attempt
         try {
-          const chartModule = await import('chart.js/auto');
-          const { Chart: ChartJS } = chartModule;
+          await import('chart.js/auto');
           chartRegistered = true;
           setIsRegistered(true);
         } catch (fallbackError) {

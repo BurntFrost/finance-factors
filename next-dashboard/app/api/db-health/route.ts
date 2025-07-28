@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkDatabaseHealth } from '../../lib/prisma';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check database connection health
     const healthCheck = await checkDatabaseHealth();
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Add CORS headers for development
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(_request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {

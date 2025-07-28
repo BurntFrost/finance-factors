@@ -14,7 +14,6 @@ import {
 } from './redis-error-logger';
 
 // Redis client type definition
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type RedisClient = any;
 
 // Redis configuration interface

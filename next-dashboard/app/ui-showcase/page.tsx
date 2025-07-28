@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
+
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -15,7 +15,7 @@ import { ModernRefreshButton } from '@/components/ui/modern-refresh-button'
 import { ModernStatusPill } from '@/components/ui/modern-status-pill'
 import { FinancialCard } from '@/components/ui/financial-card'
 import { ModernToggle } from '@/components/ui/modern-toggle'
-import { AlertCircle, CheckCircle, Info, TrendingUp, DollarSign, Home, Moon, Sun } from 'lucide-react'
+import { AlertCircle, CheckCircle, Info, TrendingUp, Moon, Sun } from 'lucide-react'
 
 export default function UIShowcasePage() {
   const [isLoading, setIsLoading] = useState(false)

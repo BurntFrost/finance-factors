@@ -24,7 +24,7 @@ import { censusProxyService } from '../../services/census-proxy';
 import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
 import { cache } from '../../../lib/advanced-cache';
 import { compressionManager } from '../../../lib/compression';
-import { httpPool } from '../../../lib/connection-pool';
+
 
 /**
  * CORS headers for all responses

@@ -159,7 +159,7 @@ export default function OptimizedChartLoader({
       },
     },
     ...options,
-  }), [type, options]);
+  }), [typeId, options]);
 
   // Chart ref for performance monitoring
   const chartRef = React.useRef<any>(null);
