@@ -7,6 +7,7 @@
 
 import { executeRedisCommand, isRedisAvailable } from './redis';
 import { StandardDataPoint, ProxyApiResponse } from '../api/types/proxy';
+import { RedisOperationType } from './redis-error-logger';
 
 // Cache key prefixes for different data types
 export const CACHE_PREFIXES = {
@@ -51,7 +52,7 @@ export function generateCacheKey(prefix: string, identifier: string): string {
 }
 
 /**
- * Set data in Redis cache with TTL
+ * Set data in Redis cache with TTL and enhanced error handling
  */
 export async function setCacheData<T>(
   key: string,
@@ -71,13 +72,15 @@ export async function setCacheData<T>(
       await client.setEx(key, ttl, JSON.stringify(cacheItem));
       return true;
     },
-    false
+    false,
+    RedisOperationType.SETEX,
+    key
   );
   return result ?? false;
 }
 
 /**
- * Get data from Redis cache
+ * Get data from Redis cache with enhanced error handling
  */
 export async function getCacheData<T>(key: string): Promise<T | null> {
   return executeRedisCommand(
@@ -87,7 +90,7 @@ export async function getCacheData<T>(key: string): Promise<T | null> {
 
       try {
         const cacheItem: CachedItem<T> = JSON.parse(cached);
-        
+
         // Check if cache item has expired (double-check)
         const now = Date.now();
         if (now > cacheItem.timestamp + cacheItem.ttl) {
@@ -104,7 +107,9 @@ export async function getCacheData<T>(key: string): Promise<T | null> {
         return null;
       }
     },
-    null
+    null,
+    RedisOperationType.GET,
+    key
   );
 }
 

@@ -181,7 +181,8 @@ export class FredProxyService {
             remaining: 120, // FRED allows 120 requests per minute
             resetTime: new Date(Date.now() + 60000),
           },
-        }
+        },
+        duration
       );
 
     } catch (error) {
@@ -214,7 +215,7 @@ export class FredProxyService {
         retryable,
       };
 
-      return createErrorResponse(proxyError, 'FRED API Proxy');
+      return createErrorResponse(proxyError, 'FRED API Proxy', duration);
     }
   }
 

@@ -6,6 +6,34 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 
+// User experience indicator types
+export interface UserExperienceIndicator {
+  type: 'info' | 'warning' | 'error' | 'success';
+  message: string;
+  icon?: string;
+  dismissible?: boolean;
+  autoHide?: boolean;
+  duration?: number; // in milliseconds
+}
+
+// Performance impact levels
+export enum PerformanceImpact {
+  NONE = 'none',
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+}
+
+// Fallback mode information
+export interface FallbackModeInfo {
+  isActive: boolean;
+  reason?: string;
+  activatedAt?: string;
+  performanceImpact: PerformanceImpact;
+  expectedDelay?: number; // in milliseconds
+  userIndicator?: UserExperienceIndicator;
+}
+
 // Base API response structure that matches the frontend expectations
 export interface ProxyApiResponse<T = unknown> {
   data: T | null;
@@ -21,6 +49,13 @@ export interface ProxyApiResponse<T = unknown> {
     };
     isFallback?: boolean;
     reason?: string;
+    fallbackMode?: FallbackModeInfo;
+    userIndicators?: UserExperienceIndicator[];
+    performanceMetrics?: {
+      responseTime: number;
+      cacheHit: boolean;
+      dataFreshness: 'real-time' | 'cached' | 'fallback';
+    };
   };
 }
 

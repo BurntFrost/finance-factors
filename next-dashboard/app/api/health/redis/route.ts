@@ -18,6 +18,9 @@ import {
   CACHE_PREFIXES 
 } from '../../../lib/redis-cache';
 import { getAllRateLimitStatuses } from '../../../lib/redis-rate-limit';
+import { redisHealthMonitor } from '../../../lib/redis-health-monitor';
+import { redisFallbackService } from '../../../lib/redis-fallback-service';
+import { redisErrorLogger } from '../../../lib/redis-error-logger';
 
 /**
  * Handle OPTIONS requests for CORS preflight
@@ -94,6 +97,12 @@ export async function GET(_request: NextRequest) {
     const performanceMetrics = await getPerformanceMetrics();
     const circuitBreakerStatus = getCircuitBreakerStatus();
 
+    // Get enhanced health monitoring data
+    const healthMonitorResult = await redisHealthMonitor.performHealthCheck();
+    const fallbackStatus = redisFallbackService.getFallbackStatus();
+    const errorMetrics = redisErrorLogger.getMetrics();
+    const recentErrors = redisErrorLogger.getErrorHistory(10);
+
     const response = {
       status: circuitBreakerStatus.isOpen ? 'degraded' : 'healthy',
       timestamp: new Date().toISOString(),
@@ -146,6 +155,35 @@ export async function GET(_request: NextRequest) {
         redisUrl: process.env.REDIS_URL ? 'configured' : 'not configured',
         nodeEnv: process.env.NODE_ENV || 'unknown',
         vercelEnv: process.env.VERCEL_ENV || 'not vercel',
+      },
+      healthMonitoring: {
+        status: healthMonitorResult.status,
+        recommendations: healthMonitorResult.recommendations,
+        operationMetrics: healthMonitorResult.operationMetrics,
+        lastCheck: healthMonitorResult.timestamp,
+      },
+      fallbackMode: {
+        isActive: fallbackStatus.isActive,
+        reason: fallbackStatus.reason,
+        activatedAt: fallbackStatus.activatedAt,
+        consecutiveFailures: fallbackStatus.consecutiveFailures,
+      },
+      errorTracking: {
+        totalOperations: errorMetrics.totalOperations,
+        successfulOperations: errorMetrics.successfulOperations,
+        failedOperations: errorMetrics.failedOperations,
+        errorRate: errorMetrics.errorRate,
+        averageLatency: errorMetrics.averageLatency,
+        lastErrorTime: errorMetrics.lastErrorTime,
+        recentErrors: recentErrors.map(error => ({
+          id: error.id,
+          timestamp: error.timestamp,
+          type: error.errorType,
+          severity: error.severity,
+          message: error.message,
+          operation: error.context.operation,
+          key: error.context.key,
+        })),
       },
       responseTime: Date.now() - startTime,
     };

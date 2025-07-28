@@ -27,6 +27,8 @@ import {
   RateLimitResult
 } from '../../lib/redis-rate-limit';
 import { isRedisAvailable } from '../../lib/redis';
+import { redisFallbackService } from '../../lib/redis-fallback-service';
+import { userExperienceService } from '../../lib/user-experience-service';
 
 // Fallback in-memory cache for when Redis is unavailable
 const fallbackRateLimit = new Map<string, { requests: number; resetTime: number }>();
@@ -54,13 +56,14 @@ export function handleCorsOptions(req: NextApiRequest, res: NextApiResponse): bo
 }
 
 /**
- * Create a standardized error response
+ * Create a standardized error response with user experience enhancements
  */
 export function createErrorResponse<T = unknown>(
   error: ProxyError,
-  source: string = 'API Proxy'
+  source: string = 'API Proxy',
+  responseTime?: number
 ): ProxyApiResponse<T> {
-  return {
+  const response: ProxyApiResponse<T> = {
     data: null,
     success: false,
     error: error.message,
@@ -71,38 +74,82 @@ export function createErrorResponse<T = unknown>(
       reason: error.type,
     },
   };
+
+  // Add user-friendly error indicator
+  const userFriendlyError = userExperienceService.getUserFriendlyErrorMessage(error.message);
+
+  response.metadata = {
+    ...response.metadata,
+    userIndicators: [userFriendlyError],
+  };
+
+  // Enhance with performance metrics if response time is provided
+  if (responseTime !== undefined) {
+    response.metadata.performanceMetrics = {
+      responseTime,
+      cacheHit: false,
+      dataFreshness: 'fallback',
+    };
+  }
+
+  return response;
 }
 
 /**
- * Create a standardized success response
+ * Create a standardized success response with user experience enhancements
  */
 export function createSuccessResponse<T>(
   data: T,
   source: string,
-  metadata?: ProxyApiResponse<T>['metadata']
+  metadata?: ProxyApiResponse<T>['metadata'],
+  responseTime?: number
 ): ProxyApiResponse<T> {
-  return {
+  const response: ProxyApiResponse<T> = {
     data,
     success: true,
     timestamp: new Date(),
     source,
     metadata,
   };
+
+  // Enhance with user experience indicators if response time is provided
+  if (responseTime !== undefined) {
+    const cacheHit = metadata?.isFallback === false && source.includes('Cache');
+    const dataSource = metadata?.isFallback ? 'fallback' : (cacheHit ? 'redis' : 'direct');
+
+    return userExperienceService.enhanceApiResponse(
+      response,
+      responseTime,
+      cacheHit,
+      dataSource as 'redis' | 'fallback' | 'direct'
+    );
+  }
+
+  return response;
 }
 
 /**
- * Check rate limits for a provider with Redis fallback
+ * Check rate limits for a provider with enhanced Redis fallback
  */
 export async function checkRateLimit(provider: string, clientId: string = 'default'): Promise<boolean> {
-  try {
-    // Try Redis-based rate limiting first
-    if (await isRedisAvailable()) {
+  return await redisFallbackService.executeWithFallback(
+    // Redis operation
+    async () => {
       const result: RateLimitResult = await redisCheckRateLimit(provider, clientId);
       return result.allowed;
-    }
-  } catch (error) {
-    console.warn('Redis rate limiting failed, falling back to in-memory:', error);
-  }
+    },
+    // Fallback operation
+    async () => {
+      return checkInMemoryRateLimit(provider, clientId);
+    },
+    `rate_limit_check_${provider}`
+  );
+}
+
+/**
+ * In-memory rate limiting fallback
+ */
+function checkInMemoryRateLimit(provider: string, clientId: string): boolean {
 
   // Fallback to in-memory rate limiting
   const key = `${provider}-${clientId}`;
@@ -131,21 +178,27 @@ export async function checkRateLimit(provider: string, clientId: string = 'defau
 }
 
 /**
- * Get cached response with Redis fallback
+ * Get cached response with enhanced Redis fallback
  */
 export async function getCachedResponse<T>(cacheKey: string): Promise<T | null> {
-  try {
-    // Try Redis cache first
-    if (await isRedisAvailable()) {
+  return await redisFallbackService.executeWithFallback(
+    // Redis operation
+    async () => {
       const redisKey = generateCacheKey(CACHE_PREFIXES.API_RESPONSE, cacheKey);
-      const cached = await getCacheData<T>(redisKey);
-      if (cached) return cached;
-    }
-  } catch (error) {
-    console.warn('Redis cache retrieval failed, falling back to in-memory:', error);
-  }
+      return await getCacheData<T>(redisKey);
+    },
+    // Fallback operation
+    async () => {
+      return getInMemoryCachedResponse<T>(cacheKey);
+    },
+    `get_cache_${cacheKey}`
+  );
+}
 
-  // Fallback to in-memory cache
+/**
+ * Get cached response from in-memory fallback
+ */
+function getInMemoryCachedResponse<T>(cacheKey: string): T | null {
   const cached = fallbackResponseCache.get(cacheKey);
 
   if (!cached) return null;
@@ -160,7 +213,7 @@ export async function getCachedResponse<T>(cacheKey: string): Promise<T | null> 
 }
 
 /**
- * Cache a response with Redis fallback
+ * Cache a response with enhanced Redis fallback
  */
 export async function setCachedResponse(
   cacheKey: string,
@@ -168,19 +221,27 @@ export async function setCachedResponse(
   ttl: number = CACHE_CONFIG.ttl,
   source: string = 'API Proxy'
 ): Promise<void> {
-  try {
-    // Try Redis cache first
-    if (await isRedisAvailable()) {
+  await redisFallbackService.executeWithFallback(
+    // Redis operation
+    async () => {
       const redisKey = generateCacheKey(CACHE_PREFIXES.API_RESPONSE, cacheKey);
       const ttlSeconds = Math.floor(ttl / 1000);
       await setCacheData(redisKey, data, ttlSeconds, source);
-      return;
-    }
-  } catch (error) {
-    console.warn('Redis cache storage failed, falling back to in-memory:', error);
-  }
+      return true;
+    },
+    // Fallback operation
+    async () => {
+      setInMemoryCachedResponse(cacheKey, data, ttl);
+      return true;
+    },
+    `set_cache_${cacheKey}`
+  );
+}
 
-  // Fallback to in-memory cache
+/**
+ * Set cached response in in-memory fallback
+ */
+function setInMemoryCachedResponse(cacheKey: string, data: unknown, ttl: number): void {
   // Clean up old entries if cache is too large
   if (fallbackResponseCache.size >= CACHE_CONFIG.maxSize) {
     const oldestKey = fallbackResponseCache.keys().next().value;
