@@ -4,7 +4,7 @@ import React, { Suspense, lazy, useRef, useState, useCallback, useEffect } from 
 import { ChartData, VisualizationType } from '@/shared/types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
-import { getChartConfig, getAxisConfig } from '@/shared/config/chartConfiguration';
+import { getAxisConfig } from '@/shared/config/chartConfiguration';
 import { getInteractiveChartOptions } from '@/shared/config/interactiveChartConfiguration';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { ChartCard } from './ui/chart-card';

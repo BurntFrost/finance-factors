@@ -117,9 +117,9 @@ export function tableDataToChartData(tableData: TableData): ChartData {
  */
 export function chartDataToSummaryCards(
   chartData: ChartData,
-  dataType: string
+  _dataType: string
 ): SummaryCardData[] {
-  return chartData.datasets.map((dataset, index) => {
+  return chartData.datasets.map((dataset, _index) => {
     const values = dataset.data.filter((val): val is number => val !== null);
     const latestValue = values[values.length - 1] || 0;
     const previousValue = values[values.length - 2] || latestValue;

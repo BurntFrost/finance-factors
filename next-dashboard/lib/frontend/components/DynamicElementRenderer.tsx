@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { DashboardElement, ChartData, TableData, SummaryCardData, VisualizationType } from '@/shared/types/dashboard';
 // import DynamicChart from './DynamicChart'; // Replaced by EnhancedInteractiveChart
-import EnhancedInteractiveChart from './EnhancedInteractiveChart';
+// import EnhancedInteractiveChart from './EnhancedInteractiveChart';
 import AutomaticChart from './AutomaticChart';
 import DataTable from './DataTable';
 import { SummaryCardGrid } from './SummaryCard';
@@ -33,7 +33,7 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
   }, [element.id]);
 
   // Handler for data point selection (for crossfilter)
-  const handleDataPointSelect = useCallback((selectedPoints: any[]) => {
+  const _handleDataPointSelect = useCallback((selectedPoints: any[]) => {
     console.log('Data points selected:', selectedPoints, 'in element:', element.id);
     // Could apply crossfilter based on selection
   }, [element.id]);

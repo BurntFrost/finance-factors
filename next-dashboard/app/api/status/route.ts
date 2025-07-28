@@ -17,7 +17,7 @@ import '@/backend/lib/startup-logger'; // Import to trigger startup logging
  * - Configuration information
  * - Environment details
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const featureToggles = getFeatureToggleStatus();
     

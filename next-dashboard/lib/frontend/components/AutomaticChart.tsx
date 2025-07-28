@@ -21,7 +21,6 @@ import ExportMenu from './ExportMenu';
 import ChartSkeleton from './ChartSkeleton';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
 import {
-  getInteractiveChartOptions,
   resetChartZoom,
   toggleChartZoom,
   toggleChartPan

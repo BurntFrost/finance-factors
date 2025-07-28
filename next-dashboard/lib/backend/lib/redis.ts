@@ -11,7 +11,7 @@ try {
   if (process.env.ENABLE_REDIS === 'true') {
     createClient = require('redis').createClient;
   }
-} catch (error) {
+} catch (_error) {
   console.warn('Redis package not available - Redis functionality will be disabled');
   createClient = null;
 }
@@ -127,7 +127,7 @@ function createRedisClient(): RedisClient | null {
     socket: {
       connectTimeout: config.connectTimeout,
       keepAlive: config.keepAlive ? true : false,
-      reconnectStrategy: (retries) => {
+      reconnectStrategy: (retries: number) => {
         if (retries > REDIS_QUEUE_CONFIG.maxRetriesPerRequest) {
           console.error(`Redis connection failed after ${retries} retries`);
           return new Error('Redis connection failed');
@@ -143,7 +143,7 @@ function createRedisClient(): RedisClient | null {
   });
 
   // Enhanced error handling with logging
-  client.on('error', (error) => {
+  client.on('error', (error: Error) => {
     redisErrorLogger.logError(error, {
       operation: RedisOperationType.CONNECT,
       command: 'client_error_event',

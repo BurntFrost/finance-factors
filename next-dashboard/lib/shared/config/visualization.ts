@@ -5,7 +5,7 @@
  */
 
 import type { VisualizationType } from '../types';
-import { CHART_TYPES, CHART_COLORS, DEFAULT_CHART_OPTIONS } from '../constants';
+import { DEFAULT_CHART_OPTIONS } from '../constants';
 
 // Available visualization types
 export const VISUALIZATION_TYPES: Record<string, VisualizationType> = {

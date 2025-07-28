@@ -83,7 +83,7 @@ export class HealthService {
   private async checkRedisHealth() {
     try {
       const isAvailable = await isRedisAvailable();
-      const info = isAvailable ? await getRedisInfo() : null;
+      const _info = isAvailable ? await getRedisInfo() : null;
       
       return {
         configured: true,
