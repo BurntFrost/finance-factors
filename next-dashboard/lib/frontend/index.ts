@@ -4,7 +4,10 @@
 // Components
 export * from './components/AutomaticChart';
 export * from './components/DataSourceIndicator';
-export * from './components/DataStatusPill';
+// Export DataStatusPill with explicit exports to avoid conflicts
+export { default as DataStatusPill, getDataStatus as getDataStatusFromPill } from './components/DataStatusPill';
+export type { DataStatus as DataStatusPillType } from './components/DataStatusPill';
+
 export * from './components/DragDropDashboard';
 export * from './components/DynamicElementRenderer';
 export * from './components/EnhancedInteractiveChart';
@@ -27,7 +30,10 @@ export * from './components/ui/chart-card';
 export * from './components/ui/financial-card';
 export * from './components/ui/input';
 export * from './components/ui/modern-refresh-button';
-export * from './components/ui/modern-status-pill';
+
+// Export ModernStatusPill with explicit exports to avoid conflicts
+export { ModernStatusPill, getDataStatus as getModernDataStatus } from './components/ui/modern-status-pill';
+export type { DataStatus as ModernDataStatus } from './components/ui/modern-status-pill';
 export * from './components/ui/modern-toggle';
 export * from './components/ui/progress';
 export * from './components/ui/select';
@@ -37,7 +43,7 @@ export * from './components/ui/switch';
 export * from './components/ui/table-card';
 
 // Context Providers
-export * from './context/AutomaticDataSourceContext';
+export { AutomaticDataSourceProvider, useAutomaticDataSource as useAutomaticDataSourceContext } from './context/AutomaticDataSourceContext';
 export * from './context/CrossfilterContext';
 export * from './context/DashboardContext';
 export * from './context/DataSourceContext';

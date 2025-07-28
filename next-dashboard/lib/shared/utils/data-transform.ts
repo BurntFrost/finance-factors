@@ -27,8 +27,8 @@ export function transformToChartData(
     label,
     data,
     borderColor: CHART_COLORS.primary[colorIndex % CHART_COLORS.primary.length],
-    backgroundColor: chartType === 'pie' || chartType === 'doughnut' 
-      ? CHART_COLORS.primary 
+    backgroundColor: chartType === 'pie' || chartType === 'doughnut'
+      ? [...CHART_COLORS.primary]
       : CHART_COLORS.background[colorIndex % CHART_COLORS.background.length],
     borderWidth: chartType === 'line' ? 2 : 1,
     fill: chartType === 'line' ? false : true,
@@ -45,7 +45,7 @@ export function transformToChartData(
  */
 export function chartDataToTableData(chartData: ChartData): TableData {
   const columns = [
-    { key: 'label', label: 'Date/Label', type: 'string' as const, sortable: true },
+    { key: 'label', label: 'Date/Label', type: 'text' as const, sortable: true },
     ...chartData.datasets.map((dataset, index) => ({
       key: `value_${index}`,
       label: dataset.label,
@@ -79,10 +79,10 @@ export function chartDataToTableData(chartData: ChartData): TableData {
  * Transform table data to Chart.js format
  */
 export function tableDataToChartData(tableData: TableData): ChartData {
-  // Find the label column (first string column)
-  const labelColumn = tableData.columns.find(col => col.type === 'string');
+  // Find the label column (first text column)
+  const labelColumn = tableData.columns.find(col => col.type === 'text');
   if (!labelColumn) {
-    throw new Error('Table data must have at least one string column for labels');
+    throw new Error('Table data must have at least one text column for labels');
   }
   
   // Find numeric columns for datasets
@@ -132,7 +132,7 @@ export function chartDataToSummaryCards(
       change: {
         value: changePercent,
         period: 'vs previous',
-        direction: change > 0 ? 'up' : change < 0 ? 'down' : 'neutral',
+        type: change > 0 ? 'increase' : change < 0 ? 'decrease' : 'neutral',
       },
       trend: values.slice(-10).map((value, idx) => ({
         date: String(chartData.labels[chartData.labels.length - 10 + idx] || idx),
@@ -157,7 +157,7 @@ export function summaryCardsToChartData(cards: SummaryCardData[]): ChartData {
     datasets: [{
       label: 'Values',
       data,
-      backgroundColor: CHART_COLORS.primary,
+      backgroundColor: [...CHART_COLORS.primary],
       borderColor: CHART_COLORS.primary[0],
       borderWidth: 1,
     }],

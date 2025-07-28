@@ -31,11 +31,8 @@ export type {
   VisualizationType,
   DashboardElement,
   DashboardState,
-  ViewMode,
-  ChartType,
-  DataStatus,
-  ExportOptions,
-  ExportData,
+  DashboardAction,
+  TableColumn,
 } from './dashboard';
 
 // Data source types

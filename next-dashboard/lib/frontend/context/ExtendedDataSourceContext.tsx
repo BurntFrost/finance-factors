@@ -255,8 +255,8 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
       } else {
         // Use real API service for live data
         try {
-          const { realApiService } = await import('../services/realApiService');
-          const { transformers } = await import('../services/dataTransformers');
+          const { realApiService } = await import('../../backend/services/realApiService');
+          const { transformers } = await import('../../backend/services/dataTransformers');
 
           const apiResponse = await realApiService.fetchData(options);
 
@@ -281,11 +281,11 @@ export function ExtendedDataSourceProvider({ children }: { children: ReactNode }
           console.warn(`Live API failed for ${dataType}:`, apiError);
 
           // Fall back to mock data with clear indication
-          const { mockApiService } = await import('../services/mockApiService');
+          const { mockApiService } = await import('../../backend/services/mockApiService');
           const mockResponse = await mockApiService.fetchData(options);
 
           if (mockResponse.success && mockResponse.data) {
-            const { transformers } = await import('../services/dataTransformers');
+            const { transformers } = await import('../../backend/services/dataTransformers');
             const transformedData = transformers.chartData.transform(
               mockResponse.data as Array<{ date: string; value: number; label?: string }>,
               dataType
