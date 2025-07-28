@@ -3,9 +3,7 @@
 @tailwind utilities;
 
 :root {
-  /* Light theme variables - Legacy CSS custom properties */
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Legacy CSS custom properties for non-shadcn components */
   --background-secondary: #f8f9fa;
   --background-tertiary: #e9ecef;
   --foreground-secondary: #666666;
@@ -64,9 +62,7 @@
 
 /* Dark theme variables - applied via data-theme attribute */
 [data-theme="dark"] {
-  /* Legacy CSS custom properties */
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  /* Legacy CSS custom properties for non-shadcn components */
   --background-secondary: #1a1a1a;
   --background-tertiary: #2a2a2a;
   --foreground-secondary: #a0a0a0;
@@ -125,9 +121,7 @@
 /* Fallback for system preference when no manual theme is set */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    /* Legacy CSS custom properties */
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* Legacy CSS custom properties for non-shadcn components */
     --background-secondary: #1a1a1a;
     --background-tertiary: #2a2a2a;
     --foreground-secondary: #a0a0a0;
@@ -187,8 +181,6 @@ body {
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
