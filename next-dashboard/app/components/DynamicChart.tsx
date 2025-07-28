@@ -37,6 +37,7 @@ interface DynamicChartProps {
   onRemove?: () => void;
   config?: Record<string, unknown>;
   hideHeader?: boolean;
+  hideFooter?: boolean;
 }
 
 // Chart skeleton component for loading state
@@ -87,7 +88,7 @@ const RemoveButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export default function DynamicChart({ type, data, title, dataType, onRemove, config, hideHeader = false }: DynamicChartProps) {
+export default function DynamicChart({ type, data, title, dataType, onRemove, config, hideHeader = false, hideFooter = false }: DynamicChartProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -232,32 +233,34 @@ export default function DynamicChart({ type, data, title, dataType, onRemove, co
       </div>
 
       {/* Footer with data source info and refresh button */}
-      <div className={styles.footer}>
-        <div className={styles.dataInfo}>
-          {data.lastUpdated && (
-            <span className={styles.timestamp}>
-              Updated: {data.lastUpdated.toLocaleTimeString()}
+      {!hideFooter && (
+        <div className={styles.footer}>
+          <div className={styles.dataInfo}>
+            {data.lastUpdated && (
+              <span className={styles.timestamp}>
+                Updated: {data.lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
+
+            <span className={styles.source}>
+              Source: Live API Data
             </span>
-          )}
+          </div>
 
-          <span className={styles.source}>
-            Source: Live API Data
-          </span>
+          {/* Refresh button in footer */}
+          <button
+            className={styles.footerRefreshButton}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            title="Refresh data"
+            aria-label="Refresh chart data"
+          >
+            <span className={isRefreshing ? styles.spinning : ''}>
+              🔄
+            </span>
+          </button>
         </div>
-
-        {/* Refresh button in footer */}
-        <button
-          className={styles.footerRefreshButton}
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          title="Refresh data"
-          aria-label="Refresh chart data"
-        >
-          <span className={isRefreshing ? styles.spinning : ''}>
-            🔄
-          </span>
-        </button>
-      </div>
+      )}
     </div>
   );
 }

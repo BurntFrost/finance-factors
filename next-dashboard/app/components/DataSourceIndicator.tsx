@@ -37,7 +37,7 @@ interface StatusConfig {
 const STATUS_CONFIGS: Record<DataSourceStatus, StatusConfig> = {
   live: {
     icon: '🟢',
-    label: 'Live Data',
+    label: 'Live API Data',
     description: 'Displaying real-time data from external APIs',
     color: '#22c55e',
     bgColor: '#f0fdf4',
@@ -101,20 +101,36 @@ export default function DataSourceIndicator({
 
   const formatTime = useCallback((date: Date | null): string => {
     if (!date) return 'Never';
-    
+
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
-    
+
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    
+
     const days = Math.floor(hours / 24);
     return `${days}d ago`;
   }, []);
+
+  // Get dynamic label based on data source
+  const getDisplayLabel = useCallback(() => {
+    if (isRetrying) return 'Retrying...';
+
+    // For live data, show the specific API source if available
+    if (status === 'live' && dataType) {
+      const chartConfig = getChartConfig(dataType);
+      if (chartConfig?.dataSource?.primary) {
+        return chartConfig.dataSource.primary;
+      }
+    }
+
+    // Fall back to the default config label
+    return config.label;
+  }, [status, dataType, isRetrying, config.label]);
 
   // Don't show indicator for live data unless details are requested
   if (status === 'live' && !showDetails) {
@@ -141,7 +157,7 @@ export default function DataSourceIndicator({
             setIsExpanded(!isExpanded);
           }
         }}
-        aria-label={`Data source: ${config.label}. Click for details.`}
+        aria-label={`Data source: ${getDisplayLabel()}. Click for details.`}
         title={config.description}
       >
         <span className={styles.icon} aria-hidden="true">
@@ -153,7 +169,7 @@ export default function DataSourceIndicator({
         </span>
         
         <span className={styles.label}>
-          {isRetrying ? 'Retrying...' : config.label}
+          {getDisplayLabel()}
         </span>
 
         {(showDetails || isExpanded) && (

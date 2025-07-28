@@ -177,6 +177,7 @@ export default function AutomaticChart({
                 type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
                 dataType={dataType}
                 hideHeader={true}
+                hideFooter={true}
               />
               
               {/* Loading overlay for refresh */}
@@ -306,6 +307,7 @@ export function CompactAutomaticChart({
               type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
               dataType={dataType}
               hideHeader={true}
+              hideFooter={true}
             />
           </Suspense>
         ) : (
