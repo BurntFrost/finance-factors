@@ -24,19 +24,25 @@ import { censusProxyService } from '../../services/census-proxy';
 import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
 
 /**
- * Handle OPTIONS requests for CORS preflight
+ * CORS headers for all responses
  */
-export async function OPTIONS() {
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+/**
+ * Handle CORS preflight requests
+ */
+export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
+    headers: CORS_HEADERS,
   });
 }
+
+
 
 /**
  * Main API proxy handler for POST requests
@@ -76,11 +82,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const errorResponse = createErrorResponse(error, 'API Proxy');
       return NextResponse.json(errorResponse, {
         status: 400,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
+        headers: CORS_HEADERS,
       });
     }
 
@@ -144,11 +146,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const statusCode = response.success ? 200 : getStatusCodeFromError(response.error);
     return NextResponse.json(response, {
       status: statusCode,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+      headers: CORS_HEADERS,
     });
 
   } catch (error) {
@@ -167,11 +165,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(createErrorResponse(serverError, 'API Proxy'), {
       status: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
+      headers: CORS_HEADERS,
     });
   }
 }
