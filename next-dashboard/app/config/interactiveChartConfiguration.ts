@@ -1,6 +1,6 @@
 'use client';
 
-import { ChartOptions, TooltipItem, Chart } from 'chart.js';
+import type { ChartOptions, TooltipItem, Chart } from 'chart.js';
 import { getChartConfig } from './chartConfiguration';
 
 export interface InteractiveChartOptions extends ChartOptions {
