@@ -292,11 +292,71 @@ export const userPreferences = {
   },
 };
 
+// Visualization preferences for element cards
+interface VisualizationPreferences {
+  [elementId: string]: string; // elementId -> visualizationType
+}
+
+export const visualizationPreferences = {
+  /**
+   * Save visualization preference for a specific element
+   */
+  save: (elementId: string, visualizationType: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = visualizationPreferences.loadAll();
+      existing[elementId] = visualizationType;
+      localStorage.setItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load visualization preference for a specific element
+   */
+  load: (elementId: string): string | null => {
+    return safeLocalStorageOperation(() => {
+      const preferences = visualizationPreferences.loadAll();
+      return preferences[elementId] || null;
+    }, null);
+  },
+
+  /**
+   * Load all visualization preferences
+   */
+  loadAll: (): VisualizationPreferences => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Remove visualization preference for a specific element
+   */
+  remove: (elementId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = visualizationPreferences.loadAll();
+      delete existing[elementId];
+      localStorage.setItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Clear all visualization preferences
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES),
+      undefined
+    );
+  },
+};
+
 // Utility to clear all app data
 export const clearAllData = (): void => {
   dataSourcePreference.clear();
   apiCache.clear();
   userPreferences.clear();
+  visualizationPreferences.clear();
 };
 
 // Initialize cleanup on app start (call this in your app initialization)

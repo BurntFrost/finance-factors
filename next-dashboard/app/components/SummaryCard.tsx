@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { SummaryCardData } from '../types/dashboard';
+import { SummaryCardData, VisualizationType } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
+import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import styles from './SummaryCard.module.css';
 
 interface SummaryCardProps {
@@ -121,10 +122,20 @@ export default function SummaryCard({ title, data, onRemove }: SummaryCardProps)
 interface SummaryCardGridProps {
   title: string;
   cards: SummaryCardData[];
+  dataType?: string;
   onRemove?: () => void;
+  onVisualizationChange?: (newType: VisualizationType) => void;
+  isChangingVisualization?: boolean;
 }
 
-export function SummaryCardGrid({ title, cards, onRemove }: SummaryCardGridProps) {
+export function SummaryCardGrid({
+  title,
+  cards,
+  dataType,
+  onRemove,
+  onVisualizationChange,
+  isChangingVisualization = false
+}: SummaryCardGridProps) {
   const isEditMode = useIsEditMode();
 
   // Determine overall data status from the cards
@@ -146,18 +157,38 @@ export function SummaryCardGrid({ title, cards, onRemove }: SummaryCardGridProps
             size="small"
           />
         </div>
-        {onRemove && isEditMode && (
-          <button
-            className={styles.removeButton}
-            onClick={onRemove}
-            aria-label="Remove card grid"
-          >
-            🗑️ Remove
-          </button>
-        )}
+        <div className={styles.gridControls}>
+          {dataType && onVisualizationChange && (
+            <VisualizationTypeSwitcher
+              dataType={dataType}
+              currentVisualizationType="summary-card"
+              onVisualizationChange={onVisualizationChange}
+              size="small"
+              showLabels={false}
+              showIcons={true}
+              disabled={isChangingVisualization}
+              isLoading={isChangingVisualization}
+            />
+          )}
+          {onRemove && isEditMode && (
+            <button
+              className={styles.removeButton}
+              onClick={onRemove}
+              aria-label="Remove card grid"
+            >
+              🗑️ Remove
+            </button>
+          )}
+        </div>
       </div>
-      
+
       <div className={styles.cardGrid}>
+        {isChangingVisualization && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingSpinner}>⟳</div>
+            <div className={styles.loadingText}>Switching visualization...</div>
+          </div>
+        )}
         {cards.map((cardData, index) => (
           <SummaryCard
             key={index}

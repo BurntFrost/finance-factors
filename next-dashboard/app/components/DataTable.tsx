@@ -1,21 +1,33 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { TableData, TableColumn } from '../types/dashboard';
+import { TableData, TableColumn, VisualizationType } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
+import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import styles from './DataTable.module.css';
 
 interface DataTableProps {
   title: string;
   data: TableData;
+  dataType?: string;
   onRemove?: () => void;
+  onVisualizationChange?: (newType: VisualizationType) => void;
   maxRows?: number;
+  isChangingVisualization?: boolean;
 }
 
 type SortDirection = 'asc' | 'desc' | null;
 
-export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataTableProps) {
+export default function DataTable({
+  title,
+  data,
+  dataType,
+  onRemove,
+  onVisualizationChange,
+  maxRows = 10,
+  isChangingVisualization = false
+}: DataTableProps) {
   const isEditMode = useIsEditMode();
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -122,6 +134,18 @@ export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataT
           />
         </div>
         <div className={styles.tableControls}>
+          {dataType && onVisualizationChange && (
+            <VisualizationTypeSwitcher
+              dataType={dataType}
+              currentVisualizationType="data-table"
+              onVisualizationChange={onVisualizationChange}
+              size="small"
+              showLabels={false}
+              showIcons={true}
+              disabled={isChangingVisualization}
+              isLoading={isChangingVisualization}
+            />
+          )}
           <input
             type="text"
             placeholder="Search..."
@@ -145,6 +169,12 @@ export default function DataTable({ title, data, onRemove, maxRows = 10 }: DataT
       </div>
 
       <div className={styles.tableWrapper}>
+        {isChangingVisualization && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingSpinner}>⟳</div>
+            <div className={styles.loadingText}>Switching visualization...</div>
+          </div>
+        )}
         <table className={styles.table}>
           <thead>
             <tr>

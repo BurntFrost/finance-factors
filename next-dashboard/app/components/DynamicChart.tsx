@@ -1,10 +1,11 @@
 'use client';
 
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
-import { ChartData } from '../types/dashboard';
+import { ChartData, VisualizationType } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
 import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
+import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -35,9 +36,11 @@ interface DynamicChartProps {
   title: string;
   dataType?: string; // Data type for configuration lookup
   onRemove?: () => void;
+  onVisualizationChange?: (newType: VisualizationType) => void;
   config?: Record<string, unknown>;
   hideHeader?: boolean;
   hideFooter?: boolean;
+  isChangingVisualization?: boolean;
 }
 
 // Chart skeleton component for loading state
@@ -88,7 +91,18 @@ const RemoveButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export default function DynamicChart({ type, data, title, dataType, onRemove, config, hideHeader = false, hideFooter = false }: DynamicChartProps) {
+export default function DynamicChart({
+  type,
+  data,
+  title,
+  dataType,
+  onRemove,
+  onVisualizationChange,
+  config,
+  hideHeader = false,
+  hideFooter = false,
+  isChangingVisualization = false
+}: DynamicChartProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -220,7 +234,19 @@ export default function DynamicChart({ type, data, title, dataType, onRemove, co
               size="small"
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {dataType && onVisualizationChange && (
+              <VisualizationTypeSwitcher
+                dataType={dataType}
+                currentVisualizationType={type}
+                onVisualizationChange={onVisualizationChange}
+                size="small"
+                showLabels={false}
+                showIcons={true}
+                disabled={isChangingVisualization}
+                isLoading={isChangingVisualization}
+              />
+            )}
             {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
           </div>
         </div>
@@ -228,8 +254,14 @@ export default function DynamicChart({ type, data, title, dataType, onRemove, co
       <div className={styles.chartWrapper}>
         <Suspense fallback={<ChartSkeleton />}>
           <ChartRegistration />
-          {renderChart()}
+          {isChangingVisualization ? <ChartSkeleton /> : renderChart()}
         </Suspense>
+        {isChangingVisualization && (
+          <div className={styles.loadingOverlay}>
+            <div className={styles.loadingSpinner}>⟳</div>
+            <div className={styles.loadingText}>Switching visualization...</div>
+          </div>
+        )}
       </div>
 
       {/* Footer with data source info and refresh button */}

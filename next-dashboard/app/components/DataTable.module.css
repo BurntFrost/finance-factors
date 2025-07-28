@@ -76,6 +76,7 @@
 }
 
 .tableWrapper {
+  position: relative;
   overflow-x: auto;
   flex: 1; /* Take remaining space in flex container */
   overflow-y: auto;
@@ -274,5 +275,54 @@
   
   .paginationInfo {
     order: -1;
+  }
+}
+
+/* Loading overlay for visualization switching */
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  z-index: 10;
+  border-radius: 0.5rem;
+}
+
+.loadingSpinner {
+  font-size: 1.5rem;
+  animation: spin 1s linear infinite;
+  color: var(--primary-color, #007bff);
+}
+
+.loadingText {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6c757d);
+  font-weight: 500;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode support for loading overlay */
+@media (prefers-color-scheme: dark) {
+  .loadingOverlay {
+    background: rgba(0, 0, 0, 0.8);
+  }
+
+  .loadingText {
+    color: var(--text-secondary-dark, #adb5bd);
   }
 }

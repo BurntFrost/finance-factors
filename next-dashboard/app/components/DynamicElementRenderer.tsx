@@ -1,10 +1,13 @@
 'use client';
 
-import React from 'react';
-import { DashboardElement, ChartData, TableData, SummaryCardData } from '../types/dashboard';
+import React, { useState, useCallback } from 'react';
+import { DashboardElement, ChartData, TableData, SummaryCardData, VisualizationType } from '../types/dashboard';
 import DynamicChart from './DynamicChart';
 import DataTable from './DataTable';
 import { SummaryCardGrid } from './SummaryCard';
+import { convertVisualizationData } from '../utils/dataConverter';
+import { visualizationPreferences } from '../utils/localStorage';
+import { useDashboard } from '../context/DashboardContext';
 
 interface DynamicElementRendererProps {
   element: DashboardElement;
@@ -12,9 +15,54 @@ interface DynamicElementRendererProps {
 }
 
 export default function DynamicElementRenderer({ element, onRemove }: DynamicElementRendererProps) {
+  const { updateElement } = useDashboard();
+  const [isChangingVisualization, setIsChangingVisualization] = useState(false);
+
   const handleRemove = () => {
     onRemove(element.id);
   };
+
+  const handleVisualizationChange = useCallback(async (newVisualization: VisualizationType) => {
+    if (newVisualization.id === element.type) {
+      return; // No change needed
+    }
+
+    setIsChangingVisualization(true);
+
+    try {
+      // Check if element has data to convert
+      if (!element.data) {
+        console.warn('No data available for visualization conversion');
+        return;
+      }
+
+      // Convert the existing data to the new visualization format
+      const convertedData = convertVisualizationData(
+        element.data,
+        element.type,
+        newVisualization.id,
+        element.dataType
+      );
+
+      if (convertedData) {
+        // Update the element with new type and converted data
+        updateElement(element.id, {
+          type: newVisualization.id,
+          data: convertedData,
+        });
+
+        // Save user preference for this element
+        visualizationPreferences.save(element.id, newVisualization.id);
+      }
+    } catch (error) {
+      console.error('Failed to change visualization type:', error);
+    } finally {
+      // Add a small delay for smooth transition
+      setTimeout(() => {
+        setIsChangingVisualization(false);
+      }, 300);
+    }
+  }, [element, updateElement]);
 
   // Type guards
   const isChartData = (data: unknown): data is ChartData => {
@@ -42,8 +90,11 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
           type={element.type}
           data={element.data}
           title={element.title}
+          dataType={element.dataType}
           onRemove={handleRemove}
+          onVisualizationChange={handleVisualizationChange}
           config={element.config}
+          isChangingVisualization={isChangingVisualization}
         />
       );
 
@@ -55,7 +106,10 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
         <DataTable
           title={element.title}
           data={element.data}
+          dataType={element.dataType}
           onRemove={handleRemove}
+          onVisualizationChange={handleVisualizationChange}
+          isChangingVisualization={isChangingVisualization}
         />
       );
 
@@ -67,7 +121,10 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
         <SummaryCardGrid
           title={element.title}
           cards={element.data}
+          dataType={element.dataType}
           onRemove={handleRemove}
+          onVisualizationChange={handleVisualizationChange}
+          isChangingVisualization={isChangingVisualization}
         />
       );
 
