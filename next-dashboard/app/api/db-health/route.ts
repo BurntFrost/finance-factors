@@ -20,10 +20,22 @@ export async function GET(_request: NextRequest) {
           status: 'connected',
           latency: healthCheck.latency,
           provider: 'postgresql',
-          connection: 'vercel-postgres',
+          connection: 'prisma-accelerate',
         },
         timestamp: new Date().toISOString(),
       }, { status: 200 });
+    } else if (healthCheck.status === 'connection_limit') {
+      return NextResponse.json({
+        status: 'degraded',
+        database: {
+          status: 'connection_limit_reached',
+          error: healthCheck.error,
+          provider: 'postgresql',
+          connection: 'prisma-accelerate',
+          message: 'Database connection limit reached, using fallback caching',
+        },
+        timestamp: new Date().toISOString(),
+      }, { status: 429 });
     } else {
       return NextResponse.json({
         status: 'unhealthy',
@@ -31,7 +43,7 @@ export async function GET(_request: NextRequest) {
           status: 'disconnected',
           error: healthCheck.error,
           provider: 'postgresql',
-          connection: 'vercel-postgres',
+          connection: 'prisma-accelerate',
         },
         timestamp: new Date().toISOString(),
       }, { status: 503 });

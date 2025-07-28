@@ -11,7 +11,7 @@
  */
 
 import { executeRedisCommand } from './redis';
-import { prisma } from './prisma';
+import { prisma, safeDatabaseOperation } from './prisma';
 import { RedisOperationType } from './redis-error-logger';
 
 // Cache configuration
@@ -59,6 +59,7 @@ interface CacheStats {
 export class AdvancedCacheManager {
   private browserCache = new Map<string, CacheEntry>();
   private maxBrowserCacheSize = 50 * 1024 * 1024; // 50MB
+  private databaseCacheDisabled = process.env.DISABLE_DATABASE_CACHE === 'true';
   private stats: Record<CacheLevel, CacheStats> = {
     [CacheLevel.BROWSER]: { hits: 0, misses: 0, hitRate: 0, totalSize: 0, entryCount: 0, avgResponseTime: 0 },
     [CacheLevel.REDIS]: { hits: 0, misses: 0, hitRate: 0, totalSize: 0, entryCount: 0, avgResponseTime: 0 },
@@ -89,16 +90,18 @@ export class AdvancedCacheManager {
         return redisResult;
       }
 
-      // Level 3: Database cache
-      const dbResult = await this.getFromDatabase<T>(key);
-      if (dbResult) {
-        // Populate higher-level caches
-        await Promise.all([
-          this.setRedis(key, dbResult, config),
-          this.setBrowser(key, dbResult, config),
-        ]);
-        this.updateStats(CacheLevel.DATABASE, true, Date.now() - startTime);
-        return dbResult;
+      // Level 3: Database cache (only if not disabled)
+      if (!this.databaseCacheDisabled) {
+        const dbResult = await this.getFromDatabase<T>(key);
+        if (dbResult) {
+          // Populate higher-level caches
+          await Promise.all([
+            this.setRedis(key, dbResult, config),
+            this.setBrowser(key, dbResult, config),
+          ]);
+          this.updateStats(CacheLevel.DATABASE, true, Date.now() - startTime);
+          return dbResult;
+        }
       }
 
       // Cache miss at all levels
@@ -146,8 +149,8 @@ export class AdvancedCacheManager {
       promises.push(this.setRedis(key, data, config));
     }
 
-    // Set in database for long-term storage
-    if (config.priority === 'high' || config.ttl > 3600) {
+    // Set in database for long-term storage (only if not disabled)
+    if (!this.databaseCacheDisabled && (config.priority === 'high' || config.ttl > 3600)) {
       promises.push(this.setDatabase(key, data, config));
     }
 
@@ -279,61 +282,69 @@ export class AdvancedCacheManager {
   }
 
   private async getFromDatabase<T>(key: string): Promise<T | null> {
-    try {
-      const cached = await prisma.cachedData.findUnique({
-        where: { cacheKey: key },
-      });
-
-      if (!cached) return null;
-
-      // Check if expired
-      if (cached.expiresAt < new Date()) {
-        // Delete expired entry
-        await prisma.cachedData.delete({
-          where: { id: cached.id },
+    return safeDatabaseOperation(
+      async () => {
+        const cached = await prisma.cachedData.findUnique({
+          where: { cacheKey: key },
         });
+
+        if (!cached) return null;
+
+        // Check if expired
+        if (cached.expiresAt < new Date()) {
+          // Delete expired entry
+          await prisma.cachedData.delete({
+            where: { id: cached.id },
+          });
+          return null;
+        }
+
+        // Update access statistics
+        await prisma.cachedData.update({
+          where: { id: cached.id },
+          data: {
+            lastAccessed: new Date(),
+            accessCount: { increment: 1 },
+          },
+        });
+
+        return cached.data as T;
+      },
+      async () => {
+        console.warn('Database cache unavailable due to connection limits');
         return null;
       }
-
-      // Update access statistics
-      await prisma.cachedData.update({
-        where: { id: cached.id },
-        data: {
-          lastAccessed: new Date(),
-          accessCount: { increment: 1 },
-        },
-      });
-
-      return cached.data as T;
-    } catch (error) {
-      console.error('Database cache get error:', error);
-      return null;
-    }
+    );
   }
 
   private async setDatabase<T>(key: string, data: T, config?: CacheConfig): Promise<void> {
-    try {
-      const ttl = config?.ttl || 900;
-      const expiresAt = new Date(Date.now() + ttl * 1000);
+    await safeDatabaseOperation(
+      async () => {
+        const ttl = config?.ttl || 900;
+        const expiresAt = new Date(Date.now() + ttl * 1000);
 
-      await prisma.cachedData.upsert({
-        where: { cacheKey: key },
-        update: {
-          data: data as any,
-          expiresAt,
-          lastAccessed: new Date(),
-        },
-        create: {
-          cacheKey: key,
-          dataType: 'api-response', // Could be made configurable
-          data: data as any,
-          source: 'CACHED',
-          expiresAt,
-        },
-      });
-    } catch (error) {
-      console.error('Database cache set error:', error);
-    }
+        await prisma.cachedData.upsert({
+          where: { cacheKey: key },
+          update: {
+            data: data as any,
+            expiresAt,
+            lastAccessed: new Date(),
+          },
+          create: {
+            cacheKey: key,
+            dataType: 'api-response', // Could be made configurable
+            data: data as any,
+            source: 'CACHED',
+            expiresAt,
+          },
+        });
+        return true;
+      },
+      async () => {
+        console.warn('Database cache set unavailable due to connection limits');
+        return null;
+      }
+    );
   }
 
   private async invalidateKey(key: string): Promise<void> {

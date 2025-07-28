@@ -12,21 +12,29 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-// Prisma client configuration for optimal performance
+// Prisma client configuration for optimal performance with connection limits
 const prismaClientConfig = {
   log: process.env.NODE_ENV === 'development'
     ? ['query', 'info', 'warn', 'error'] as any
     : ['error'] as any,
-  
-  // Connection pooling configuration
+
+  // Connection pooling configuration with limits
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
     },
   },
-  
+
   // Error formatting for better debugging
   errorFormat: 'pretty' as const,
+
+  // Connection pool settings for Prisma Accelerate
+  __internal: {
+    engine: {
+      connectTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
+      requestTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
+    },
+  },
 };
 
 /**
@@ -53,15 +61,33 @@ function createPrismaClient() {
     });
   }
 
-  // Add error logging middleware
+  // Add error logging middleware with connection error handling
   client.$use(async (params, next) => {
     try {
       return await next(params);
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Check for connection limit errors
+      if (errorMessage.includes('too many connections') ||
+          errorMessage.includes('connection limit') ||
+          errorMessage.includes('FATAL: too many connections')) {
+        console.error('Database connection limit reached:', {
+          model: params.model,
+          action: params.action,
+          error: errorMessage,
+        });
+
+        // For connection limit errors, throw a specific error type
+        const connectionError = new Error('Database connection limit exceeded');
+        (connectionError as any).code = 'CONNECTION_LIMIT_EXCEEDED';
+        throw connectionError;
+      }
+
       console.error('Prisma query error:', {
         model: params.model,
         action: params.action,
-        error: error instanceof Error ? error.message : error,
+        error: errorMessage,
       });
       throw error;
     }
@@ -88,10 +114,10 @@ export async function disconnectPrisma() {
 }
 
 /**
- * Health check for database connection
+ * Health check for database connection with connection limit awareness
  */
 export async function checkDatabaseHealth(): Promise<{
-  status: 'healthy' | 'unhealthy';
+  status: 'healthy' | 'unhealthy' | 'connection_limit';
   latency?: number;
   error?: string;
 }> {
@@ -99,16 +125,51 @@ export async function checkDatabaseHealth(): Promise<{
     const start = Date.now();
     await prisma.$queryRaw`SELECT 1`;
     const latency = Date.now() - start;
-    
+
     return {
       status: 'healthy',
       latency,
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    // Check for connection limit errors
+    if (errorMessage.includes('too many connections') ||
+        errorMessage.includes('connection limit') ||
+        errorMessage.includes('FATAL: too many connections')) {
+      return {
+        status: 'connection_limit',
+        error: errorMessage,
+      };
+    }
+
     return {
       status: 'unhealthy',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
     };
+  }
+}
+
+/**
+ * Safe database operation with connection limit handling
+ */
+export async function safeDatabaseOperation<T>(
+  operation: () => Promise<T>,
+  fallback?: () => Promise<T | null>
+): Promise<T | null> {
+  try {
+    return await operation();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('too many connections') ||
+        errorMessage.includes('connection limit') ||
+        errorMessage.includes('CONNECTION_LIMIT_EXCEEDED')) {
+      console.warn('Database connection limit reached, using fallback');
+      return fallback ? await fallback() : null;
+    }
+
+    throw error;
   }
 }
 
