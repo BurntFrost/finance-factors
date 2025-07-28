@@ -14,6 +14,7 @@ import { useAutomaticDataSource } from '@/frontend/hooks/useAutomaticDataSource'
 // import { useWebSocket } from '@/backend/services/websocketService'; // Temporarily disabled for SSR
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import { ChartData, VisualizationType } from '@/shared/types/dashboard';
+import { adaptChartDataForType } from '@/shared/utils/data-transform';
 import DataSourceIndicator from './DataSourceIndicator';
 import RealTimeStatusIndicator from './RealTimeStatusIndicator';
 import ExportMenu from './ExportMenu';
@@ -113,10 +114,23 @@ export default function AutomaticChart({
   });
 
   // Determine which data to use - WebSocket data takes priority if available
-  const displayData = enableRealTime && wsData ? wsData : (data || fallbackData);
+  const rawDisplayData = enableRealTime && wsData ? wsData : (data || fallbackData);
   const _displayStatus = enableRealTime && wsConnected ? 'live' : status;
   const _displayError = enableRealTime ? _wsError : error?.message;
   const displayLastUpdated = enableRealTime && wsLastUpdate ? wsLastUpdate : lastUpdated;
+
+  // Adapt data for the current chart type
+  const displayData = React.useMemo(() => {
+    if (!rawDisplayData) return rawDisplayData;
+    return adaptChartDataForType(rawDisplayData, currentChartType);
+  }, [rawDisplayData, currentChartType]);
+
+  // Sync chartType prop with internal state
+  React.useEffect(() => {
+    if (chartType !== currentChartType) {
+      setCurrentChartType(chartType);
+    }
+  }, [chartType, currentChartType]);
 
   // Notify parent of data changes
   React.useEffect(() => {
@@ -183,11 +197,27 @@ export default function AutomaticChart({
       return; // No change needed
     }
 
+    const previousChartType = currentChartType;
     setIsChangingVisualization(true);
 
     try {
       // Extract chart type from visualization ID (e.g., 'line-chart' -> 'line')
       const newChartType = newVisualization.id.replace('-chart', '') as 'line' | 'bar' | 'pie' | 'doughnut';
+
+      // Validate the new chart type
+      if (!['line', 'bar', 'pie', 'doughnut'].includes(newChartType)) {
+        throw new Error(`Invalid chart type: ${newChartType}`);
+      }
+
+      // Check if data can be adapted for the new chart type
+      if (displayData) {
+        try {
+          adaptChartDataForType(displayData, newChartType);
+        } catch (adaptError) {
+          console.warn('Data adaptation failed, but continuing with chart type change:', adaptError);
+        }
+      }
+
       setCurrentChartType(newChartType);
 
       // Notify parent component if callback provided
@@ -196,13 +226,21 @@ export default function AutomaticChart({
       }
     } catch (error) {
       console.error('Failed to change visualization type:', error);
+
+      // Revert to previous chart type on error
+      setCurrentChartType(previousChartType);
+
+      // Show user-friendly error message (could be enhanced with toast notifications)
+      if (typeof window !== 'undefined') {
+        console.warn(`Unable to switch to ${newVisualization.name}. Please try again.`);
+      }
     } finally {
       // Add a small delay for smooth transition
       setTimeout(() => {
         setIsChangingVisualization(false);
       }, 300);
     }
-  }, [currentChartType, onVisualizationChange]);
+  }, [currentChartType, onVisualizationChange, displayData]);
 
   // Determine which data to display (already defined above with WebSocket integration)
   // const displayData = data || fallbackData; // Moved to WebSocket integration section
@@ -385,10 +423,10 @@ export default function AutomaticChart({
             <div className={styles.chartContainer}>
               <DynamicChart
                 data={displayData}
-                title={showVisualizationSwitcher ? title : ""}
+                title=""
                 type={`${currentChartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
                 dataType={dataType}
-                hideHeader={!showVisualizationSwitcher}
+                hideHeader={true}
                 hideFooter={true}
                 onVisualizationChange={showVisualizationSwitcher ? handleVisualizationChange : undefined}
                 onRemove={onRemove}

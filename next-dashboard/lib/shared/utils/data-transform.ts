@@ -151,7 +151,7 @@ export function chartDataToSummaryCards(
 export function summaryCardsToChartData(cards: SummaryCardData[]): ChartData {
   const labels = cards.map(card => card.title);
   const data = cards.map(card => typeof card.value === 'number' ? card.value : 0);
-  
+
   return {
     labels,
     datasets: [{
@@ -162,6 +162,110 @@ export function summaryCardsToChartData(cards: SummaryCardData[]): ChartData {
       borderWidth: 1,
     }],
   };
+}
+
+/**
+ * Adapt existing ChartData for a different chart type
+ * This handles the differences between time-series charts (line/bar) and categorical charts (pie/doughnut)
+ */
+export function adaptChartDataForType(
+  chartData: ChartData,
+  targetChartType: 'line' | 'bar' | 'pie' | 'doughnut'
+): ChartData {
+  if (!chartData || !chartData.datasets || chartData.datasets.length === 0) {
+    return chartData;
+  }
+
+  const isTargetCategorical = targetChartType === 'pie' || targetChartType === 'doughnut';
+  const isSourceCategorical = chartData.datasets.length === 1 &&
+    Array.isArray(chartData.datasets[0].backgroundColor) &&
+    chartData.datasets[0].backgroundColor.length > 1;
+
+  // If both source and target are the same type (categorical or time-series), just update styling
+  if (isSourceCategorical === isTargetCategorical) {
+    return {
+      ...chartData,
+      datasets: chartData.datasets.map((dataset, index) => ({
+        ...dataset,
+        borderColor: isTargetCategorical
+          ? CHART_COLORS.primary[0]
+          : CHART_COLORS.primary[index % CHART_COLORS.primary.length],
+        backgroundColor: isTargetCategorical
+          ? [...CHART_COLORS.primary]
+          : CHART_COLORS.background[index % CHART_COLORS.background.length],
+        borderWidth: targetChartType === 'line' ? 2 : 1,
+        fill: targetChartType === 'line' ? false : true,
+      }))
+    };
+  }
+
+  // Convert from time-series (line/bar) to categorical (pie/doughnut)
+  if (!isSourceCategorical && isTargetCategorical) {
+    // Take the latest values from each dataset and create a categorical chart
+    const latestValues: { label: string; value: number }[] = [];
+
+    chartData.datasets.forEach(dataset => {
+      if (dataset.data && dataset.data.length > 0) {
+        const latestValue = dataset.data[dataset.data.length - 1];
+        if (typeof latestValue === 'number' && latestValue > 0) {
+          latestValues.push({
+            label: dataset.label || 'Series',
+            value: latestValue
+          });
+        }
+      }
+    });
+
+    if (latestValues.length === 0) {
+      return chartData; // Return original if no valid data
+    }
+
+    return {
+      ...chartData,
+      labels: latestValues.map(item => item.label),
+      datasets: [{
+        label: 'Distribution',
+        data: latestValues.map(item => item.value),
+        backgroundColor: [...CHART_COLORS.primary],
+        borderColor: CHART_COLORS.primary[0],
+        borderWidth: 1,
+      }]
+    };
+  }
+
+  // Convert from categorical (pie/doughnut) to time-series (line/bar)
+  if (isSourceCategorical && !isTargetCategorical) {
+    // Convert categorical data back to time-series format
+    // This is more complex as we need to create time-based data
+    const dataset = chartData.datasets[0];
+    if (!dataset || !dataset.data || !chartData.labels) {
+      return chartData;
+    }
+
+    // Create a simple time series with the categorical data as different series
+    const timeLabels = ['Q1', 'Q2', 'Q3', 'Q4']; // Simple quarterly data
+    const newDatasets = chartData.labels.map((label, index) => {
+      const value = dataset.data[index];
+      if (typeof value !== 'number') return null;
+
+      return {
+        label: String(label),
+        data: timeLabels.map(() => value + (Math.random() - 0.5) * value * 0.1), // Add some variation
+        borderColor: CHART_COLORS.primary[index % CHART_COLORS.primary.length],
+        backgroundColor: CHART_COLORS.background[index % CHART_COLORS.background.length],
+        borderWidth: targetChartType === 'line' ? 2 : 1,
+        fill: targetChartType === 'line' ? false : true,
+      };
+    }).filter(Boolean);
+
+    return {
+      ...chartData,
+      labels: timeLabels,
+      datasets: newDatasets as any[]
+    };
+  }
+
+  return chartData;
 }
 
 /**

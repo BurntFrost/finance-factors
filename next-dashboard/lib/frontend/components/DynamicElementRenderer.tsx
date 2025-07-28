@@ -49,12 +49,24 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
       return; // No change needed
     }
 
+    const previousType = element.type;
+    const previousData = element.data;
     setIsChangingVisualization(true);
 
     try {
+      // Validate the new visualization type
+      if (!newVisualization.id || !newVisualization.name) {
+        throw new Error('Invalid visualization type provided');
+      }
+
       // Check if element has data to convert
       if (!element.data) {
         console.warn('No data available for visualization conversion');
+        // For elements without data, just update the type
+        updateElement(element.id, {
+          type: newVisualization.id,
+        });
+        visualizationPreferences.save(element.id, newVisualization.id);
         return;
       }
 
@@ -75,9 +87,27 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
 
         // Save user preference for this element
         visualizationPreferences.save(element.id, newVisualization.id);
+      } else {
+        throw new Error('Data conversion failed - no converted data returned');
       }
     } catch (error) {
       console.error('Failed to change visualization type:', error);
+
+      // Attempt to revert to previous state on error
+      try {
+        updateElement(element.id, {
+          type: previousType,
+          data: previousData,
+        });
+        console.log('Successfully reverted to previous visualization type');
+      } catch (revertError) {
+        console.error('Failed to revert visualization type:', revertError);
+      }
+
+      // Show user-friendly error message
+      if (typeof window !== 'undefined') {
+        console.warn(`Unable to switch to ${newVisualization.name}. The change has been reverted.`);
+      }
     } finally {
       // Add a small delay for smooth transition
       setTimeout(() => {
