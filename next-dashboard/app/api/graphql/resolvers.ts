@@ -105,15 +105,15 @@ export const resolvers = {
         );
 
         // Cache the result
-        if (useCache && response.success) {
+        if (useCache && (response as any).success) {
           const cacheKey = `chart:${dataType}:${JSON.stringify(timeRange)}`;
-          await cache.set(cacheKey, response.data, {
+          await cache.set(cacheKey, (response as any).data, {
             ttl: 900, // 15 minutes
             tags: [dataType, 'chart-data'],
           });
         }
 
-        return response.data;
+        return (response as any).data;
       } catch (error) {
         console.error('GraphQL getChartData error:', error);
         throw new Error(`Failed to fetch chart data: ${error instanceof Error ? error.message : 'Unknown error'}`);

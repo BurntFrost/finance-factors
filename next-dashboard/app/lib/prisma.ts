@@ -14,9 +14,9 @@ declare global {
 
 // Prisma client configuration for optimal performance
 const prismaClientConfig = {
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'info', 'warn', 'error'] as const
-    : ['error'] as const,
+  log: process.env.NODE_ENV === 'development'
+    ? ['query', 'info', 'warn', 'error'] as any
+    : ['error'] as any,
   
   // Connection pooling configuration
   datasources: {
@@ -116,7 +116,7 @@ export async function checkDatabaseHealth(): Promise<{
  * Database transaction helper with retry logic
  */
 export async function withTransaction<T>(
-  fn: (tx: PrismaClient) => Promise<T>,
+  fn: (tx: any) => Promise<T>,
   maxRetries = 3
 ): Promise<T> {
   let lastError: Error | undefined;
@@ -126,7 +126,7 @@ export async function withTransaction<T>(
       return await prisma.$transaction(fn, {
         maxWait: 5000, // 5 seconds
         timeout: 10000, // 10 seconds
-      });
+      }) as T;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       

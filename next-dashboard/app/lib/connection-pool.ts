@@ -97,7 +97,7 @@ export class DatabaseConnectionPool {
       const queryTime = Date.now() - startTime;
       this.updateQueryStats(queryTime, false);
       
-      return result.rows;
+      return result.rows as T;
     } catch (error) {
       this.updateQueryStats(Date.now() - startTime, true);
       throw error;

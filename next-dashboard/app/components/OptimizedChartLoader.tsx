@@ -93,19 +93,18 @@ export default function OptimizedChartLoader({
   className = '',
   onChartReady,
 }: OptimizedChartLoaderProps) {
+  // Extract type ID for consistent usage
+  const typeId = typeof type === 'string' ? type : type.id;
+
   // Memoize chart component selection to prevent unnecessary re-renders
   const ChartComponent = useMemo(() => {
-    const chartType = type === 'line-chart' ? 'line' :
-                     type === 'bar-chart' ? 'bar' :
-                     type === 'pie-chart' ? 'pie' :
-                     type === 'doughnut-chart' ? 'doughnut' :
-                     type === 'scatter-chart' ? 'scatter' :
-                     type === 'bubble-chart' ? 'bubble' :
-                     type === 'radar-chart' ? 'radar' :
-                     type === 'polar-area-chart' ? 'polarArea' : 'line';
-    
+    const chartType = typeId === 'line-chart' ? 'line' :
+                     typeId === 'bar-chart' ? 'bar' :
+                     typeId === 'pie-chart' ? 'pie' :
+                     typeId === 'doughnut-chart' ? 'doughnut' : 'line';
+
     return chartComponents[chartType as keyof typeof chartComponents];
-  }, [type]);
+  }, [typeId]);
 
   // Memoize chart options to prevent unnecessary re-renders
   const chartOptions = useMemo(() => ({
@@ -138,7 +137,7 @@ export default function OptimizedChartLoader({
         padding: 12,
       },
     },
-    scales: type.includes('pie') || type.includes('doughnut') || type.includes('radar') || type.includes('polar') ? {} : {
+    scales: typeId.includes('pie') || typeId.includes('doughnut') || typeId.includes('radar') || typeId.includes('polar') ? {} : {
       x: {
         grid: {
           color: 'rgba(0, 0, 0, 0.1)',

@@ -34,6 +34,8 @@ export enum RedisOperationType {
   HSET = 'hset',
   HGETALL = 'hgetall',
   SETEX = 'setex',
+  SMEMBERS = 'smembers',
+  FLUSHDB = 'flushdb',
 }
 
 // Severity levels for Redis errors

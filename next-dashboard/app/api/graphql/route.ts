@@ -18,7 +18,7 @@ interface GraphQLContext {
     email: string;
     role: string;
   };
-  req: NextRequest;
+  req: any;
 }
 
 // Create Apollo Server with optimized configuration
@@ -54,33 +54,12 @@ const server = new ApolloServer<GraphQLContext>({
       : error;
   },
 
-  // Response formatting for performance monitoring
-  formatResponse: (response, requestContext) => {
-    // Add performance headers in development
-    if (process.env.NODE_ENV === 'development') {
-      const executionTime = Date.now() - (requestContext.request.http?.startTime || Date.now());
-      
-      return {
-        ...response,
-        extensions: {
-          ...response.extensions,
-          performance: {
-            executionTime,
-            timestamp: new Date().toISOString(),
-          },
-        },
-      };
-    }
-
-    return response;
-  },
-
   // Plugin for request/response logging and metrics
   plugins: [
     {
-      requestDidStart() {
+      async requestDidStart() {
         return {
-          didResolveOperation(requestContext) {
+          async didResolveOperation(requestContext: any) {
             // Log operation in development
             if (process.env.NODE_ENV === 'development') {
               console.log('GraphQL Operation:', {
@@ -89,19 +68,19 @@ const server = new ApolloServer<GraphQLContext>({
               });
             }
           },
-          
-          didEncounterErrors(requestContext) {
+
+          async didEncounterErrors(requestContext: any) {
             // Log errors with context
             console.error('GraphQL Errors:', {
               operationName: requestContext.request.operationName,
-              errors: requestContext.errors?.map(error => ({
+              errors: requestContext.errors?.map((error: any) => ({
                 message: error.message,
                 path: error.path,
               })),
             });
           },
-          
-          willSendResponse(requestContext) {
+
+          async willSendResponse(requestContext: any) {
             // Performance monitoring
             const executionTime = Date.now() - (requestContext.request.http?.startTime || Date.now());
             
@@ -119,7 +98,7 @@ const server = new ApolloServer<GraphQLContext>({
 });
 
 // Create the Next.js handler
-const handler = startServerAndCreateNextHandler<NextRequest>(server, {
+const handler = startServerAndCreateNextHandler(server, {
   context: async (req): Promise<GraphQLContext> => {
     // Extract user from request (implement your auth logic here)
     const user = await extractUserFromRequest(req);
@@ -135,10 +114,10 @@ const handler = startServerAndCreateNextHandler<NextRequest>(server, {
 });
 
 // Helper function to extract user from request
-async function extractUserFromRequest(req: NextRequest): Promise<GraphQLContext['user'] | undefined> {
+async function extractUserFromRequest(req: any): Promise<GraphQLContext['user'] | undefined> {
   try {
     // Check for Authorization header
-    const authHeader = req.headers.get('authorization');
+    const authHeader = req.headers?.get ? req.headers.get('authorization') : req.headers?.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
       return undefined;
     }

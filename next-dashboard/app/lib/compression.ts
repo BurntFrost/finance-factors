@@ -377,4 +377,4 @@ export function withCompression(
 }
 
 // Export compression utilities
-export { CompressionManager, DEFAULT_CONFIG as defaultCompressionConfig };
+export { DEFAULT_CONFIG as defaultCompressionConfig };

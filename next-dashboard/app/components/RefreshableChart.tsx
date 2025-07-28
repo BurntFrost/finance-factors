@@ -84,7 +84,7 @@ export default function RefreshableChart({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chartData, setChartData] = useState(initialData);
   const [lastRefresh, setLastRefresh] = useState<Date>();
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleRefresh = useCallback(async () => {
     if (isRefreshing) return;

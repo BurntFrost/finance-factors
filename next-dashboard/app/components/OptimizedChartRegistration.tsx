@@ -29,48 +29,11 @@ export default function OptimizedChartRegistration() {
         const startTime = performance.now();
 
         // Import Chart.js components dynamically
-        const [
-          { Chart as ChartJS },
-          { CategoryScale },
-          { LinearScale },
-          { PointElement },
-          { LineElement },
-          { BarElement },
-          { ArcElement },
-          { RadialLinearScale },
-          { Title },
-          { Tooltip },
-          { Legend },
-          { Filler },
-        ] = await Promise.all([
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-          import('chart.js/auto'),
-        ]);
+        const chartModule = await import('chart.js/auto');
+        const { Chart: ChartJS } = chartModule;
 
-        // Register Chart.js components
-        ChartJS.register(
-          CategoryScale,
-          LinearScale,
-          PointElement,
-          LineElement,
-          BarElement,
-          ArcElement,
-          RadialLinearScale,
-          Title,
-          Tooltip,
-          Legend,
-          Filler
-        );
+        // Register Chart.js components (chart.js/auto includes all components)
+        // No need to register individual components when using auto
 
         // Set global Chart.js defaults for better performance
         ChartJS.defaults.font.family = 'var(--font-geist-sans), system-ui, sans-serif';
@@ -91,7 +54,9 @@ export default function OptimizedChartRegistration() {
         ChartJS.defaults.interaction = {
           intersect: false,
           mode: 'index',
-        };
+          axis: 'x',
+          includeInvisible: false,
+        } as any;
 
         chartRegistered = true;
         setIsRegistered(true);
@@ -106,8 +71,8 @@ export default function OptimizedChartRegistration() {
         console.error('Failed to register Chart.js:', error);
         // Fallback registration attempt
         try {
-          const { Chart as ChartJS } = await import('chart.js/auto');
-          ChartJS.register();
+          const chartModule = await import('chart.js/auto');
+          const { Chart: ChartJS } = chartModule;
           chartRegistered = true;
           setIsRegistered(true);
         } catch (fallbackError) {

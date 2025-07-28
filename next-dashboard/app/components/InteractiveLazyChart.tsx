@@ -14,7 +14,7 @@ const Line = lazy(() =>
 );
 
 // Type for chart ref
-type ChartRef = React.ComponentRef<typeof Line>;
+type ChartRef = any;
 
 // Lazy load Chart.js registration
 const ChartRegistration = lazy(() => 

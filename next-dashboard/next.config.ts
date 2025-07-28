@@ -16,28 +16,6 @@ const nextConfig: NextConfig = {
   experimental: {
     // Enable optimized package imports for better tree shaking
     optimizePackageImports: ['chart.js', 'react-chartjs-2', 'redis'],
-    // Enable turbo mode for faster builds
-    turbo: {
-      rules: {
-        // Optimize Chart.js imports
-        '*.{js,jsx,ts,tsx}': {
-          loaders: ['swc-loader'],
-          options: {
-            jsc: {
-              parser: {
-                syntax: 'typescript',
-                tsx: true,
-              },
-              transform: {
-                react: {
-                  runtime: 'automatic',
-                },
-              },
-            },
-          },
-        },
-      },
-    },
   },
 
   // Turbopack configuration (for development with --turbopack flag)
