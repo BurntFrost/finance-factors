@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+// Bundle analyzer configuration
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig: NextConfig = {
   // Environment variables for build time
   env: {
@@ -29,13 +34,6 @@ const nextConfig: NextConfig = {
   // Note: This will show a warning in development with --turbopack, but it's safe to ignore
   // The webpack config only applies to production builds, not Turbopack development
   webpack: (config, { dev, isServer }) => {
-    // Enable bundle analyzer when ANALYZE=true (production only)
-    if (process.env.ANALYZE === 'true' && !dev) {
-      const withBundleAnalyzer = require('@next/bundle-analyzer')({
-        enabled: true,
-      });
-      return withBundleAnalyzer(config);
-    }
 
     // Production optimizations (webpack only, not used in Turbopack development)
     if (!dev && !isServer) {
@@ -102,4 +100,4 @@ const nextConfig: NextConfig = {
   compress: true,
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);
