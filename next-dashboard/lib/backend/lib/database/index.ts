@@ -5,6 +5,6 @@
  */
 
 // Core database functionality
-export * from './prisma';
-export * from './db-connection-monitor';
-export * from './connection-pool';
+export * from '../prisma';
+export * from '../db-connection-monitor';
+export * from '../connection-pool';

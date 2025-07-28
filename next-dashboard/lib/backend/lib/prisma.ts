@@ -10,7 +10,7 @@ import { isPrismaEnabled } from './feature-toggles';
 
 // Global variable to store the Prisma client instance
 declare global {
-  var __prisma: PrismaClient | undefined;
+  var __prisma: PrismaClient | undefined | null;
 }
 
 // Prisma client configuration for optimal performance
@@ -113,6 +113,10 @@ if (process.env.NODE_ENV !== 'production' && isPrismaEnabled()) {
  */
 export async function disconnectPrisma() {
   try {
+    if (!prisma) {
+      console.log('Prisma client is not initialized, skipping disconnect');
+      return;
+    }
     console.log('Disconnecting Prisma client...');
     await prisma.$disconnect();
     console.log('Prisma client disconnected successfully');
@@ -126,6 +130,10 @@ export async function disconnectPrisma() {
  */
 export async function forceDisconnectPrisma() {
   try {
+    if (!prisma) {
+      console.log('Prisma client is not initialized, skipping force disconnect');
+      return;
+    }
     // Force disconnect without waiting for active queries
     await Promise.race([
       prisma.$disconnect(),
@@ -223,8 +231,12 @@ export async function withTransaction<T>(
   fn: (tx: any) => Promise<T>,
   maxRetries = 3
 ): Promise<T> {
+  if (!prisma) {
+    throw new Error('Prisma client is not initialized');
+  }
+
   let lastError: Error | undefined;
-  
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return await prisma.$transaction(fn, {
@@ -280,8 +292,11 @@ export const queryHelpers = {
   /**
    * Get user with all related data efficiently
    */
-  getUserWithRelations: (userId: string) =>
-    prisma.user.findUnique({
+  getUserWithRelations: (userId: string) => {
+    if (!prisma) {
+      throw new Error('Prisma client is not initialized');
+    }
+    return prisma.user.findUnique({
       where: { id: userId },
       include: {
         preferences: true,
@@ -295,13 +310,17 @@ export const queryHelpers = {
           where: { isActive: true },
         },
       },
-    }),
+    });
+  },
 
   /**
    * Get dashboard with optimized element loading
    */
-  getDashboardWithElements: (dashboardId: string) =>
-    prisma.dashboard.findUnique({
+  getDashboardWithElements: (dashboardId: string) => {
+    if (!prisma) {
+      throw new Error('Prisma client is not initialized');
+    }
+    return prisma.dashboard.findUnique({
       where: { id: dashboardId },
       include: {
         elements: {
@@ -315,12 +334,16 @@ export const queryHelpers = {
           },
         },
       },
-    }),
+    });
+  },
 
   /**
    * Get cached data with automatic cleanup
    */
   getCachedData: async (cacheKey: string) => {
+    if (!prisma) {
+      throw new Error('Prisma client is not initialized');
+    }
     // Clean up expired entries
     await prisma.cachedData.deleteMany({
       where: {
@@ -344,4 +367,4 @@ export const queryHelpers = {
 };
 
 // Export types for use in other files
-export type { User, Dashboard, DashboardElement, UserPreferences } from '../generated/prisma';
+export type { User, Dashboard, DashboardElement, UserPreferences } from '../../../app/generated/prisma';

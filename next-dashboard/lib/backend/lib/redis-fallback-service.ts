@@ -6,7 +6,7 @@
  */
 
 import { redisErrorLogger, RedisErrorType, RedisOperationType } from './redis-error-logger';
-import { ProxyApiResponse } from '../api/types/proxy';
+import { ProxyApiResponse } from '../../shared/types/proxy';
 import { redisPredictiveAnalytics } from './redis-predictive-analytics';
 
 // Fallback mode status

@@ -34,7 +34,6 @@ export * from './ErrorToast';
 export * from './HydrationSafeWrapper';
 export * from './InteractiveChart';
 export * from './OptimizedChartLoader';
-export * from './OptimizedChartRegistration';
 export * from './RefreshButton';
 export * from './RemoveButton';
 export * from './SmoothChartTransition';

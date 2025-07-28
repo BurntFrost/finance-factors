@@ -226,13 +226,13 @@ export default function DynamicChart({
 
     switch (type) {
       case 'line-chart':
-        return <Line {...commonProps} />;
+        return <Line {...commonProps as any} />;
       case 'bar-chart':
-        return <Bar {...commonProps} />;
+        return <Bar {...commonProps as any} />;
       case 'pie-chart':
-        return <Pie {...commonProps} />;
+        return <Pie {...commonProps as any} />;
       case 'doughnut-chart':
-        return <Doughnut {...commonProps} />;
+        return <Doughnut {...commonProps as any} />;
       default:
         return <div>Unsupported chart type</div>;
     }

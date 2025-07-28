@@ -4,8 +4,8 @@
  * Centralized health monitoring service for the backend
  */
 
-import { checkDatabaseHealth } from '../lib/database/prisma';
-import { isRedisAvailable, getRedisInfo } from '../lib/redis/redis';
+import { checkDatabaseHealth } from '../lib/prisma';
+import { isRedisAvailable, getRedisInfo } from '../lib/redis';
 import { cacheService } from './cache-service';
 import type { ApiHealthCheck, ServiceStatus, PerformanceMetrics } from '@/shared/types';
 
@@ -62,9 +62,9 @@ export class HealthService {
       const health = await checkDatabaseHealth();
       return {
         configured: true,
-        status: health.connected ? 'healthy' as ServiceStatus : 'unhealthy' as ServiceStatus,
+        status: health.status === 'healthy' ? 'healthy' as ServiceStatus : 'unhealthy' as ServiceStatus,
         lastChecked: new Date().toISOString(),
-        responseTime: health.responseTime,
+        responseTime: health.latency,
         error: health.error,
       };
     } catch (error) {
@@ -89,7 +89,6 @@ export class HealthService {
         configured: true,
         status: isAvailable ? 'healthy' as ServiceStatus : 'unhealthy' as ServiceStatus,
         lastChecked: new Date().toISOString(),
-        responseTime: info?.responseTime,
         note: isAvailable ? 'Redis is operational' : 'Redis is not available',
       };
     } catch (error) {
@@ -108,12 +107,12 @@ export class HealthService {
   private async checkCacheHealth() {
     try {
       const stats = await cacheService.getCacheStatistics();
-      
+
       return {
         configured: true,
         status: 'healthy' as ServiceStatus,
         lastChecked: new Date().toISOString(),
-        note: `Cache hit rate: ${(stats.hitRate * 100).toFixed(1)}%`,
+        note: stats ? `Cache hit rate: ${(stats.hitRate * 100).toFixed(1)}%` : 'Cache statistics unavailable',
       };
     } catch (error) {
       return {
@@ -179,8 +178,8 @@ export class HealthService {
       const stats = await cacheService.getCacheStatistics();
       return {
         enabled: true,
-        size: stats.totalKeys,
-        hitRate: stats.hitRate,
+        size: stats?.totalKeys || 0,
+        hitRate: stats?.hitRate || 0,
       };
     } catch {
       return {

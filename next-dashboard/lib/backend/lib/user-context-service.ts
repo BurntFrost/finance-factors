@@ -5,7 +5,7 @@
  * preferences, and current system state.
  */
 
-import { UserExperienceIndicator } from '../api/types/proxy';
+import { UserExperienceIndicator } from '../../shared/types/proxy';
 import { redisFallbackService } from './redis-fallback-service';
 
 interface UserContext {

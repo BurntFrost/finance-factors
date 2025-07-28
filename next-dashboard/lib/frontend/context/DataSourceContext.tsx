@@ -197,8 +197,8 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
         };
       } else {
         // Use real API service for live data
-        const { realApiService } = await import('../services/realApiService');
-        const { transformers } = await import('../services/dataTransformers');
+        const { realApiService } = await import('../../backend/services/realApiService');
+        const { transformers } = await import('../../backend/services/dataTransformers');
 
         const apiResponse = await realApiService.fetchData(options);
 
@@ -220,7 +220,7 @@ export function DataSourceProvider({ children }: DataSourceProviderProps) {
           // Fallback to mock data if real API fails
           console.warn(`Real API failed for ${dataType}, falling back to mock data:`, apiResponse.error);
 
-          const { mockApiService } = await import('../services/mockApiService');
+          const { mockApiService } = await import('../../backend/services/mockApiService');
           const mockResponse = await mockApiService.fetchData(options);
 
           if (mockResponse.success && mockResponse.data) {

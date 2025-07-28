@@ -4,15 +4,15 @@
  * Centralized cache management service for the backend
  */
 
-import { cache } from '../lib/cache/advanced-cache';
-import { 
-  setCacheData, 
-  getCacheData, 
+import { cache } from '../lib/advanced-cache';
+import {
+  setCacheData,
+  getCacheData,
   deleteCacheKey,
   getCacheStats,
   CACHE_PREFIXES,
-  DEFAULT_TTL 
-} from '../lib/redis/redis-cache';
+  DEFAULT_TTL
+} from '../lib/redis-cache';
 import type { StandardDataPoint, ProxyApiResponse } from '@/shared/types';
 
 export class CacheService {

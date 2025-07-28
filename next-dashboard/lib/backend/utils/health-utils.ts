@@ -13,7 +13,7 @@ import {
   HealthCheckResult,
   Alert,
   HealthCheckError
-} from '@/shared/types/health';
+} from '../types/health';
 
 /**
  * Get current performance metrics

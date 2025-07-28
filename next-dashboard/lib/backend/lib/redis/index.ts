@@ -5,14 +5,14 @@
  */
 
 // Core Redis functionality
-export * from './redis';
-export * from './redis-cache';
-export * from './redis-rate-limit';
+export * from '../redis';
+export * from '../redis-cache';
+export * from '../redis-rate-limit';
 
 // Redis monitoring and health
-export * from './redis-health-monitor';
-export * from './redis-error-logger';
+export * from '../redis-health-monitor';
+export * from '../redis-error-logger';
 
 // Redis services
-export * from './redis-fallback-service';
-export * from './redis-predictive-analytics';
+export * from '../redis-fallback-service';
+export * from '../redis-predictive-analytics';

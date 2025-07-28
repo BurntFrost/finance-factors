@@ -6,7 +6,7 @@
  */
 
 import { executeRedisCommand, isRedisAvailable } from './redis';
-import { StandardDataPoint, ProxyApiResponse } from '../api/types/proxy';
+import { StandardDataPoint, ProxyApiResponse } from '../../shared/types/proxy';
 import { RedisOperationType } from './redis-error-logger';
 import { isRedisEnabled } from './feature-toggles';
 

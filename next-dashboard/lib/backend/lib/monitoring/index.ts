@@ -5,5 +5,5 @@
  */
 
 // Monitoring and health utilities
-export * from './distributed-health-dashboard';
-export * from './adaptive-circuit-breaker';
+export * from '../distributed-health-dashboard';
+export * from '../adaptive-circuit-breaker';
