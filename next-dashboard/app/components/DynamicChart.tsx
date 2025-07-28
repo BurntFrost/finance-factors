@@ -30,10 +30,7 @@ const ChartRegistration = lazy(() =>
   import('./ChartRegistration').then(module => ({ default: module.default }))
 );
 
-// Import the wait function
-const waitForChartJS = lazy(() =>
-  import('./ChartRegistration').then(module => ({ default: module.waitForChartJS }))
-);
+
 
 interface DynamicChartProps {
   type: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart';

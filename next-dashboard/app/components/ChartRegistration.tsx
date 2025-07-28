@@ -73,7 +73,7 @@ async function registerChartJSGlobally(): Promise<void> {
 
 // This component doesn't render anything, it just ensures Chart.js is registered
 export default function ChartRegistration() {
-  const [isRegistered, setIsRegistered] = useState(getChartRegistered());
+  const [_isRegistered, setIsRegistered] = useState(getChartRegistered());
 
   useEffect(() => {
     if (getChartRegistered()) {
@@ -101,7 +101,6 @@ export default function ChartRegistration() {
 
 // Export function to check if Chart.js is ready
 export const waitForChartJS = () => getRegistrationPromise();
-}
 
 // Export registration status for other components
 export const isChartJSRegistered = () => getChartRegistered();
