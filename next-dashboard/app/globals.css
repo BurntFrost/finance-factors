@@ -1,5 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  /* Light theme variables */
+  /* Light theme variables - Legacy CSS custom properties */
   --background: #ffffff;
   --foreground: #171717;
   --background-secondary: #f8f9fa;
@@ -21,10 +25,46 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* shadcn/ui CSS variables - Light theme */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --primary: 210 100% 50%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 98%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 98%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 210 100% 50%;
+  --radius: 0.5rem;
+
+  /* Financial data specific colors - Light theme */
+  --success: 142.1 76.2% 36.3%;
+  --success-foreground: 355.7 100% 97.3%;
+  --warning: 47.9 95.8% 53.1%;
+  --warning-foreground: 26 83.3% 14.1%;
+  --info: 199.89 89.47% 48.04%;
+  --info-foreground: 210 40% 98%;
+
+  /* Chart specific colors - Light theme */
+  --chart-positive: 142.1 76.2% 36.3%;
+  --chart-negative: 0 84.2% 60.2%;
+  --chart-neutral: 215.4 16.3% 46.9%;
 }
 
 /* Dark theme variables - applied via data-theme attribute */
 [data-theme="dark"] {
+  /* Legacy CSS custom properties */
   --background: #0a0a0a;
   --foreground: #ededed;
   --background-secondary: #1a1a1a;
@@ -46,11 +86,46 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+
+  /* shadcn/ui CSS variables - Dark theme */
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 222.2 84% 4.9%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222.2 84% 4.9%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 210 100% 50%;
+  --primary-foreground: 222.2 84% 4.9%;
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+
+  /* Financial data specific colors - Dark theme */
+  --success: 142.1 70.6% 45.3%;
+  --success-foreground: 144.9 80.4% 10%;
+  --warning: 47.9 95.8% 53.1%;
+  --warning-foreground: 26 83.3% 14.1%;
+  --info: 199.89 89.47% 48.04%;
+  --info-foreground: 210 40% 98%;
+
+  /* Chart specific colors - Dark theme */
+  --chart-positive: 142.1 70.6% 45.3%;
+  --chart-negative: 0 62.8% 30.6%;
+  --chart-neutral: 215 20.2% 65.1%;
 }
 
 /* Fallback for system preference when no manual theme is set */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
+    /* Legacy CSS custom properties */
     --background: #0a0a0a;
     --foreground: #ededed;
     --background-secondary: #1a1a1a;
@@ -68,6 +143,40 @@
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+
+    /* shadcn/ui CSS variables - Dark theme fallback */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+
+    /* Financial data specific colors - Dark theme fallback */
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
+    --warning: 47.9 95.8% 53.1%;
+    --warning-foreground: 26 83.3% 14.1%;
+    --info: 199.89 89.47% 48.04%;
+    --info-foreground: 210 40% 98%;
+
+    /* Chart specific colors - Dark theme fallback */
+    --chart-positive: 142.1 70.6% 45.3%;
+    --chart-negative: 0 62.8% 30.6%;
+    --chart-neutral: 215 20.2% 65.1%;
   }
 }
 
@@ -130,4 +239,49 @@ a {
 /* Disable transitions during theme change to prevent flash */
 .theme-transitioning * {
   transition: none !important;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom utility classes for financial dashboard */
+@layer utilities {
+  .text-financial-positive {
+    @apply text-chart-positive;
+  }
+
+  .text-financial-negative {
+    @apply text-chart-negative;
+  }
+
+  .text-financial-neutral {
+    @apply text-chart-neutral;
+  }
+
+  .bg-financial-positive {
+    @apply bg-chart-positive;
+  }
+
+  .bg-financial-negative {
+    @apply bg-chart-negative;
+  }
+
+  .bg-financial-neutral {
+    @apply bg-chart-neutral;
+  }
+
+  .border-financial-positive {
+    @apply border-chart-positive;
+  }
+
+  .border-financial-negative {
+    @apply border-chart-negative;
+  }
+
+  .border-financial-neutral {
+    @apply border-chart-neutral;
+  }
 }
