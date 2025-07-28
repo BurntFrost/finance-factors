@@ -1,20 +1,33 @@
 # Finance Factors Dashboard
 
-A comprehensive Next.js 15 dashboard application for visualizing real-time financial and economic data with interactive Chart.js visualizations, featuring live API integration, intelligent data source management, and automatic deployment.
+A comprehensive Next.js 15 dashboard application for visualizing real-time financial and economic data with advanced interactive features, modern UI components, and enterprise-grade architecture including database integration, GraphQL API, and WebSocket support.
 
 ## 🌟 Key Features
 
+### **Core Capabilities**
+
 - **🔴 Live Government APIs**: Real-time data from FRED, BLS, Census Bureau, Alpha Vantage
-- **📊 Interactive Charts**: Dynamic visualizations with Chart.js 4.5.0 and react-chartjs-2 5.2.0
-- **🔄 Smart Data Switching**: Automatic fallback between live APIs and historical data with intelligent retry logic
-- **⚡ Performance Optimized**: Lazy loading, code splitting, intelligent caching with Redis and TTL
-- **🚀 Automatic Deployment**: GitHub Actions → Vercel with preview deployments and health checks
-- **📱 Responsive Design**: Optimized for all devices with CSS Modules and responsive layouts
-- **♿ Accessibility**: Full keyboard navigation, screen reader support, and WCAG 2.1 AA compliance
-- **🛡️ CORS-Free**: Next.js API proxy eliminates cross-origin issues with rate limiting
-- **📈 Real-time Status**: Live API health monitoring, data freshness indicators, and error boundaries
-- **🎛️ Context-Driven State**: React Context API with DashboardProvider, AutomaticDataSourceProvider, and ViewModeProvider
-- **🔧 TypeScript Strict**: Full type safety with comprehensive interfaces and strict mode enabled
+- **📊 Advanced Interactive Charts**: Chart.js 4.5.0 with zoom, pan, crossfilter, and real-time updates
+- **🎨 Modern UI Framework**: shadcn/ui components with Tailwind CSS and comprehensive design system
+- **🔄 Smart Data Management**: Automatic fallback with Redis caching, PostgreSQL persistence, and intelligent retry logic
+- **🚀 Enterprise Architecture**: GraphQL API, WebSocket real-time updates, and Prisma ORM integration
+
+### **Advanced Features**
+
+- **🎛️ Interactive Dashboard**: Drag & drop layout, resizable panels, and customizable visualizations
+- **📈 Real-time Data Streaming**: WebSocket connections with live chart updates and status indicators
+- **🗄️ Database Integration**: PostgreSQL with Prisma ORM for user management, dashboards, and audit logging
+- **🔍 GraphQL API**: Apollo Server with comprehensive schema and performance monitoring
+- **📊 Data Analysis Tools**: Crossfilter integration, comparison mode, and correlation analysis
+- **📤 Export Capabilities**: Multi-format export (CSV, PDF, images) with bulk operations
+
+### **Performance & Quality**
+
+- **⚡ Performance Optimized**: Advanced bundle splitting, lazy loading, and compression with monitoring
+- **♿ Accessibility First**: WCAG 2.1 AA compliance with full keyboard navigation and screen reader support
+- **🛡️ Security & Reliability**: API proxy architecture, rate limiting, comprehensive error handling
+- **🔧 TypeScript Strict**: Full type safety with layered architecture and comprehensive interfaces
+- **🚀 Automatic Deployment**: GitHub Actions → Vercel with preview deployments and health monitoring
 
 ## 🌐 Live Demo & Status
 
@@ -72,66 +85,106 @@ npm run dev
 
 ## 🛠 Technology Stack
 
-### Frontend Architecture
-- **Framework**: Next.js 15.4.2 with App Router and React 18.2.0
-- **Language**: TypeScript with strict mode and comprehensive type definitions
-- **Visualization**: Chart.js 4.5.0 with react-chartjs-2 5.2.0 for interactive charts
-- **Styling**: CSS Modules with responsive design and CSS custom properties
-- **State Management**: React Context API with three main providers:
+### **Core Framework & Runtime**
+
+- **Framework**: Next.js 15.4.2 with App Router and Turbopack support
+- **Runtime**: React 19.1.0 with enhanced concurrent features
+- **Language**: TypeScript 5.x with strict mode and comprehensive type definitions
+- **Node.js**: Optimized for 18+ (20+ recommended for optimal performance)
+
+### **Frontend Architecture**
+
+- **UI Framework**: shadcn/ui with Radix UI primitives and Tailwind CSS 4.1.11
+- **Visualization**: Chart.js 4.5.0 with react-chartjs-2 5.3.0 and advanced interactive features
+- **Styling**: Dual approach - Tailwind CSS + CSS Modules with comprehensive design system
+- **State Management**: React Context API with five specialized providers:
   - `DashboardProvider` - Dashboard element management and layout
   - `AutomaticDataSourceProvider` - Intelligent data source switching
   - `ViewModeProvider` - Edit/Live/Preview mode management
-- **Performance**: Lazy loading, code splitting, Suspense boundaries, and dynamic imports
+  - `ThemeProvider` - Dark/light mode with system preference detection
+  - `CrossfilterProvider` - Cross-chart data filtering and analysis
+- **Interactive Features**: @dnd-kit for drag & drop, react-resizable-panels, chartjs-plugin-zoom
+- **Performance**: Lazy loading, code splitting, Suspense boundaries, and advanced bundle optimization
 
-### Backend/API Architecture
-- **Serverless**: Vercel Functions with Node.js runtime
-- **API Proxy**: Next.js API routes for CORS resolution and security
-- **Caching**: Multi-layer caching with Redis and in-memory TTL (30-minute default)
-- **Rate Limiting**: Built-in rate limiting for external API calls
+### **Backend & Database Architecture**
+
+- **Database**: PostgreSQL with Prisma ORM 6.12.0
+- **GraphQL**: Apollo Server 5.0.0 with comprehensive schema and performance monitoring
+- **WebSocket**: ws 8.18.3 for real-time data streaming and live updates
+- **Caching**: Multi-layer strategy with Redis 5.6.1 and intelligent TTL management
+- **API Proxy**: Next.js API routes with CORS resolution, rate limiting, and security
 - **Data Sources**: Government APIs (FRED, BLS, Census Bureau, Alpha Vantage)
-- **Error Handling**: Comprehensive error boundaries and fallback mechanisms
-- **Data Transformation**: Standardized data transformers for Chart.js compatibility
+- **Error Handling**: Comprehensive error boundaries, retry logic, and fallback mechanisms
 
-### Development & Quality Tools
-- **Build Tool**: Next.js with Turbopack for fast development builds
-- **Linting**: ESLint with Next.js and TypeScript configurations
-- **Type Checking**: TypeScript compiler with strict mode and path mapping
-- **Testing**: Comprehensive API connectivity tests and health checks
-- **Deployment**: GitHub Actions CI/CD → Vercel with automated preview deployments
-- **Monitoring**: Built-in health check endpoints and performance metrics
-- **Bundle Analysis**: Webpack bundle analyzer for performance optimization
+### **Advanced Features & Integrations**
+
+- **Data Analysis**: crossfilter2 1.5.4 for cross-chart filtering and correlation analysis
+- **Export Capabilities**: jspdf 3.0.1, html2canvas 1.4.1, papaparse 5.5.3 for multi-format export
+- **Date Handling**: date-fns 4.1.0 with chartjs-adapter-date-fns for time-series data
+- **Real-time Features**: WebSocket connections with subscription management and auto-reconnection
+- **Performance Monitoring**: Built-in metrics collection, health checks, and bundle analysis
+
+### **Development & Quality Tools**
+
+- **Build System**: Next.js with Turbopack for development, advanced webpack optimization for production
+- **Code Quality**: ESLint 9.x with Next.js 15 configuration and TypeScript strict mode
+- **Bundle Analysis**: @next/bundle-analyzer with performance monitoring and optimization
+- **Testing**: Comprehensive API connectivity tests, health checks, and deployment verification
+- **Database Tools**: Prisma Studio, migrations, and seeding with full-text search support
+- **Deployment**: GitHub Actions CI/CD → Vercel with automated preview deployments and monitoring
 
 ## 🏗 System Architecture
 
-### Architecture Overview
+### **Architecture Overview**
 
-The Finance Factors Dashboard follows a modern React architecture with clear separation of concerns and intelligent data management.
+The Finance Factors Dashboard follows a modern layered architecture with enterprise-grade features and clear separation of concerns.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
-│                    Next.js 15 App Router                    │
+│                Next.js 15 App Router + React 19            │
+├─────────────────────────────────────────────────────────────┤
+│  UI Layer (shadcn/ui + Tailwind CSS)                       │
+│  ├── Interactive Charts (Chart.js + zoom/pan/crossfilter)  │
+│  ├── Modern Components (Radix UI primitives)               │
+│  ├── Drag & Drop Dashboard (@dnd-kit)                      │
+│  └── Real-time Status Indicators                           │
 ├─────────────────────────────────────────────────────────────┤
 │  Context Providers (Global State Management)               │
-│  ├── DashboardProvider (Element management)                │
-│  ├── AutomaticDataSourceProvider (Data source switching)   │
-│  └── ViewModeProvider (Edit/Live mode toggle)              │
+│  ├── DashboardProvider (Element & layout management)       │
+│  ├── AutomaticDataSourceProvider (Smart data switching)    │
+│  ├── ViewModeProvider (Edit/Live mode toggle)              │
+│  ├── ThemeProvider (Dark/light mode)                       │
+│  └── CrossfilterProvider (Cross-chart filtering)           │
 ├─────────────────────────────────────────────────────────────┤
 │  Component Layer                                            │
-│  ├── AutomaticChart (Smart chart with data source aware)   │
+│  ├── AutomaticChart (Smart chart with advanced features)   │
 │  ├── DynamicElementRenderer (Dynamic dashboard elements)   │
 │  ├── DataStatusPill (Real-time status indicators)         │
-│  └── UI Components (Dropdowns, toggles, controls)         │
+│  └── Export/Analysis Tools (PDF, CSV, image export)       │
 ├─────────────────────────────────────────────────────────────┤
 │  Hooks Layer (Custom React Hooks)                          │
-│  ├── useDataSource (Data fetching & caching)              │
+│  ├── useAutomaticDataSource (Smart data fetching)         │
 │  ├── useDashboard (Dashboard state management)            │
-│  └── useViewMode (Edit/Live mode state)                   │
+│  ├── useChartDataSource (Chart-specific data)             │
+│  └── useIsolatedDataSource (Component-isolated data)      │
+├─────────────────────────────────────────────────────────────┤
+│  API Layer (Next.js App Router)                            │
+│  ├── GraphQL API (Apollo Server + comprehensive schema)    │
+│  ├── REST Proxy (/api/proxy/data - unified data endpoint)  │
+│  ├── WebSocket (/api/ws - real-time data streaming)        │
+│  └── Health Checks (/api/health - monitoring endpoints)    │
 ├─────────────────────────────────────────────────────────────┤
 │  Services Layer (Data & API Management)                    │
-│  ├── realApiService (Live government APIs orchestrator)    │
-│  ├── dataTransformers (Data format standardization)       │
-│  ├── historicalDataGenerators (Sample data generation)    │
-│  └── apiCache (Intelligent caching with TTL)              │
+│  ├── Proxy Services (FRED, BLS, Census, Alpha Vantage)     │
+│  ├── Data Transformers (Standardization pipeline)         │
+│  ├── Cache Management (Redis + compression)               │
+│  └── Rate Limiting & Error Handling                       │
+├─────────────────────────────────────────────────────────────┤
+│  Database Layer (PostgreSQL + Prisma)                      │
+│  ├── User Management & Authentication                      │
+│  ├── Dashboard Persistence & Sharing                       │
+│  ├── Performance Metrics & Audit Logging                  │
+│  └── Cache Storage & Rate Limit Tracking                  │
 ├─────────────────────────────────────────────────────────────┤
 │  External APIs (Government Data Sources)                   │
 │  ├── FRED API (Federal Reserve Economic Data)              │
@@ -141,24 +194,28 @@ The Finance Factors Dashboard follows a modern React architecture with clear sep
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Data Flow Architecture
+### **Data Flow Architecture**
 
-```
-User Interaction
+```text
+User Interaction (UI Events, WebSocket connections)
        ↓
-Context Providers (State Management)
+Context Providers (Global state management)
        ↓
-Custom Hooks (useDataSource, useDashboard)
+Custom Hooks (useAutomaticDataSource, useDashboard)
        ↓
-Services Layer (API calls, caching, transformations)
+API Layer (GraphQL/REST proxy with caching)
        ↓
-External APIs / Historical Data Generators
+Services Layer (Rate limiting, error handling, transformations)
        ↓
-Data Transformers (Standardize format)
+External APIs / Database / Cache Layer
        ↓
-Chart.js Components (Visualization)
+Data Transformers (Standardize to Chart.js format)
        ↓
-User Interface (Interactive charts & controls)
+Chart.js Components (Interactive visualizations)
+       ↓
+Real-time Updates (WebSocket streaming)
+       ↓
+User Interface (Live charts, status indicators, export tools)
 ```
 
 ## 📊 Modernized Chart System Architecture
@@ -278,54 +335,118 @@ The Finance Factors Dashboard features a **completely modernized chart system** 
 
 ## 💻 Development Guide
 
-### API Integration
+### **Quick Start**
 
-#### Supported APIs (All Free Government Data)
+```bash
+# Clone and install
+git clone https://github.com/BurntFrost/finance-factors.git
+cd finance-factors/next-dashboard
+npm install
 
-##### 1. FRED API (Federal Reserve Economic Data) - **Recommended First**
+# Setup environment (optional - works without API keys)
+cp .env.example .env.local
+
+# Start development server with Turbopack
+npm run dev
+
+# Open http://localhost:3000
+```
+
+### **Database Setup (Optional)**
+
+For full functionality including user management and dashboard persistence:
+
+```bash
+# Setup PostgreSQL database (local or cloud)
+# Add DATABASE_URL to .env.local
+
+# Generate Prisma client and run migrations
+npm run db:generate
+npm run db:migrate
+
+# Optional: Seed database with sample data
+npm run db:seed
+
+# Open Prisma Studio for database management
+npm run db:studio
+```
+
+### **API Integration**
+
+#### **Supported APIs (All Free Government Data)**
+
+##### **1. FRED API (Federal Reserve Economic Data) - Recommended First**
+
 - **Provider**: Federal Reserve Bank of St. Louis
 - **Cost**: Free with API key
 - **Rate Limit**: 120 requests/minute
 - **Setup**: [Get API key](https://fred.stlouisfed.org/docs/api/api_key.html)
 - **Data**: Housing prices, interest rates, GDP, unemployment
 
-##### 2. BLS API (Bureau of Labor Statistics)
+##### **2. BLS API (Bureau of Labor Statistics)**
+
 - **Provider**: U.S. Bureau of Labor Statistics
 - **Cost**: Free (500 requests/day with key vs 25 without)
 - **Setup**: [Get API key](https://www.bls.gov/developers/api_signature_v2.htm)
 - **Data**: Employment, wages, inflation, labor statistics
 
-##### 3. Census Bureau API
+##### **3. Census Bureau API**
+
 - **Provider**: U.S. Census Bureau
 - **Cost**: Free (optional API key for higher limits)
 - **Setup**: [Get API key](https://api.census.gov/data/key_signup.html)
 - **Data**: Demographics, housing, income statistics
 
-##### 4. Alpha Vantage API (Optional)
+##### **4. Alpha Vantage API (Optional)**
+
 - **Provider**: Alpha Vantage Inc.
 - **Cost**: Free tier (25 requests/day)
 - **Setup**: [Get API key](https://www.alphavantage.co/support/#api-key)
 - **Data**: Additional economic indicators
 
-### Local Development API Setup
+### **Local Development Setup**
 
-1. **Create environment file**:
-   ```bash
-   cp .env.example .env.local
-   ```
+#### **1. Environment Configuration**
 
-2. **Get FRED API key** (recommended first step):
-   ```bash
-   # Visit: https://fred.stlouisfed.org/docs/api/api_key.html
-   # Add to .env.local:
-   NEXT_PUBLIC_FRED_API_KEY=your_key_here
-   NEXT_PUBLIC_DEFAULT_DATA_SOURCE=live-api
-   ```
+```bash
+# Create environment file
+cp .env.example .env.local
 
-3. **Test API connectivity**:
-   ```bash
-   npm run test:apis
-   ```
+# Add API keys (optional - dashboard works with historical data)
+NEXT_PUBLIC_FRED_API_KEY=your_fred_api_key
+NEXT_PUBLIC_BLS_API_KEY=your_bls_api_key
+NEXT_PUBLIC_CENSUS_API_KEY=your_census_api_key
+NEXT_PUBLIC_ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
+
+# Database (optional - for user management features)
+DATABASE_URL="postgresql://user:password@localhost:5432/finance_factors"
+DIRECT_URL="postgresql://user:password@localhost:5432/finance_factors"
+
+# Redis (optional - for advanced caching)
+REDIS_URL="redis://localhost:6379"
+```
+
+#### **2. Development Commands**
+
+```bash
+# Start development server with Turbopack (fast)
+npm run dev
+
+# Test API connectivity
+npm run test:apis
+
+# Test health checks
+npm run test:health
+
+# Database operations
+npm run db:generate    # Generate Prisma client
+npm run db:migrate     # Run database migrations
+npm run db:studio      # Open Prisma Studio
+
+# Build and analyze
+npm run build          # Production build
+npm run build:analyze  # Build with bundle analysis
+```
 
 ### Environment Variables
 
@@ -597,43 +718,67 @@ npm run build:analyze          # Bundle analysis for performance
 
 ## 📋 Recent Updates & Changes
 
-### Latest Improvements (2024)
+### **Latest Major Improvements (2025)**
 
-#### ✅ CORS Resolution & API Proxy
+#### **✅ Enterprise Architecture Upgrade**
+
+- **Added**: PostgreSQL database with Prisma ORM for user management and dashboard persistence
+- **Implemented**: GraphQL API with Apollo Server for advanced data querying
+- **Integrated**: WebSocket support for real-time data streaming and live updates
+- **Enhanced**: Multi-layer caching with Redis and intelligent TTL management
+
+#### **✅ Modern UI Framework Integration**
+
+- **Integrated**: shadcn/ui component library with Radix UI primitives
+- **Upgraded**: Tailwind CSS 4.1.11 with comprehensive design system
+- **Added**: Dark/light mode support with system preference detection
+- **Implemented**: Responsive design with mobile-first approach
+
+#### **✅ Advanced Interactive Features**
+
+- **Added**: Drag & drop dashboard layout with @dnd-kit integration
+- **Implemented**: Chart zoom, pan, and crossfilter capabilities
+- **Enhanced**: Real-time chart updates with WebSocket connections
+- **Added**: Multi-format export (PDF, CSV, images) with bulk operations
+
+#### **✅ Performance & Developer Experience**
+
+- **Upgraded**: Next.js 15.4.2 with React 19.1.0 and Turbopack support
+- **Optimized**: Advanced bundle splitting and compression management
+- **Enhanced**: Comprehensive health monitoring and performance metrics
+- **Improved**: TypeScript strict mode with layered architecture
+
+#### **✅ Data Analysis & Visualization**
+
+- **Added**: Crossfilter integration for cross-chart data filtering
+- **Implemented**: Correlation analysis and comparison tools
+- **Enhanced**: Chart.js 4.5.0 with advanced interactive plugins
+- **Added**: Real-time status indicators and data freshness monitoring
+
+### **Previous Improvements (2024)**
+
+#### **✅ CORS Resolution & API Proxy**
+
 - **Fixed**: All CORS issues with government APIs
 - **Added**: Next.js API proxy for seamless data fetching
 - **Improved**: Error handling and fallback mechanisms
 
-#### ✅ Deployment Optimization
-- **Removed**: GitHub Pages compatibility (simplified architecture)
-- **Enhanced**: Vercel deployment with full API support
+#### **✅ Deployment Optimization**
+
+- **Enhanced**: Vercel deployment with full serverless function support
 - **Added**: Automatic preview deployments for pull requests
+- **Implemented**: GitHub Actions CI/CD pipeline
 
-#### ✅ Performance Enhancements
-- **Upgraded**: Next.js 15.4.2 with Turbopack
-- **Optimized**: Chart.js rendering with lazy loading
-- **Improved**: Caching strategy with TTL-based invalidation
+### **Current Status**
 
-#### ✅ API Integration Improvements
-- **Enhanced**: FRED API integration with better error handling
-- **Added**: BLS API support for employment data
-- **Improved**: Census Bureau API integration
-- **Fixed**: Rate limiting and request optimization
-
-#### ✅ User Experience
-- **Added**: Real-time API health status indicators
-- **Improved**: Data source switching with visual feedback
-- **Enhanced**: Loading states and error boundaries
-- **Added**: Automatic data refresh with configurable intervals
-
-### Current Status
-
-- **Build Status**: ✅ Passing
-- **Deployment**: ✅ Automatic via GitHub Actions
-- **API Health**: ✅ All major APIs operational
-- **Performance**: ✅ Optimized for Core Web Vitals
-- **Accessibility**: ✅ WCAG 2.1 AA compliant
-- **Type Safety**: ✅ Full TypeScript coverage
+- **Build Status**: ✅ Passing with advanced optimizations
+- **Deployment**: ✅ Automatic via GitHub Actions with health checks
+- **API Health**: ✅ All major APIs operational with monitoring
+- **Performance**: ✅ Optimized for Core Web Vitals with bundle analysis
+- **Accessibility**: ✅ WCAG 2.1 AA compliant with full keyboard navigation
+- **Type Safety**: ✅ Full TypeScript coverage with strict mode
+- **Database**: ✅ PostgreSQL with Prisma ORM and migrations
+- **Real-time**: ✅ WebSocket support with subscription management
 
 ## 🛠️ Development Workflow & Best Practices
 
@@ -724,6 +869,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using Next.js 15, TypeScript, Chart.js, React Context API, and government open data APIs**
+**Built with ❤️ using Next.js 15, React 19, TypeScript, shadcn/ui, Chart.js, PostgreSQL, GraphQL, and government open data APIs**
 
-*Last updated: January 2025 - Comprehensive codebase analysis and documentation enhancement*
+*Last updated: January 2025 - Comprehensive codebase analysis with enterprise architecture documentation*
