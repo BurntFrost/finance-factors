@@ -29,18 +29,13 @@ export default function ChartRegistration() {
         // Import Chart.js components individually for better control
         const [
           chartModule,
-          zoomPluginModule
+          zoomPluginModule,
+          dateAdapterModule
         ] = await Promise.all([
           import('chart.js'),
-          import('chartjs-plugin-zoom')
+          import('chartjs-plugin-zoom'),
+          import('chartjs-adapter-date-fns')
         ]);
-
-        // Import date adapter separately to avoid TypeScript issues
-        try {
-          await import('chartjs-adapter-date-fns');
-        } catch (error) {
-          console.warn('Failed to load chartjs-adapter-date-fns:', error);
-        }
 
         const {
           Chart: ChartJS,
@@ -72,6 +67,13 @@ export default function ChartRegistration() {
           Legend,
           zoomPlugin
         );
+
+        // Verify time scale is registered
+        if (!ChartJS.registry.getScale('time')) {
+          console.error('Time scale not registered properly');
+        } else {
+          console.log('Time scale registered successfully');
+        }
 
         // Configure global Chart.js defaults for better interactivity
         ChartJS.defaults.font.family = 'var(--font-geist-sans), system-ui, sans-serif';

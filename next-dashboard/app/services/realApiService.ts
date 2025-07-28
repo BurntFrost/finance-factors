@@ -21,11 +21,19 @@ class RealApiService {
   private proxyAvailable: boolean | null = null; // Cache proxy availability
 
   constructor() {
+    // Check environment variable for proxy usage
+    const useProxyEnv = process.env.NEXT_PUBLIC_USE_API_PROXY;
+
     // Force proxy usage in production to avoid CORS issues
     if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
       this.useProxy = true;
       this.proxyAvailable = true; // Assume proxy is available in production
+    } else {
+      // For local development, respect the environment variable
+      this.useProxy = useProxyEnv === 'true';
     }
+
+    console.log(`RealApiService initialized with proxy: ${this.useProxy}`);
   }
 
   /**
@@ -110,6 +118,17 @@ class RealApiService {
             this.proxyAvailable = null; // Reset availability check after 5 minutes
           }, 5 * 60 * 1000);
         }
+      }
+
+      // For production, never fall back to direct API calls due to CORS
+      if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        return {
+          data: null as T,
+          success: false,
+          error: 'API proxy is required for production deployment. Direct API calls are blocked by CORS policy.',
+          timestamp: new Date(),
+          source: 'Real API Service',
+        };
       }
 
       // Fallback to direct API calls (only for local development)
@@ -303,6 +322,11 @@ class RealApiService {
    * Test FRED API health
    */
   private async testFredHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return fredApiService.isConfigured();
+    }
+
     try {
       if (!fredApiService.isConfigured()) return false;
       const response = await fredApiService.fetchSeries('GDP', { limit: 1 });
@@ -316,6 +340,11 @@ class RealApiService {
    * Test BLS API health
    */
   private async testBlsHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return blsApiService.isConfigured();
+    }
+
     try {
       const response = await blsApiService.fetchSeries('LNS14000000', {
         startYear: new Date().getFullYear(),
@@ -331,6 +360,11 @@ class RealApiService {
    * Test Census API health
    */
   private async testCensusHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return censusApiService.isConfigured();
+    }
+
     try {
       const response = await censusApiService.fetchACS(['B01003_001E'], {
         year: 2023,
@@ -346,6 +380,11 @@ class RealApiService {
    * Test Alpha Vantage API health
    */
   private async testAlphaVantageHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return alphaVantageApiService.isConfigured();
+    }
+
     try {
       if (!alphaVantageApiService.isConfigured()) return false;
       const response = await alphaVantageApiService.fetchEconomicIndicator('REAL_GDP');
