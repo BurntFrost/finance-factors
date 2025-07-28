@@ -1,15 +1,42 @@
-# Redis Integration for Finance-Factors Dashboard
+# Redis Integration for Finance-Factors Dashboard (OPTIONAL)
 
-This document describes the comprehensive Redis integration implemented for the finance-factors dashboard, providing distributed caching, rate limiting, and performance optimization.
+This document describes the **optional** Redis integration for the finance-factors dashboard. Redis provides enhanced caching, rate limiting, and performance optimization capabilities, but **the application works perfectly without Redis**.
+
+## 🚀 Quick Start (Redis-Free)
+
+**The application is configured to work without Redis by default.** Simply:
+
+1. Clone the repository
+2. Run `npm install` (Redis package is no longer included by default)
+3. Run `npm run dev`
+4. The app will use in-memory caching and simple rate limiting
 
 ## Overview
 
-The Redis integration provides:
-- **Distributed Caching**: API responses, chart data, and computed results
-- **Rate Limiting**: Distributed rate limiting for external API calls
-- **Session Management**: User session data and preferences
+The Redis integration is **completely optional** and provides:
+- **Enhanced Caching**: Persistent caching with Redis (vs in-memory fallback)
+- **Distributed Rate Limiting**: Shared rate limits across multiple instances (vs per-instance limits)
+- **Session Management**: Persistent user session data and preferences
 - **Performance Monitoring**: Cache hit rates, latency metrics, and health checks
 - **Scalability**: Horizontal scaling support for multiple application instances
+
+**When Redis is disabled (default):**
+- ✅ All core functionality works normally
+- ✅ In-memory caching for API responses
+- ✅ Simple per-instance rate limiting
+- ✅ No external dependencies required
+- ✅ Easy deployment to any platform (Vercel, Netlify, etc.)
+
+## 🔧 Enabling Redis (Optional)
+
+To enable Redis functionality:
+
+1. **Install Redis package**: `npm install redis@^5.6.1`
+2. **Set environment variable**: `ENABLE_REDIS=true`
+3. **Configure Redis URL**: `REDIS_URL=redis://your-redis-instance`
+4. **Restart the application**
+
+The application will automatically detect Redis availability and use it for enhanced caching and rate limiting.
 
 ## Architecture
 

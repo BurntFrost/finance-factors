@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { 
+import {
   getRateLimitStatus,
   resetRateLimit,
   getAllRateLimitStatuses,
@@ -14,6 +14,7 @@ import {
   RATE_LIMIT_CONFIGS
 } from '@/backend/lib/redis-rate-limit';
 import { isRedisAvailable } from '@/backend/lib/redis';
+import { isRedisEnabled } from '@/backend/lib/feature-toggles';
 
 /**
  * Handle OPTIONS requests for CORS preflight
@@ -40,13 +41,26 @@ export async function OPTIONS() {
  */
 export async function GET(request: NextRequest) {
   try {
+    // FEATURE TOGGLE: Check if Redis is enabled
+    if (!isRedisEnabled()) {
+      return NextResponse.json({
+        error: 'Redis disabled',
+        message: 'Redis rate limiting is disabled via feature toggle',
+        featureToggle: 'ENABLE_REDIS=false',
+        available: false,
+      }, {
+        status: 503,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     // Check Redis availability
     if (!(await isRedisAvailable())) {
       return NextResponse.json({
         error: 'Redis unavailable',
         message: 'Redis-based rate limiting is not available',
         available: false,
-      }, { 
+      }, {
         status: 503,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
@@ -133,12 +147,24 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
+    // FEATURE TOGGLE: Check if Redis is enabled
+    if (!isRedisEnabled()) {
+      return NextResponse.json({
+        error: 'Redis disabled',
+        message: 'Redis rate limiting is disabled via feature toggle',
+        featureToggle: 'ENABLE_REDIS=false',
+      }, {
+        status: 503,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     // Check Redis availability
     if (!(await isRedisAvailable())) {
       return NextResponse.json({
         error: 'Redis unavailable',
         message: 'Redis-based rate limiting is not available',
-      }, { 
+      }, {
         status: 503,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });

@@ -5,7 +5,17 @@
  * and environment-based configuration for the finance-factors dashboard.
  */
 
-import { createClient } from 'redis';
+// Conditional Redis import - only import if Redis is enabled and available
+let createClient: any = null;
+try {
+  if (process.env.ENABLE_REDIS === 'true') {
+    createClient = require('redis').createClient;
+  }
+} catch (error) {
+  console.warn('Redis package not available - Redis functionality will be disabled');
+  createClient = null;
+}
+
 import {
   redisErrorLogger,
   RedisErrorType,
@@ -16,6 +26,7 @@ import { isRedisEnabled } from './feature-toggles';
 
 // Redis client type definition
 export type RedisClient = any;
+export type RedisClientOrNull = RedisClient | null;
 
 // Redis configuration interface
 interface RedisConfig {
@@ -49,7 +60,7 @@ const REDIS_QUEUE_CONFIG = {
 };
 
 // Global Redis client instance
-let redisClient: RedisClient | null = null;
+let redisClient: RedisClientOrNull = null;
 let isConnecting = false;
 let connectionPromise: Promise<RedisClient> | null = null;
 
@@ -94,10 +105,23 @@ function getRedisConfig(): RedisConfig {
 
 /**
  * Create and configure Redis client
+ * Returns null if Redis is disabled via feature toggle or package not available
  */
-function createRedisClient(): RedisClient {
+function createRedisClient(): RedisClient | null {
+  // FEATURE TOGGLE: Don't create client if Redis is disabled
+  if (!isRedisEnabled()) {
+    console.debug('Redis is disabled - skipping client creation');
+    return null;
+  }
+
+  // Check if Redis package is available
+  if (!createClient) {
+    console.warn('Redis package not available - cannot create client');
+    return null;
+  }
+
   const config = getRedisConfig();
-  
+
   const client = createClient({
     url: config.url,
     socket: {
@@ -163,8 +187,15 @@ function createRedisClient(): RedisClient {
 
 /**
  * Get or create Redis client instance (singleton pattern)
+ * Returns null if Redis is disabled via feature toggle
  */
-export async function getRedisClient(): Promise<RedisClient> {
+export async function getRedisClient(): Promise<RedisClientOrNull> {
+  // FEATURE TOGGLE: Return null if Redis is disabled
+  if (!isRedisEnabled()) {
+    console.debug('Redis is disabled - returning null client');
+    return null;
+  }
+
   // Return existing client if available and connected
   if (redisClient && redisClient.isOpen) {
     return redisClient;
@@ -184,8 +215,14 @@ export async function getRedisClient(): Promise<RedisClient> {
       }
 
       redisClient = createRedisClient();
+
+      // If client creation returned null (Redis disabled), return null
+      if (!redisClient) {
+        return null;
+      }
+
       await redisClient.connect();
-      
+
       console.log('Redis client connected successfully');
       return redisClient;
     } catch (error) {
@@ -464,6 +501,13 @@ export async function executeRedisCommand<T>(
 
   try {
     const client = await getRedisClient();
+
+    // If client is null (Redis disabled), return fallback
+    if (!client) {
+      console.debug('Redis client is null (disabled) - using fallback');
+      return fallback !== undefined ? fallback : null;
+    }
+
     const result = await command(client);
 
     // Log successful operation
