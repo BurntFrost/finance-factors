@@ -4,7 +4,8 @@
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
-  previewFeatures = ["fullTextSearch", "views"]
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+  previewFeatures = ["fullTextSearchPostgres", "views"]
 }
 
 datasource db {
