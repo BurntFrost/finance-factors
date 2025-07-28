@@ -91,12 +91,6 @@ export function getInteractiveChartOptions(
     animation: {
       duration: 750,
       easing: 'easeInOutQuart',
-      onComplete: function() {
-        // Animation complete callback - ensure this._fn is properly bound
-      },
-      onProgress: function() {
-        // Animation progress callback - ensure this._fn is properly bound
-      }
     },
     interaction: {
       mode: 'index',

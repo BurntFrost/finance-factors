@@ -37,11 +37,17 @@ async function registerChartJSGlobally(): Promise<void> {
 
     const { Chart: ChartJS } = chartModule;
 
-    // Try to import zoom plugin
+    // Expose Chart.js globally for react-chartjs-2
+    if (typeof window !== 'undefined') {
+      (window as any).Chart = ChartJS;
+    }
+
+    // Try to import zoom plugin with better error handling
     try {
       const zoomPluginModule = await import('chartjs-plugin-zoom');
       const zoomPlugin = zoomPluginModule.default;
       ChartJS.register(zoomPlugin);
+      console.log('Chart.js zoom plugin registered successfully');
     } catch (error) {
       console.warn('Failed to load chartjs-plugin-zoom:', error);
     }
@@ -62,6 +68,13 @@ async function registerChartJSGlobally(): Promise<void> {
       console.log('Chart.js registered successfully with time scale');
     } else {
       console.warn('Time scale not available after registration');
+    }
+
+    // Verify zoom plugin is registered
+    if (ChartJS.registry && ChartJS.registry.plugins && ChartJS.registry.plugins.get('zoom')) {
+      console.log('Chart.js zoom plugin verified in registry');
+    } else {
+      console.warn('Zoom plugin not found in Chart.js registry');
     }
 
     setChartRegistered(true);
