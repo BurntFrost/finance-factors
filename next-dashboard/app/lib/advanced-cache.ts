@@ -318,33 +318,43 @@ export class AdvancedCacheManager {
   }
 
   private async setDatabase<T>(key: string, data: T, config?: CacheConfig): Promise<void> {
-    await safeDatabaseOperation(
-      async () => {
-        const ttl = config?.ttl || 900;
-        const expiresAt = new Date(Date.now() + ttl * 1000);
+    // Skip database caching if disabled or if database is experiencing issues
+    if (this.databaseCacheDisabled) {
+      return;
+    }
 
-        await prisma.cachedData.upsert({
-          where: { cacheKey: key },
-          update: {
-            data: data as any,
-            expiresAt,
-            lastAccessed: new Date(),
-          },
-          create: {
-            cacheKey: key,
-            dataType: 'api-response', // Could be made configurable
-            data: data as any,
-            source: 'CACHED',
-            expiresAt,
-          },
-        });
-        return true;
-      },
-      async () => {
-        console.warn('Database cache set unavailable due to connection limits');
-        return null;
-      }
-    );
+    try {
+      await safeDatabaseOperation(
+        async () => {
+          const ttl = config?.ttl || 900;
+          const expiresAt = new Date(Date.now() + ttl * 1000);
+
+          await prisma.cachedData.upsert({
+            where: { cacheKey: key },
+            update: {
+              data: data as any,
+              expiresAt,
+              lastAccessed: new Date(),
+            },
+            create: {
+              cacheKey: key,
+              dataType: 'api-response', // Could be made configurable
+              data: data as any,
+              source: 'CACHED',
+              expiresAt,
+            },
+          });
+          return true;
+        },
+        async () => {
+          console.warn('Database cache set unavailable due to connection limits');
+          return null;
+        }
+      );
+    } catch (error) {
+      console.error('Failed to set database cache:', error);
+      // Don't throw error - cache failures should not break the application
+    }
   }
 
   private async invalidateKey(key: string): Promise<void> {

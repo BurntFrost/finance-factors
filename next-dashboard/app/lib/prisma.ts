@@ -18,7 +18,7 @@ const prismaClientConfig = {
     ? ['query', 'info', 'warn', 'error'] as any
     : ['error'] as any,
 
-  // Connection pooling configuration with limits
+  // Connection pooling configuration with strict limits
   datasources: {
     db: {
       url: process.env.DATABASE_URL,
@@ -27,6 +27,18 @@ const prismaClientConfig = {
 
   // Error formatting for better debugging
   errorFormat: 'pretty' as const,
+
+  // Connection pool configuration for serverless environments
+  __internal: {
+    engine: {
+      // Limit connections to prevent database connection exhaustion
+      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '3'),
+      // Connection timeout in milliseconds
+      connectTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
+      // Pool timeout in seconds
+      poolTimeout: parseInt(process.env.DB_POOL_TIMEOUT || '20'),
+    },
+  },
 };
 
 /**
@@ -35,23 +47,31 @@ const prismaClientConfig = {
 function createPrismaClient() {
   const client = new PrismaClient(prismaClientConfig);
 
-  // Add query performance monitoring in development
-  if (process.env.NODE_ENV === 'development') {
-    client.$use(async (params, next) => {
-      const start = Date.now();
+  // Add connection monitoring middleware
+  client.$use(async (params, next) => {
+    const start = Date.now();
+
+    try {
       const result = await next(params);
-      const end = Date.now();
-      
-      console.log(`Query ${params.model}.${params.action} took ${end - start}ms`);
-      
-      // Log slow queries (>1000ms)
-      if (end - start > 1000) {
-        console.warn(`Slow query detected: ${params.model}.${params.action} (${end - start}ms)`);
+      const duration = Date.now() - start;
+
+      // Log performance in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`Query ${params.model}.${params.action} took ${duration}ms`);
+
+        // Log slow queries (>1000ms)
+        if (duration > 1000) {
+          console.warn(`Slow query detected: ${params.model}.${params.action} (${duration}ms)`);
+        }
       }
-      
+
       return result;
-    });
-  }
+    } catch (error) {
+      const duration = Date.now() - start;
+      console.error(`Query ${params.model}.${params.action} failed after ${duration}ms:`, error);
+      throw error;
+    }
+  });
 
   // Add error logging middleware with connection error handling
   client.$use(async (params, next) => {
@@ -99,10 +119,33 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 /**
- * Graceful shutdown handler
+ * Graceful shutdown handler with connection cleanup
  */
 export async function disconnectPrisma() {
-  await prisma.$disconnect();
+  try {
+    console.log('Disconnecting Prisma client...');
+    await prisma.$disconnect();
+    console.log('Prisma client disconnected successfully');
+  } catch (error) {
+    console.error('Error disconnecting Prisma client:', error);
+  }
+}
+
+/**
+ * Force disconnect and cleanup connections
+ */
+export async function forceDisconnectPrisma() {
+  try {
+    // Force disconnect without waiting for active queries
+    await Promise.race([
+      prisma.$disconnect(),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Disconnect timeout')), 5000)
+      )
+    ]);
+  } catch (error) {
+    console.warn('Force disconnect completed with warnings:', error);
+  }
 }
 
 /**

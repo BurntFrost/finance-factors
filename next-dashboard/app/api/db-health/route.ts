@@ -7,12 +7,19 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { checkDatabaseHealth } from '../../lib/prisma';
+import { dbConnectionMonitor } from '../../lib/db-connection-monitor';
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
+    const url = new URL(request.url);
+    const includeMonitoring = url.searchParams.get('monitoring') === 'true';
+
     // Check database connection health
     const healthCheck = await checkDatabaseHealth();
-    
+
+    // Get monitoring data if requested
+    const monitoringData = includeMonitoring ? dbConnectionMonitor.getStatus() : null;
+
     if (healthCheck.status === 'healthy') {
       return NextResponse.json({
         status: 'healthy',
@@ -22,6 +29,7 @@ export async function GET(_request: NextRequest) {
           provider: 'postgresql',
           connection: 'prisma-accelerate',
         },
+        monitoring: monitoringData,
         timestamp: new Date().toISOString(),
       }, { status: 200 });
     } else if (healthCheck.status === 'connection_limit') {
@@ -34,6 +42,7 @@ export async function GET(_request: NextRequest) {
           connection: 'prisma-accelerate',
           message: 'Database connection limit reached, using fallback caching',
         },
+        monitoring: monitoringData,
         timestamp: new Date().toISOString(),
       }, { status: 429 });
     } else {
@@ -45,6 +54,7 @@ export async function GET(_request: NextRequest) {
           provider: 'postgresql',
           connection: 'prisma-accelerate',
         },
+        monitoring: monitoringData,
         timestamp: new Date().toISOString(),
       }, { status: 503 });
     }

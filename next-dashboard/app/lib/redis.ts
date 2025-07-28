@@ -39,9 +39,12 @@ const DEFAULT_CONFIG: Partial<RedisConfig> = {
   commandTimeout: 5000, // 5 seconds
 };
 
-// Redis queue configuration
+// Redis queue configuration with improved error handling
 const REDIS_QUEUE_CONFIG = {
-  commandsQueueMaxLength: 1000, // Increased from 3 to handle concurrent operations
+  commandsQueueMaxLength: 500, // Reduced to prevent memory issues
+  maxRetriesPerRequest: 3,
+  retryDelayOnFailover: 100,
+  enableOfflineQueue: false, // Prevent queuing when disconnected
 };
 
 // Global Redis client instance
@@ -100,18 +103,19 @@ function createRedisClient(): RedisClient {
       connectTimeout: config.connectTimeout,
       keepAlive: config.keepAlive ? true : false,
       reconnectStrategy: (retries) => {
-        if (retries > config.maxRetriesPerRequest!) {
+        if (retries > REDIS_QUEUE_CONFIG.maxRetriesPerRequest) {
           console.error(`Redis connection failed after ${retries} retries`);
           return new Error('Redis connection failed');
         }
 
         // Exponential backoff with jitter
-        const delay = Math.min(config.retryDelayOnFailover! * Math.pow(2, retries), 3000);
+        const delay = Math.min(REDIS_QUEUE_CONFIG.retryDelayOnFailover * Math.pow(2, retries), 5000);
         const jitter = Math.random() * 0.1 * delay;
         return delay + jitter;
       },
     },
     commandsQueueMaxLength: REDIS_QUEUE_CONFIG.commandsQueueMaxLength,
+    enableOfflineQueue: REDIS_QUEUE_CONFIG.enableOfflineQueue,
   });
 
   // Enhanced error handling with logging
@@ -387,6 +391,43 @@ function handleOperationFailure(error: unknown): void {
     circuitBreakerOpen = true;
     circuitBreakerOpenTime = Date.now();
     console.error(`Redis circuit breaker opened after ${consecutiveFailures} consecutive failures`);
+  }
+}
+
+/**
+ * Execute Redis pipeline commands with improved error handling
+ */
+export async function executeRedisPipeline<T>(
+  commands: Array<(pipeline: any) => void>,
+  fallback: T[] = [] as T[]
+): Promise<T[]> {
+  try {
+    const client = await getRedisClient();
+    if (!client) {
+      console.warn('Redis client unavailable for pipeline, using fallback');
+      return fallback;
+    }
+
+    const pipeline = client.multi();
+    commands.forEach(cmd => cmd(pipeline));
+
+    const results = await pipeline.exec();
+
+    if (!results) {
+      console.warn('Redis pipeline returned null results');
+      return fallback;
+    }
+
+    // Check for individual command failures
+    const failedCommands = results.filter((result, index) => result[0] !== null);
+    if (failedCommands.length > 0) {
+      console.warn(`Some Redis pipeline commands failed: [${failedCommands.map((_, i) => i).join(', ')}]`);
+    }
+
+    return results.map(result => result[1] as T);
+  } catch (error) {
+    console.error('Redis pipeline execution failed:', error);
+    return fallback;
   }
 }
 
