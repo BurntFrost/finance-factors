@@ -12,8 +12,8 @@ import {
   getAllRateLimitStatuses,
   clearAllRateLimits,
   RATE_LIMIT_CONFIGS
-} from '../../lib/redis-rate-limit';
-import { isRedisAvailable } from '../../lib/redis';
+} from '@/backend/lib/redis-rate-limit';
+import { isRedisAvailable } from '@/backend/lib/redis';
 
 /**
  * Handle OPTIONS requests for CORS preflight

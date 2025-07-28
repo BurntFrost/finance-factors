@@ -10,7 +10,7 @@ import {
   MonitoringHealthCheck,
   HealthCheckResult,
   Alert
-} from '../../types/health';
+} from '@/backend/types/health';
 import {
   getPerformanceMetrics,
   createHealthCheckError,
@@ -20,7 +20,7 @@ import {
   isVercelEnvironment,
   getVercelDeploymentInfo,
   isColdStart
-} from '../../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

@@ -10,14 +10,14 @@ import {
   DashboardHealthCheck,
   HealthCheckResult,
   ServiceStatus
-} from '../../types/health';
+} from '@/backend/types/health';
 import {
   getPerformanceMetrics,
   createHealthCheckError,
   createHealthCheckResult,
   determineOverallStatus,
   testApiConnectivity
-} from '../../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

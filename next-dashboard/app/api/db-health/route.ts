@@ -6,13 +6,30 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { checkDatabaseHealth } from '../../lib/prisma';
-import { dbConnectionMonitor } from '../../lib/db-connection-monitor';
+import { checkDatabaseHealth } from '@/backend/lib/prisma';
+import { dbConnectionMonitor } from '@/backend/lib/db-connection-monitor';
+import { isPrismaEnabled } from '@/backend/lib/feature-toggles';
 
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const includeMonitoring = url.searchParams.get('monitoring') === 'true';
+
+    // FEATURE TOGGLE: Check if Prisma is enabled
+    if (!isPrismaEnabled()) {
+      return NextResponse.json({
+        status: 'disabled',
+        database: {
+          status: 'disabled',
+          error: 'Prisma functionality is disabled via feature toggle',
+          featureToggle: 'ENABLE_PRISMA=false',
+          provider: 'postgresql',
+          connection: 'disabled',
+        },
+        monitoring: null,
+        timestamp: new Date().toISOString(),
+      }, { status: 200 }); // Return 200 since this is expected behavior
+    }
 
     // Check database connection health
     const healthCheck = await checkDatabaseHealth();

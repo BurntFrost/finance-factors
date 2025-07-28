@@ -10,13 +10,13 @@ import {
   StandardDataPoint,
   ProxyError,
   PROXY_API_ENDPOINTS,
-} from '../types/proxy';
+} from '@/shared/types/proxy';
 import {
   createErrorResponse,
   createSuccessResponse,
   checkRateLimit,
   makeHttpRequest,
-} from '../utils/proxy-utils';
+} from '@/shared/utils/proxy-utils';
 
 export interface BlsDataPoint {
   year: string;

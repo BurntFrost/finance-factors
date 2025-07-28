@@ -11,16 +11,17 @@ import {
   executeRedisCommand,
   getCircuitBreakerStatus,
   resetCircuitBreaker
-} from '../../../lib/redis';
+} from '@/backend/lib/redis';
 import { 
   getCacheStats, 
   cacheHealthCheck,
   CACHE_PREFIXES 
-} from '../../../lib/redis-cache';
-import { getAllRateLimitStatuses } from '../../../lib/redis-rate-limit';
-import { redisHealthMonitor } from '../../../lib/redis-health-monitor';
-import { redisFallbackService } from '../../../lib/redis-fallback-service';
-import { redisErrorLogger } from '../../../lib/redis-error-logger';
+} from '@/backend/lib/redis-cache';
+import { getAllRateLimitStatuses } from '@/backend/lib/redis-rate-limit';
+import { redisHealthMonitor } from '@/backend/lib/redis-health-monitor';
+import { redisFallbackService } from '@/backend/lib/redis-fallback-service';
+import { redisErrorLogger } from '@/backend/lib/redis-error-logger';
+import { isRedisEnabled } from '@/backend/lib/feature-toggles';
 
 /**
  * Handle OPTIONS requests for CORS preflight
@@ -49,8 +50,36 @@ export async function OPTIONS() {
  */
 export async function GET(_request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
+    // FEATURE TOGGLE: Check if Redis is enabled
+    if (!isRedisEnabled()) {
+      return NextResponse.json({
+        status: 'disabled',
+        timestamp: new Date().toISOString(),
+        redis: {
+          connected: false,
+          error: 'Redis functionality is disabled via feature toggle',
+          featureToggle: 'ENABLE_REDIS=false',
+        },
+        cache: {
+          available: false,
+          error: 'Redis caching is disabled',
+        },
+        rateLimiting: {
+          available: false,
+          error: 'Redis rate limiting is disabled',
+        },
+        responseTime: Date.now() - startTime,
+      }, {
+        status: 200, // Return 200 since this is expected behavior
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
     // Basic connectivity check
     const healthCheck = await cacheHealthCheck();
     

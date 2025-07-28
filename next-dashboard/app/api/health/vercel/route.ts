@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   VercelHealthCheck
-} from '../../types/health';
+} from '@/backend/types/health';
 import {
   getPerformanceMetrics,
   isColdStart,
@@ -16,7 +16,7 @@ import {
   getVercelDeploymentInfo,
   createHealthCheckError,
   checkStaticAssets
-} from '../../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

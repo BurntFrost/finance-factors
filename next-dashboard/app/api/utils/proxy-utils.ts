@@ -13,7 +13,7 @@ import {
   BlsDataPoint,
   RATE_LIMITS,
   CACHE_CONFIG,
-} from '../types/proxy';
+} from '@/shared/types/proxy';
 
 // Redis integration
 import {
@@ -21,14 +21,15 @@ import {
   CACHE_PREFIXES,
   getCacheData,
   setCacheData
-} from '../../lib/redis-cache';
+} from '@/backend/lib/redis-cache';
 import {
   checkRateLimit as redisCheckRateLimit,
   RateLimitResult
-} from '../../lib/redis-rate-limit';
-import { isRedisAvailable as _isRedisAvailable } from '../../lib/redis';
-import { redisFallbackService } from '../../lib/redis-fallback-service';
-import { userExperienceService } from '../../lib/user-experience-service';
+} from '@/backend/lib/redis-rate-limit';
+import { isRedisAvailable as _isRedisAvailable } from '@/backend/lib/redis';
+import { redisFallbackService } from '@/backend/lib/redis-fallback-service';
+import { isRedisEnabled } from '@/backend/lib/feature-toggles';
+import { userExperienceService } from '@/backend/lib/user-experience-service';
 
 // Fallback in-memory cache for when Redis is unavailable
 const fallbackRateLimit = new Map<string, { requests: number; resetTime: number }>();
@@ -179,8 +180,15 @@ function checkInMemoryRateLimit(provider: string, clientId: string): boolean {
 
 /**
  * Get cached response with enhanced Redis fallback
+ * FEATURE TOGGLE: When Redis is disabled, uses only in-memory cache
  */
 export async function getCachedResponse<T>(cacheKey: string): Promise<T | null> {
+  // FEATURE TOGGLE: Skip Redis entirely when disabled
+  if (!isRedisEnabled()) {
+    console.debug(`Redis disabled - using only in-memory cache for key: ${cacheKey}`);
+    return getInMemoryCachedResponse<T>(cacheKey);
+  }
+
   return await redisFallbackService.executeWithFallback(
     // Redis operation
     async () => {
@@ -214,6 +222,7 @@ function getInMemoryCachedResponse<T>(cacheKey: string): T | null {
 
 /**
  * Cache a response with enhanced Redis fallback
+ * FEATURE TOGGLE: When Redis is disabled, uses only in-memory cache
  */
 export async function setCachedResponse(
   cacheKey: string,
@@ -221,6 +230,13 @@ export async function setCachedResponse(
   ttl: number = CACHE_CONFIG.ttl,
   source: string = 'API Proxy'
 ): Promise<void> {
+  // FEATURE TOGGLE: Skip Redis entirely when disabled
+  if (!isRedisEnabled()) {
+    console.debug(`Redis disabled - using only in-memory cache for key: ${cacheKey}`);
+    setInMemoryCachedResponse(cacheKey, data, ttl);
+    return;
+  }
+
   await redisFallbackService.executeWithFallback(
     // Redis operation
     async () => {

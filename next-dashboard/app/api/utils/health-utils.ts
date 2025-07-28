@@ -13,7 +13,7 @@ import {
   HealthCheckResult,
   Alert,
   HealthCheckError
-} from '../types/health';
+} from '@/backend/types/health';
 
 /**
  * Get current performance metrics

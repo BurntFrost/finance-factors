@@ -6,11 +6,12 @@
  */
 
 import { GraphQLScalarType, Kind } from 'graphql';
-import { prisma } from '../../lib/prisma';
-import { cache } from '../../lib/advanced-cache';
-import { batchRequest } from '../../lib/request-batcher';
+import { prisma } from '@/backend/lib/prisma';
+import { isPrismaEnabled } from '@/backend/lib/feature-toggles';
+import { cache } from '@/backend/lib/advanced-cache';
+import { batchRequest } from '@/backend/lib/request-batcher';
 
-import { PROXY_API_ENDPOINTS } from '../types/proxy';
+import { PROXY_API_ENDPOINTS } from '@/shared/types/proxy';
 
 // Custom scalar types
 const DateTimeScalar = new GraphQLScalarType({
@@ -142,6 +143,11 @@ export const resolvers = {
         throw new Error('Not authenticated');
       }
 
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       return prisma.user.findUnique({
         where: { id: context.user.id },
         include: {
@@ -156,6 +162,11 @@ export const resolvers = {
     },
 
     async getUser(_: any, { id }: { id: string }) {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       return prisma.user.findUnique({
         where: { id },
         include: {
@@ -172,6 +183,11 @@ export const resolvers = {
 
     // Dashboard queries
     async getDashboard(_: any, { id }: { id: string }, context: GraphQLContext) {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       const dashboard = await prisma.dashboard.findUnique({
         where: { id },
         include: {
@@ -201,8 +217,13 @@ export const resolvers = {
     },
 
     async getDashboards(_: any, { userId, isPublic }: { userId?: string; isPublic?: boolean }) {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       const where: any = {};
-      
+
       if (userId) where.userId = userId;
       if (isPublic !== undefined) where.isPublic = isPublic;
 
@@ -223,6 +244,11 @@ export const resolvers = {
     },
 
     async getDashboardTemplates() {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       return prisma.dashboard.findMany({
         where: { isTemplate: true },
         include: {
@@ -284,6 +310,11 @@ export const resolvers = {
 
     // Search queries
     async searchDashboards(_: any, { query }: { query: string }) {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       return prisma.dashboard.findMany({
         where: {
           OR: [
@@ -307,6 +338,11 @@ export const resolvers = {
     },
 
     async getPopularDataTypes() {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       // Get most used data types from dashboard elements
       const result = await prisma.dashboardElement.groupBy({
         by: ['dataType'],
@@ -325,6 +361,11 @@ export const resolvers = {
     },
 
     async getRecommendedDashboards(_: any, { userId }: { userId: string }) {
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
+      }
+
       // Simple recommendation based on user's existing dashboards
       const userDashboards = await prisma.dashboard.findMany({
         where: { userId },
@@ -367,6 +408,11 @@ export const resolvers = {
     async createDashboard(_: any, { input }: { input: any }, context: GraphQLContext) {
       if (!context.user) {
         throw new Error('Not authenticated');
+      }
+
+      // FEATURE TOGGLE: Check if Prisma is enabled
+      if (!isPrismaEnabled() || !prisma) {
+        throw new Error('Database functionality is disabled');
       }
 
       return prisma.dashboard.create({

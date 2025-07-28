@@ -9,14 +9,14 @@ import { NextResponse } from 'next/server';
 import {
   ApiHealthCheck,
   ServiceStatus
-} from '../../types/health';
+} from '@/backend/types/health';
 import {
   getPerformanceMetrics,
   checkApiServiceHealth,
   createHealthCheckError,
   isVercelEnvironment,
   getVercelDeploymentInfo
-} from '../../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

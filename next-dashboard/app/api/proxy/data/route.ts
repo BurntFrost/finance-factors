@@ -11,19 +11,19 @@ import {
   StandardDataPoint,
   ProxyError,
   PROXY_API_ENDPOINTS,
-} from '../../types/proxy';
+} from '@/shared/types/proxy';
 import {
   createErrorResponse,
   validateRequestBody,
   extractRequestOptionsFromBody,
   logApiRequest,
-} from '../../utils/proxy-utils';
+} from '@/shared/utils/proxy-utils';
 import { fredProxyService } from '../../services/fred-proxy';
 import { blsProxyService } from '../../services/bls-proxy';
 import { censusProxyService } from '../../services/census-proxy';
 import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
-import { cache } from '../../../lib/advanced-cache';
-import { compressionManager } from '../../../lib/compression';
+import { cache } from '@/backend/lib/advanced-cache';
+import { compressionManager } from '@/backend/lib/compression';
 
 
 /**

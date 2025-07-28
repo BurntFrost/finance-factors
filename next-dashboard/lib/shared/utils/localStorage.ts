@@ -1,0 +1,536 @@
+/**
+ * Local Storage Utilities
+ * 
+ * This module provides utilities for persisting data source preferences and cache data
+ * in localStorage with graceful fallbacks when localStorage is unavailable.
+ */
+
+import { DataSourceType, STORAGE_KEYS, CACHE_TTL } from '@/shared/types/dataSource';
+
+// Check if localStorage is available
+function isLocalStorageAvailable(): boolean {
+  try {
+    if (typeof window === 'undefined') return false;
+    
+    const test = '__localStorage_test__';
+    localStorage.setItem(test, test);
+    localStorage.removeItem(test);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Generic localStorage wrapper with error handling
+function safeLocalStorageOperation<T>(
+  operation: () => T,
+  fallback: T
+): T {
+  try {
+    if (!isLocalStorageAvailable()) return fallback;
+    return operation();
+  } catch (error) {
+    console.warn('localStorage operation failed:', error);
+    return fallback;
+  }
+}
+
+// Data source preference persistence
+export const dataSourcePreference = {
+  /**
+   * Save the user's preferred data source
+   */
+  save: (source: DataSourceType): void => {
+    safeLocalStorageOperation(
+      () => localStorage.setItem(STORAGE_KEYS.DATA_SOURCE_PREFERENCE, source),
+      undefined
+    );
+  },
+
+  /**
+   * Load the user's preferred data source
+   */
+  load: (): DataSourceType => {
+    return safeLocalStorageOperation(
+      () => {
+        const saved = localStorage.getItem(STORAGE_KEYS.DATA_SOURCE_PREFERENCE);
+        if (saved === 'historical' || saved === 'live-api') {
+          return saved;
+        }
+
+        // If no saved preference, use environment variable as default
+        const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+        if (envSource === 'live-api' || envSource === 'historical') {
+          return envSource;
+        }
+
+        return 'historical'; // Final fallback
+      },
+      // Also use environment variable for fallback when localStorage is unavailable
+      (() => {
+        const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+        return (envSource === 'live-api' || envSource === 'historical') ? envSource : 'historical';
+      })()
+    );
+  },
+
+  /**
+   * Clear the saved preference
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.DATA_SOURCE_PREFERENCE),
+      undefined
+    );
+  },
+};
+
+// Cache data structure
+interface CacheItem {
+  data: unknown;
+  timestamp: number;
+  expiresAt: number;
+  source: DataSourceType;
+}
+
+interface CacheData {
+  [key: string]: CacheItem;
+}
+
+// API cache persistence
+export const apiCache = {
+  /**
+   * Save data to cache with TTL
+   */
+  set: (
+    key: string,
+    data: unknown,
+    source: DataSourceType,
+    ttl: number = CACHE_TTL.LIVE_DATA
+  ): void => {
+    const now = Date.now();
+    const cacheItem: CacheItem = {
+      data,
+      timestamp: now,
+      expiresAt: now + ttl,
+      source,
+    };
+
+    safeLocalStorageOperation(() => {
+      const existingCache = apiCache.getAll();
+      existingCache[key] = cacheItem;
+      localStorage.setItem(STORAGE_KEYS.API_CACHE, JSON.stringify(existingCache));
+    }, undefined);
+  },
+
+  /**
+   * Get data from cache if not expired
+   */
+  get: (key: string): unknown | null => {
+    return safeLocalStorageOperation(() => {
+      const cache = apiCache.getAll();
+      const item = cache[key];
+      
+      if (!item) return null;
+      
+      const now = Date.now();
+      if (now > item.expiresAt) {
+        // Item expired, remove it
+        apiCache.remove(key);
+        return null;
+      }
+      
+      return item.data;
+    }, null);
+  },
+
+  /**
+   * Check if cache item exists and is valid
+   */
+  has: (key: string): boolean => {
+    return apiCache.get(key) !== null;
+  },
+
+  /**
+   * Remove specific cache item
+   */
+  remove: (key: string): void => {
+    safeLocalStorageOperation(() => {
+      const cache = apiCache.getAll();
+      delete cache[key];
+      localStorage.setItem(STORAGE_KEYS.API_CACHE, JSON.stringify(cache));
+    }, undefined);
+  },
+
+  /**
+   * Get all cache data
+   */
+  getAll: (): CacheData => {
+    return safeLocalStorageOperation(() => {
+      const cached = localStorage.getItem(STORAGE_KEYS.API_CACHE);
+      return cached ? JSON.parse(cached) : {};
+    }, {});
+  },
+
+  /**
+   * Clear all cache data
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.API_CACHE),
+      undefined
+    );
+  },
+
+  /**
+   * Clean expired cache items
+   */
+  cleanup: (): void => {
+    safeLocalStorageOperation(() => {
+      const cache = apiCache.getAll();
+      const now = Date.now();
+      let hasChanges = false;
+
+      Object.keys(cache).forEach(key => {
+        if (now > cache[key].expiresAt) {
+          delete cache[key];
+          hasChanges = true;
+        }
+      });
+
+      if (hasChanges) {
+        localStorage.setItem(STORAGE_KEYS.API_CACHE, JSON.stringify(cache));
+      }
+    }, undefined);
+  },
+
+  /**
+   * Get cache statistics
+   */
+  getStats: () => {
+    return safeLocalStorageOperation(() => {
+      const cache = apiCache.getAll();
+      const now = Date.now();
+      const items = Object.values(cache);
+      
+      return {
+        totalItems: items.length,
+        validItems: items.filter(item => now <= item.expiresAt).length,
+        expiredItems: items.filter(item => now > item.expiresAt).length,
+        sizeEstimate: JSON.stringify(cache).length,
+        oldestItem: items.length > 0 ? Math.min(...items.map(item => item.timestamp)) : null,
+        newestItem: items.length > 0 ? Math.max(...items.map(item => item.timestamp)) : null,
+      };
+    }, {
+      totalItems: 0,
+      validItems: 0,
+      expiredItems: 0,
+      sizeEstimate: 0,
+      oldestItem: null,
+      newestItem: null,
+    });
+  },
+};
+
+// User preferences (for future extensibility)
+interface UserPreferences {
+  dataSource: DataSourceType;
+  autoRefresh: boolean;
+  refreshInterval: number;
+  theme?: 'light' | 'dark' | 'auto';
+  notifications: boolean;
+}
+
+export const userPreferences = {
+  /**
+   * Save user preferences
+   */
+  save: (preferences: Partial<UserPreferences>): void => {
+    safeLocalStorageOperation(() => {
+      const existing = userPreferences.load();
+      const updated = { ...existing, ...preferences };
+      localStorage.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(updated));
+    }, undefined);
+  },
+
+  /**
+   * Load user preferences with defaults
+   */
+  load: (): UserPreferences => {
+    // Get default data source from environment variable
+    const getDefaultDataSource = (): DataSourceType => {
+      const envSource = process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE;
+      return (envSource === 'live-api' || envSource === 'historical') ? envSource : 'historical';
+    };
+
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
+      const defaults: UserPreferences = {
+        dataSource: getDefaultDataSource(),
+        autoRefresh: false,
+        refreshInterval: 300000, // 5 minutes
+        notifications: true,
+      };
+
+      return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+    }, {
+      dataSource: getDefaultDataSource(),
+      autoRefresh: false,
+      refreshInterval: 300000,
+      notifications: true,
+    });
+  },
+
+  /**
+   * Clear user preferences
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.USER_PREFERENCES),
+      undefined
+    );
+  },
+};
+
+// Visualization preferences for element cards
+interface VisualizationPreferences {
+  [elementId: string]: string; // elementId -> visualizationType
+}
+
+export const visualizationPreferences = {
+  /**
+   * Save visualization preference for a specific element
+   */
+  save: (elementId: string, visualizationType: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = visualizationPreferences.loadAll();
+      existing[elementId] = visualizationType;
+      localStorage.setItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load visualization preference for a specific element
+   */
+  load: (elementId: string): string | null => {
+    return safeLocalStorageOperation(() => {
+      const preferences = visualizationPreferences.loadAll();
+      return preferences[elementId] || null;
+    }, null);
+  },
+
+  /**
+   * Load all visualization preferences
+   */
+  loadAll: (): VisualizationPreferences => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Remove visualization preference for a specific element
+   */
+  remove: (elementId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = visualizationPreferences.loadAll();
+      delete existing[elementId];
+      localStorage.setItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Clear all visualization preferences
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.VISUALIZATION_PREFERENCES),
+      undefined
+    );
+  },
+};
+
+// Dashboard layout persistence
+interface DashboardLayout {
+  id: string;
+  name: string;
+  elements: Array<{
+    id: string;
+    type: string;
+    dataType: string;
+    title: string;
+    position: { row: number; col: number };
+    size: { width: number; height: number };
+    config?: Record<string, unknown>;
+  }>;
+  gridColumns: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface SavedDashboardLayouts {
+  [layoutId: string]: DashboardLayout;
+}
+
+export const dashboardLayouts = {
+  /**
+   * Save a dashboard layout
+   */
+  save: (layout: DashboardLayout): void => {
+    safeLocalStorageOperation(() => {
+      const existing = dashboardLayouts.loadAll();
+      existing[layout.id] = {
+        ...layout,
+        updatedAt: new Date(),
+      };
+      localStorage.setItem(STORAGE_KEYS.DASHBOARD_LAYOUTS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load a specific dashboard layout
+   */
+  load: (layoutId: string): DashboardLayout | null => {
+    return safeLocalStorageOperation(() => {
+      const layouts = dashboardLayouts.loadAll();
+      return layouts[layoutId] || null;
+    }, null);
+  },
+
+  /**
+   * Load all dashboard layouts
+   */
+  loadAll: (): SavedDashboardLayouts => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.DASHBOARD_LAYOUTS);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Delete a dashboard layout
+   */
+  delete: (layoutId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = dashboardLayouts.loadAll();
+      delete existing[layoutId];
+      localStorage.setItem(STORAGE_KEYS.DASHBOARD_LAYOUTS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Get layout names for dropdown/selection
+   */
+  getLayoutNames: (): Array<{ id: string; name: string; updatedAt: Date }> => {
+    return safeLocalStorageOperation(() => {
+      const layouts = dashboardLayouts.loadAll();
+      return Object.values(layouts).map(layout => ({
+        id: layout.id,
+        name: layout.name,
+        updatedAt: layout.updatedAt,
+      }));
+    }, []);
+  },
+
+  /**
+   * Clear all dashboard layouts
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.DASHBOARD_LAYOUTS),
+      undefined
+    );
+  },
+};
+
+// Chart dimensions persistence
+interface ChartDimensions {
+  [chartId: string]: {
+    width: number;
+    height: number;
+    updatedAt: Date;
+  };
+}
+
+export const chartDimensions = {
+  /**
+   * Save chart dimensions
+   */
+  save: (chartId: string, width: number, height: number): void => {
+    safeLocalStorageOperation(() => {
+      const existing = chartDimensions.loadAll();
+      existing[chartId] = {
+        width,
+        height,
+        updatedAt: new Date(),
+      };
+      localStorage.setItem(STORAGE_KEYS.CHART_DIMENSIONS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Load chart dimensions
+   */
+  load: (chartId: string): { width: number; height: number } | null => {
+    return safeLocalStorageOperation(() => {
+      const dimensions = chartDimensions.loadAll();
+      const saved = dimensions[chartId];
+      return saved ? { width: saved.width, height: saved.height } : null;
+    }, null);
+  },
+
+  /**
+   * Load all chart dimensions
+   */
+  loadAll: (): ChartDimensions => {
+    return safeLocalStorageOperation(() => {
+      const saved = localStorage.getItem(STORAGE_KEYS.CHART_DIMENSIONS);
+      return saved ? JSON.parse(saved) : {};
+    }, {});
+  },
+
+  /**
+   * Remove chart dimensions
+   */
+  remove: (chartId: string): void => {
+    safeLocalStorageOperation(() => {
+      const existing = chartDimensions.loadAll();
+      delete existing[chartId];
+      localStorage.setItem(STORAGE_KEYS.CHART_DIMENSIONS, JSON.stringify(existing));
+    }, undefined);
+  },
+
+  /**
+   * Clear all chart dimensions
+   */
+  clear: (): void => {
+    safeLocalStorageOperation(
+      () => localStorage.removeItem(STORAGE_KEYS.CHART_DIMENSIONS),
+      undefined
+    );
+  },
+};
+
+// Utility to clear all app data
+export const clearAllData = (): void => {
+  dataSourcePreference.clear();
+  apiCache.clear();
+  userPreferences.clear();
+  visualizationPreferences.clear();
+  dashboardLayouts.clear();
+  chartDimensions.clear();
+};
+
+// Initialize cleanup on app start (call this in your app initialization)
+export const initializeStorage = (): void => {
+  // Clean expired cache items on startup
+  apiCache.cleanup();
+  
+  // Set up periodic cleanup (every 10 minutes)
+  if (typeof window !== 'undefined') {
+    setInterval(() => {
+      apiCache.cleanup();
+    }, 10 * 60 * 1000);
+  }
+};

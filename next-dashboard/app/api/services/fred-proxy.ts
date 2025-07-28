@@ -11,7 +11,7 @@ import {
   FredApiResponse,
   ProxyError,
   PROXY_API_ENDPOINTS,
-} from '../types/proxy';
+} from '@/shared/types/proxy';
 import {
   checkRateLimit,
   getCachedResponse,
@@ -23,7 +23,7 @@ import {
   createErrorResponse,
   createSuccessResponse,
   logApiRequest,
-} from '../utils/proxy-utils';
+} from '@/shared/utils/proxy-utils';
 
 /**
  * FRED API Proxy Service Class

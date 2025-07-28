@@ -492,36 +492,63 @@ Built-in rate limiting respects each API provider's limits:
 
 ## 📚 Project Structure
 
+The project follows a clean, modular architecture with clear separation between frontend, backend, and shared code:
+
 ```
 finance-factors/
 ├── next-dashboard/                 # Main Next.js application
-│   ├── app/                       # Next.js 15 App Router
-│   │   ├── api/                   # API routes and proxy
-│   │   │   ├── proxy/             # API proxy endpoints
+│   ├── app/                       # Next.js 15 App Router (routing only)
+│   │   ├── api/                   # API routes and proxy endpoints
+│   │   ├── globals.css            # Global styles
+│   │   ├── layout.tsx             # Root layout component
+│   │   ├── loading.tsx            # Global loading component
+│   │   ├── not-found.tsx          # 404 page
+│   │   └── page.tsx               # Home page
+│   ├── src/                       # Source code (organized by layer)
+│   │   ├── frontend/              # Client-side code
+│   │   │   ├── components/        # React components
+│   │   │   │   ├── AutomaticChart.tsx # Smart chart component
+│   │   │   │   ├── DataStatusPill.tsx # Status indicators
+│   │   │   │   └── ...            # Other UI components
+│   │   │   ├── context/           # React Context providers
+│   │   │   │   ├── DashboardContext.tsx
+│   │   │   │   ├── DataSourceContext.tsx
+│   │   │   │   └── ViewModeContext.tsx
+│   │   │   ├── hooks/             # Custom React hooks
+│   │   │   └── lib/               # Frontend utilities
+│   │   ├── backend/               # Server-side code
+│   │   │   ├── lib/               # Backend utilities and infrastructure
+│   │   │   │   ├── cache/         # Caching utilities
+│   │   │   │   ├── database/      # Database connections
+│   │   │   │   ├── monitoring/    # Health monitoring
+│   │   │   │   └── redis/         # Redis integration
 │   │   │   ├── services/          # API service implementations
-│   │   │   └── types/             # API type definitions
-│   │   ├── components/            # React components
-│   │   │   ├── AutomaticChart.tsx # Smart chart component
-│   │   │   ├── DataStatusPill.tsx # Status indicators
-│   │   │   └── ...                # Other UI components
-│   │   ├── context/               # React Context providers
-│   │   │   ├── DashboardContext.tsx
-│   │   │   ├── DataSourceContext.tsx
-│   │   │   └── ViewModeContext.tsx
-│   │   ├── hooks/                 # Custom React hooks
-│   │   ├── services/              # Data services
-│   │   │   ├── realApiService.ts  # Live API orchestrator
-│   │   │   ├── dataTransformers.ts
-│   │   │   └── ...                # API service implementations
-│   │   ├── types/                 # TypeScript definitions
-│   │   └── utils/                 # Utility functions
+│   │   │   │   ├── realApiService.ts # Live API orchestrator
+│   │   │   │   ├── dataTransformers.ts
+│   │   │   │   └── ...            # API service implementations
+│   │   │   ├── types/             # Backend-specific types
+│   │   │   └── utils/             # Backend utilities
+│   │   └── shared/                # Code shared between frontend/backend
+│   │       ├── config/            # Configuration constants
+│   │       ├── constants/         # Application constants
+│   │       ├── types/             # Shared TypeScript definitions
+│   │       └── utils/             # Shared utility functions
 │   ├── package.json               # Dependencies and scripts
 │   ├── next.config.ts             # Next.js configuration
-│   ├── tsconfig.json              # TypeScript configuration
+│   ├── tsconfig.json              # TypeScript configuration with path mapping
 │   └── vercel.json                # Vercel deployment config
 ├── README.md                      # This comprehensive guide
 └── LICENSE                        # MIT License
 ```
+
+### Directory Structure Benefits
+
+- **🎯 Clear Separation**: Frontend, backend, and shared code are clearly separated
+- **📦 Modular Design**: Each layer has its own responsibilities and dependencies
+- **🔄 Reusability**: Shared code can be used by both frontend and backend
+- **🛠️ Maintainability**: Easy to locate and modify specific functionality
+- **📈 Scalability**: Structure supports growth and team collaboration
+- **🔍 TypeScript Integration**: Path mapping enables clean imports (`@/frontend/*`, `@/backend/*`, `@/shared/*`)
 
 ## 🧪 Testing & Quality
 

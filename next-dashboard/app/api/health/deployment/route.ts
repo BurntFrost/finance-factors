@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   DeploymentHealthCheck,
   HealthCheckResult
-} from '../../types/health';
+} from '@/backend/types/health';
 import {
   getPerformanceMetrics,
   createHealthCheckError,
@@ -20,7 +20,7 @@ import {
   testApiConnectivity,
   isVercelEnvironment,
   getVercelDeploymentInfo
-} from '../../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 // Bundle analyzer configuration
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
@@ -34,6 +35,14 @@ const nextConfig: NextConfig = {
   // Note: This will show a warning in development with --turbopack, but it's safe to ignore
   // The webpack config only applies to production builds, not Turbopack development
   webpack: (config, { dev, isServer }) => {
+    // Configure path aliases for module resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, '.'),
+      '@/frontend': path.resolve(__dirname, './lib/frontend'),
+      '@/backend': path.resolve(__dirname, './lib/backend'),
+      '@/shared': path.resolve(__dirname, './lib/shared'),
+    };
 
     // Production optimizations (webpack only, not used in Turbopack development)
     if (!dev && !isServer) {

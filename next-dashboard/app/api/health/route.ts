@@ -6,12 +6,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { HEALTH_CHECK_ENDPOINTS } from '../types/health';
+import { HEALTH_CHECK_ENDPOINTS } from '@/backend/types/health';
 import { 
   getPerformanceMetrics,
   isVercelEnvironment,
   getVercelDeploymentInfo
-} from '../utils/health-utils';
+} from '@/backend/utils/health-utils';
 
 /**
  * Handle OPTIONS requests for CORS preflight

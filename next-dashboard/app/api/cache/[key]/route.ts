@@ -12,8 +12,9 @@ import {
   deleteCacheKey,
   cacheExists,
   DEFAULT_TTL
-} from '../../../lib/redis-cache';
-import { isRedisAvailable } from '../../../lib/redis';
+} from '@/backend/lib/redis-cache';
+import { isRedisAvailable } from '@/backend/lib/redis';
+import { isRedisEnabled } from '@/backend/lib/feature-toggles';
 
 /**
  * Handle OPTIONS requests for CORS preflight
@@ -40,6 +41,18 @@ export async function GET(
   { params }: { params: Promise<{ key: string }> }
 ) {
   try {
+    // FEATURE TOGGLE: Check if Redis is enabled
+    if (!isRedisEnabled()) {
+      return NextResponse.json({
+        error: 'Redis disabled',
+        message: 'Redis cache is disabled via feature toggle',
+        featureToggle: 'ENABLE_REDIS=false',
+      }, {
+        status: 503,
+        headers: { 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     // Check Redis availability
     if (!(await isRedisAvailable())) {
       return NextResponse.json({

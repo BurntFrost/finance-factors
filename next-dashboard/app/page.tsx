@@ -1,21 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import AutomaticChart from './components/AutomaticChart';
-// import EnhancedInteractiveChart from './components/EnhancedInteractiveChart'; // Will be used by DynamicElementRenderer
-import DragDropDashboard from './components/DragDropDashboard';
-import { ElementType } from './components/AddElementDropdown';
-import DynamicElementRenderer from './components/DynamicElementRenderer';
-import DashboardTabBar from './components/DashboardTabBar';
-import DarkModeToggle from './components/DarkModeToggle';
-import HydrationSafeWrapper from './components/HydrationSafeWrapper';
-import ClientOnlyRealTimeFeatures from './components/ClientOnlyRealTimeFeatures';
-import DashboardCustomizationPanel from './components/DashboardCustomizationPanel';
-import { useDashboard } from './context/DashboardContext';
-import { useViewMode } from './context/ViewModeContext';
-// import { useCrossfilter } from './context/CrossfilterContext'; // Temporarily disabled
-import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from './utils/historicalDataGenerators';
-import { DataType, VisualizationType } from './types/dashboard';
+import AutomaticChart from '@/frontend/components/AutomaticChart';
+// import EnhancedInteractiveChart from '@/frontend/components/EnhancedInteractiveChart'; // Will be used by DynamicElementRenderer
+import DragDropDashboard from '@/frontend/components/DragDropDashboard';
+import { ElementType } from '@/frontend/components/AddElementDropdown';
+import DynamicElementRenderer from '@/frontend/components/DynamicElementRenderer';
+import DashboardTabBar from '@/frontend/components/DashboardTabBar';
+import DarkModeToggle from '@/frontend/components/DarkModeToggle';
+import HydrationSafeWrapper from '@/frontend/components/HydrationSafeWrapper';
+import ClientOnlyRealTimeFeatures from '@/frontend/components/ClientOnlyRealTimeFeatures';
+import DashboardCustomizationPanel from '@/frontend/components/DashboardCustomizationPanel';
+import { useDashboard } from '@/frontend/context/DashboardContext';
+import { useViewMode } from '@/frontend/context/ViewModeContext';
+// import { useCrossfilter } from '@/frontend/context/CrossfilterContext'; // Temporarily disabled
+import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from '@/shared/utils';
+import { DataType, VisualizationType } from '@/shared/types/dashboard';
 import styles from './page.module.css';
 
 // Define the hardcoded charts

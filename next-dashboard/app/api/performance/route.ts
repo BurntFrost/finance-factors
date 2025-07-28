@@ -6,11 +6,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { cache } from '../../lib/advanced-cache';
-import { compressionManager } from '../../lib/compression';
-import { requestBatcher } from '../../lib/request-batcher';
-import { checkDatabaseHealth } from '../../lib/prisma';
-import { isRedisAvailable } from '../../lib/redis';
+import { cache } from '@/backend/lib/advanced-cache';
+import { compressionManager } from '@/backend/lib/compression';
+import { requestBatcher } from '@/backend/lib/request-batcher';
+import { checkDatabaseHealth } from '@/backend/lib/prisma';
+import { isRedisAvailable } from '@/backend/lib/redis';
 
 // CORS headers
 const CORS_HEADERS = {
