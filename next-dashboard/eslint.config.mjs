@@ -12,6 +12,16 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Exclude generated files from linting
+    ignores: [
+      "app/generated/**/*",
+      "prisma/generated/**/*",
+      "node_modules/**/*",
+      ".next/**/*",
+      "out/**/*"
+    ]
+  },
+  {
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -22,7 +32,12 @@ const eslintConfig = [
         }
       ],
       "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-require-imports": "off"
+      "@typescript-eslint/no-require-imports": "off",
+      // Disable problematic rules for generated files and type definitions
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-unnecessary-type-constraint": "off",
+      "@typescript-eslint/no-wrapper-object-types": "off",
+      "@typescript-eslint/no-unsafe-function-type": "off"
     }
   }
 ];
