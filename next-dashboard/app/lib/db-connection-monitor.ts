@@ -5,7 +5,7 @@
  * and provides automatic cleanup and recovery mechanisms.
  */
 
-import { prisma, checkDatabaseHealth, forceDisconnectPrisma } from './prisma';
+import { checkDatabaseHealth, forceDisconnectPrisma } from './prisma';
 
 interface ConnectionMetrics {
   activeConnections: number;

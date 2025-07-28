@@ -12,7 +12,7 @@ declare global {
   var __prisma: PrismaClient | undefined;
 }
 
-// Prisma client configuration for optimal performance with connection limits
+// Prisma client configuration for optimal performance
 const prismaClientConfig = {
   log: process.env.NODE_ENV === 'development'
     ? ['query', 'info', 'warn', 'error'] as any
@@ -27,18 +27,6 @@ const prismaClientConfig = {
 
   // Error formatting for better debugging
   errorFormat: 'pretty' as const,
-
-  // Connection pool configuration for serverless environments
-  __internal: {
-    engine: {
-      // Limit connections to prevent database connection exhaustion
-      connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '3'),
-      // Connection timeout in milliseconds
-      connectTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
-      // Pool timeout in seconds
-      poolTimeout: parseInt(process.env.DB_POOL_TIMEOUT || '20'),
-    },
-  },
 };
 
 /**

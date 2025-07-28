@@ -115,7 +115,6 @@ function createRedisClient(): RedisClient {
       },
     },
     commandsQueueMaxLength: REDIS_QUEUE_CONFIG.commandsQueueMaxLength,
-    enableOfflineQueue: REDIS_QUEUE_CONFIG.enableOfflineQueue,
   });
 
   // Enhanced error handling with logging
@@ -419,12 +418,12 @@ export async function executeRedisPipeline<T>(
     }
 
     // Check for individual command failures
-    const failedCommands = results.filter((result, index) => result[0] !== null);
+    const failedCommands = results.filter((result: [Error | null, any], _index: number) => result[0] !== null);
     if (failedCommands.length > 0) {
-      console.warn(`Some Redis pipeline commands failed: [${failedCommands.map((_, i) => i).join(', ')}]`);
+      console.warn(`Some Redis pipeline commands failed: [${failedCommands.map((_: [Error | null, any], i: number) => i).join(', ')}]`);
     }
 
-    return results.map(result => result[1] as T);
+    return results.map((result: [Error | null, any]) => result[1] as T);
   } catch (error) {
     console.error('Redis pipeline execution failed:', error);
     return fallback;
