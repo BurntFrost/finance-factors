@@ -12,17 +12,26 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_DEBUG_API: process.env.NEXT_PUBLIC_DEBUG_API || 'false',
   },
 
-  // Webpack optimizations
+  // Turbopack configuration (for development with --turbopack flag)
+  turbopack: {
+    rules: {
+      // Configure Turbopack rules if needed
+    },
+  },
+
+  // Webpack optimizations (only for production builds)
+  // Note: This will show a warning in development with --turbopack, but it's safe to ignore
+  // The webpack config only applies to production builds, not Turbopack development
   webpack: (config, { dev, isServer }) => {
-    // Enable bundle analyzer when ANALYZE=true
-    if (process.env.ANALYZE === 'true') {
+    // Enable bundle analyzer when ANALYZE=true (production only)
+    if (process.env.ANALYZE === 'true' && !dev) {
       const withBundleAnalyzer = require('@next/bundle-analyzer')({
         enabled: true,
       });
       return withBundleAnalyzer(config);
     }
 
-    // Production optimizations
+    // Production optimizations (webpack only, not used in Turbopack development)
     if (!dev && !isServer) {
       // Split chunks for better caching
       config.optimization.splitChunks = {
