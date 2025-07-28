@@ -10,6 +10,7 @@
 
 import React, { Suspense } from 'react';
 import { useAutomaticDataSource } from '../hooks/useAutomaticDataSource';
+import { useIsEditMode } from '../context/ViewModeContext';
 import { ChartData } from '../types/dashboard';
 import DataSourceIndicator from './DataSourceIndicator';
 import ChartSkeleton from './ChartSkeleton';
@@ -29,6 +30,7 @@ export interface AutomaticChartProps {
   refreshInterval?: number;
   fallbackData?: ChartData;
   onDataChange?: (data: ChartData | null, status: string) => void;
+  onRemove?: () => void;
 }
 
 export default function AutomaticChart({
@@ -42,7 +44,9 @@ export default function AutomaticChart({
   refreshInterval,
   fallbackData,
   onDataChange,
+  onRemove,
 }: AutomaticChartProps) {
+  const isEditMode = useIsEditMode();
   const {
     data,
     isLoading,
@@ -133,6 +137,18 @@ export default function AutomaticChart({
               🔄
             </span>
           </button>
+
+          {/* Remove button */}
+          {onRemove && isEditMode && (
+            <button
+              className={styles.removeButton}
+              onClick={onRemove}
+              title="Remove chart"
+              aria-label="Remove chart"
+            >
+              🗑️ Remove
+            </button>
+          )}
 
           {/* Status indicator in header */}
           {status === 'historical-fallback' && (

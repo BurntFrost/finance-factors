@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import AutomaticChart from './components/AutomaticChart';
 import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
@@ -13,9 +13,39 @@ import { generateHistoricalData, generateElementTitle, generateHistoricalDataByT
 import { DataType, VisualizationType } from './types/dashboard';
 import styles from './page.module.css';
 
+// Define the hardcoded charts
+const HARDCODED_CHARTS = [
+  { id: 'house-prices', dataType: 'house-prices', title: 'Average House Price Over Time' },
+  { id: 'salary-income', dataType: 'salary-income', title: 'Average Household Income Over Time' },
+  { id: 'inflation-cpi', dataType: 'inflation-cpi', title: 'Consumer Price Index (CPI)' },
+  { id: 'core-inflation', dataType: 'core-inflation', title: 'Core Inflation Rate' },
+  { id: 'fed-balance-sheet', dataType: 'fed-balance-sheet', title: 'Federal Reserve Balance Sheet' },
+  { id: 'federal-funds-rate', dataType: 'federal-funds-rate', title: 'Federal Funds Rate' },
+  { id: 'unemployment-rate', dataType: 'unemployment-rate', title: 'Unemployment Rate' },
+  { id: 'gdp-growth', dataType: 'gdp-growth', title: 'GDP Growth Rate' },
+  { id: 'money-supply-m1', dataType: 'money-supply-m1', title: 'Money Supply (M1)' },
+  { id: 'money-supply-m2', dataType: 'money-supply-m2', title: 'Money Supply (M2)' },
+  { id: 'treasury-10y', dataType: 'treasury-10y', title: '10-Year Treasury Yield' },
+  { id: 'treasury-2y', dataType: 'treasury-2y', title: '2-Year Treasury Yield' },
+];
+
 export default function Home() {
   const { state, addElement, removeElement } = useDashboard();
   const { state: viewModeState } = useViewMode();
+
+  // State to track which hardcoded charts are visible
+  const [visibleCharts, setVisibleCharts] = useState<Set<string>>(
+    new Set(HARDCODED_CHARTS.map(chart => chart.id))
+  );
+
+  // Handler to remove hardcoded charts
+  const handleRemoveHardcodedChart = (chartId: string) => {
+    setVisibleCharts(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(chartId);
+      return newSet;
+    });
+  };
 
   // Legacy handler for backward compatibility
   const handleElementSelect = (elementType: ElementType) => {
@@ -52,168 +82,38 @@ export default function Home() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
+        <h1>Finance Factor Dashboard</h1>
         <div className={styles.headerContent}>
-          <h1>Finance Factor Dashboard</h1>
           <ViewModeToggle size="medium" />
           <HydrationSafeWrapper fallback={<div className="ml-4 p-3 bg-gray-50 rounded-lg">Loading API status...</div>}>
             <ApiHealthStatus className="ml-4" />
           </HydrationSafeWrapper>
+          {viewModeState.isEditMode && (
+            <AddElementDropdown
+              onElementSelect={handleElementSelect}
+              onElementCreate={handleElementCreate}
+            />
+          )}
         </div>
-        {viewModeState.isEditMode && (
-          <AddElementDropdown
-            onElementSelect={handleElementSelect}
-            onElementCreate={handleElementCreate}
-          />
-        )}
       </div>
 
       {/* Dashboard Grid Layout */}
       <div className={styles.dashboardGrid}>
-        {/* Automatic data source charts */}
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="house-prices"
-            title="Average House Price Over Time"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="salary-income"
-            title="Average Household Income Over Time"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        {/* Economic Indicators */}
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="inflation-cpi"
-            title="Consumer Price Index (CPI)"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="core-inflation"
-            title="Core Inflation Rate"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="fed-balance-sheet"
-            title="Federal Reserve Balance Sheet"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="federal-funds-rate"
-            title="Federal Funds Rate"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="unemployment-rate"
-            title="Unemployment Rate"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="gdp-growth"
-            title="GDP Growth Rate"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="money-supply-m1"
-            title="Money Supply (M1)"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="money-supply-m2"
-            title="Money Supply (M2)"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="treasury-10y"
-            title="10-Year Treasury Yield"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
-
-        <div className={styles.chartContainer}>
-          <AutomaticChart
-            dataType="treasury-2y"
-            title="2-Year Treasury Yield"
-            chartType="line"
-            height={400}
-            showIndicator={true}
-            indicatorPosition="top-right"
-            refreshInterval={15 * 60 * 1000} // 15 minutes
-          />
-        </div>
+        {/* Render hardcoded charts dynamically */}
+        {HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => (
+          <div key={chart.id} className={styles.chartContainer}>
+            <AutomaticChart
+              dataType={chart.dataType}
+              title={chart.title}
+              chartType="line"
+              height={400}
+              showIndicator={true}
+              indicatorPosition="top-right"
+              refreshInterval={15 * 60 * 1000} // 15 minutes
+              onRemove={() => handleRemoveHardcodedChart(chart.id)}
+            />
+          </div>
+        ))}
 
         {/* Dynamic elements */}
         {state.elements.map((element) => (

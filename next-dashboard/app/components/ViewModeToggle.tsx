@@ -39,12 +39,6 @@ const MODE_CONFIGS: ModeConfig[] = [
     icon: '🔴',
     description: 'Interactive mode with data source editing',
   },
-  {
-    mode: 'preview',
-    label: 'Preview',
-    icon: '👁️',
-    description: 'Read-only preview of the dashboard',
-  },
 ];
 
 export default function ViewModeToggle({

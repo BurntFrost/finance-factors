@@ -81,6 +81,29 @@
   cursor: not-allowed;
 }
 
+.removeButton {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.removeButton:hover {
+  background: #b91c1c;
+}
+
+.removeButton:active {
+  background: #991b1b;
+}
+
 .spinning {
   animation: spin 1s linear infinite;
 }

@@ -6,6 +6,7 @@ import { DataSourceType } from '../types/dataSource';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import InteractiveChart from './InteractiveChart';
 import { useChartDataSource } from '../hooks/useChartDataSource';
+import { useIsEditMode } from '../context/ViewModeContext';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -60,23 +61,24 @@ interface InteractiveDynamicChartProps {
   onDataSourceChange?: (newSource: DataSourceType, newData: ChartData) => void;
 }
 
-function ChartContent({ 
+function ChartContent({
   type,
-  data, 
+  data,
   config,
-  chartRef, 
-  onRefresh, 
+  chartRef,
+  onRefresh,
   onRemove,
-  isRefreshing 
-}: { 
+  isRefreshing
+}: {
   type: ChartType;
-  data: ChartData; 
+  data: ChartData;
   config?: Record<string, unknown>;
   chartRef: React.RefObject<ChartRef>;
   onRefresh: () => void;
   onRemove?: () => void;
   isRefreshing: boolean;
 }) {
+  const isEditMode = useIsEditMode();
   const getChartOptions = () => {
     const baseOptions = {
       responsive: true,
@@ -150,7 +152,7 @@ function ChartContent({
         </div>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <RefreshButton onClick={onRefresh} isRefreshing={isRefreshing} />
-          {onRemove && <RemoveButton onClick={onRemove} />}
+          {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
         </div>
       </div>
       <div className={styles.chartWrapper}>
@@ -176,6 +178,7 @@ export default function InteractiveDynamicChart({
 }: InteractiveDynamicChartProps) {
   const chartRef = useRef<ChartRef>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const isEditMode = useIsEditMode();
 
   // Use chart-specific data source management
   const {
@@ -220,7 +223,7 @@ export default function InteractiveDynamicChart({
       <div className={styles.chartContainer}>
         <div className={styles.chartHeader}>
           <h2 className={styles.chartTitle}>{title}</h2>
-          {onRemove && <RemoveButton onClick={onRemove} />}
+          {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
         </div>
         <div className={styles.chartWrapper}>
           <Suspense fallback={<div>Loading...</div>}>
@@ -237,13 +240,13 @@ export default function InteractiveDynamicChart({
       <div className={styles.chartContainer}>
         <div className={styles.chartHeader}>
           <h2 className={styles.chartTitle}>{title}</h2>
-          {onRemove && <RemoveButton onClick={onRemove} />}
+          {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
         </div>
         <div className={styles.chartWrapper}>
-          <div style={{ 
-            padding: '2rem', 
-            textAlign: 'center', 
-            color: 'var(--foreground-secondary, #666)' 
+          <div style={{
+            padding: '2rem',
+            textAlign: 'center',
+            color: 'var(--foreground-secondary, #666)'
           }}>
             <p>Error loading {dataType} data: {error.message}</p>
             <button
@@ -265,13 +268,13 @@ export default function InteractiveDynamicChart({
       <div className={styles.chartContainer}>
         <div className={styles.chartHeader}>
           <h2 className={styles.chartTitle}>{title}</h2>
-          {onRemove && <RemoveButton onClick={onRemove} />}
+          {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
         </div>
         <div className={styles.chartWrapper}>
-          <div style={{ 
-            padding: '2rem', 
-            textAlign: 'center', 
-            color: 'var(--foreground-secondary, #666)' 
+          <div style={{
+            padding: '2rem',
+            textAlign: 'center',
+            color: 'var(--foreground-secondary, #666)'
           }}>
             <p>No data available for {dataType}</p>
             <button
