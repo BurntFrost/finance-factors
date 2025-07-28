@@ -9,6 +9,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { DataSourceStatus } from '../context/AutomaticDataSourceContext';
+import { getChartConfig } from '../config/chartConfiguration';
 import styles from './DataSourceIndicator.module.css';
 
 export interface DataSourceIndicatorProps {
@@ -20,6 +21,8 @@ export interface DataSourceIndicatorProps {
   size?: 'small' | 'medium' | 'large';
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   showDetails?: boolean;
+  dataType?: string; // For showing data type specific information
+  timePeriod?: string; // For showing time period (e.g., "Monthly", "Annual")
 }
 
 interface StatusConfig {
@@ -42,8 +45,8 @@ const STATUS_CONFIGS: Record<DataSourceStatus, StatusConfig> = {
   },
   'historical-fallback': {
     icon: '📊',
-    label: 'Historical Data',
-    description: 'Live data unavailable, showing historical data instead',
+    label: 'Sample Data',
+    description: 'Live data unavailable, showing sample/historical data instead',
     color: '#f59e0b',
     bgColor: '#fffbeb',
     borderColor: '#fed7aa',
@@ -75,6 +78,8 @@ export default function DataSourceIndicator({
   size = 'medium',
   position = 'top-right',
   showDetails = false,
+  dataType,
+  timePeriod,
 }: DataSourceIndicatorProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
@@ -164,13 +169,33 @@ export default function DataSourceIndicator({
             <div className={styles.description}>
               {config.description}
             </div>
-            
+
+            {/* Data type and source information */}
+            {dataType && (() => {
+              const chartConfig = getChartConfig(dataType);
+              return chartConfig && (
+                <div className={styles.dataInfo}>
+                  <div className={styles.dataType}>
+                    <strong>Data:</strong> {chartConfig.description}
+                  </div>
+                  <div className={styles.dataSource}>
+                    <strong>Source:</strong> {status === 'live' ? chartConfig.dataSource.primary : chartConfig.dataSource.fallback}
+                  </div>
+                  {timePeriod && (
+                    <div className={styles.timePeriod}>
+                      <strong>Frequency:</strong> {timePeriod}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {lastUpdated && (
               <div className={styles.timestamp}>
                 <strong>Last updated:</strong> {formatTime(lastUpdated)}
               </div>
             )}
-            
+
             {status === 'historical-fallback' && lastLiveAttempt && (
               <div className={styles.timestamp}>
                 <strong>Last live attempt:</strong> {formatTime(lastLiveAttempt)}

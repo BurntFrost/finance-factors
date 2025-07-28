@@ -7,6 +7,7 @@ import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import InteractiveChart from './InteractiveChart';
 import { useChartDataSource } from '../hooks/useChartDataSource';
 import { useIsEditMode } from '../context/ViewModeContext';
+import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -64,6 +65,7 @@ interface InteractiveDynamicChartProps {
 function ChartContent({
   type,
   data,
+  dataType,
   config,
   chartRef,
   onRefresh,
@@ -72,6 +74,7 @@ function ChartContent({
 }: {
   type: ChartType;
   data: ChartData;
+  dataType?: string;
   config?: Record<string, unknown>;
   chartRef: React.RefObject<ChartRef>;
   onRefresh: () => void;
@@ -80,6 +83,10 @@ function ChartContent({
 }) {
   const isEditMode = useIsEditMode();
   const getChartOptions = () => {
+    // Get configuration for this data type
+    const chartConfig = dataType ? getChartConfig(dataType) : null;
+    const axisConfig = dataType ? getAxisConfig(dataType) : null;
+
     const baseOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -89,11 +96,19 @@ function ChartContent({
       },
       plugins: {
         legend: {
-          position: 'top' as const,
+          display: chartConfig?.legend.display ?? true,
+          position: chartConfig?.legend.position ?? 'top' as const,
         },
         title: {
           display: false, // We're using our own title
         },
+        tooltip: chartConfig ? {
+          callbacks: {
+            title: chartConfig.tooltip.title,
+            label: chartConfig.tooltip.label,
+            afterLabel: chartConfig.tooltip.afterLabel,
+          }
+        } : undefined,
       },
       ...config
     };
@@ -104,12 +119,33 @@ function ChartContent({
         ...baseOptions,
         scales: {
           y: {
-            beginAtZero: type === 'bar-chart',
+            beginAtZero: axisConfig?.y.beginAtZero ?? (type === 'bar-chart'),
+            title: {
+              display: true,
+              text: axisConfig ? `${axisConfig.y.label} (${axisConfig.y.unit})` : 'Value',
+              font: {
+                size: 12,
+                weight: 'bold' as const,
+              },
+            },
+            ticks: axisConfig ? {
+              callback: function(value: number | string) {
+                return axisConfig.y.formatValue(Number(value));
+              }
+            } : undefined,
             grid: {
               color: 'rgba(0, 0, 0, 0.1)',
             },
           },
           x: {
+            title: {
+              display: true,
+              text: axisConfig?.x.label ?? 'Time',
+              font: {
+                size: 12,
+                weight: 'bold' as const,
+              },
+            },
             grid: {
               color: 'rgba(0, 0, 0, 0.1)',
             },
@@ -299,6 +335,7 @@ export default function InteractiveDynamicChart({
       <ChartContent
         type={type}
         data={displayData}
+        dataType={dataType}
         config={config}
         chartRef={chartRef}
         onRefresh={handleRefresh}

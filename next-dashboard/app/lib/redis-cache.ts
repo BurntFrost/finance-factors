@@ -66,13 +66,14 @@ export async function setCacheData<T>(
     source,
   };
 
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       await client.setEx(key, ttl, JSON.stringify(cacheItem));
       return true;
     },
     false
-  ) ?? false;
+  );
+  return result ?? false;
 }
 
 /**
@@ -111,26 +112,28 @@ export async function getCacheData<T>(key: string): Promise<T | null> {
  * Check if cache key exists
  */
 export async function cacheExists(key: string): Promise<boolean> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const exists = await client.exists(key);
       return exists === 1;
     },
     false
-  ) ?? false;
+  );
+  return result ?? false;
 }
 
 /**
  * Delete cache key
  */
 export async function deleteCacheKey(key: string): Promise<boolean> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const deleted = await client.del(key);
       return deleted > 0;
     },
     false
-  ) ?? false;
+  );
+  return result ?? false;
 }
 
 /**
@@ -139,24 +142,26 @@ export async function deleteCacheKey(key: string): Promise<boolean> {
 export async function deleteCacheKeys(keys: string[]): Promise<number> {
   if (keys.length === 0) return 0;
 
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       return await client.del(keys);
     },
     0
-  ) ?? 0;
+  );
+  return result ?? 0;
 }
 
 /**
  * Get all keys matching a pattern
  */
 export async function getCacheKeys(pattern: string = '*'): Promise<string[]> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       return await client.keys(pattern);
     },
     []
-  ) ?? [];
+  );
+  return result ?? [];
 }
 
 /**
@@ -187,7 +192,7 @@ export async function getCacheStats(): Promise<CacheStats | null> {
       // Count keys by prefix
       const keysByPrefix: Record<string, number> = {};
       Object.values(CACHE_PREFIXES).forEach(prefix => {
-        keysByPrefix[prefix] = allKeys.filter(key => key.startsWith(prefix)).length;
+        keysByPrefix[prefix] = allKeys.filter((key: string) => key.startsWith(prefix)).length;
       });
       
       // Calculate hit/miss rates (simplified - would need more sophisticated tracking)

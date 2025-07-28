@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DashboardProvider } from "./context/DashboardContext";
@@ -26,8 +26,12 @@ export const metadata: Metadata = {
   description: "Interactive dashboard showing finance factors including house prices and household income trends over time",
   keywords: "finance, dashboard, house prices, income, trends, analytics",
   authors: [{ name: "Finance Factors Team" }],
-  viewport: "width=device-width, initial-scale=1",
   robots: "index, follow",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -45,9 +49,6 @@ export default function RootLayout({
         {/* Resource hints for better loading */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-
-        {/* Optimize viewport for mobile */}
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
         {/* Performance hints */}
         <meta httpEquiv="x-dns-prefetch-control" content="on" />

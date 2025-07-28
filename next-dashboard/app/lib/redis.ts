@@ -5,10 +5,11 @@
  * and environment-based configuration for the finance-factors dashboard.
  */
 
-import { createClient, RedisClientType, RedisDefaultModules, RedisFunctions, RedisModules, RedisScripts } from 'redis';
+import { createClient } from 'redis';
 
 // Redis client type definition
-export type RedisClient = RedisClientType<RedisDefaultModules & RedisModules, RedisFunctions, RedisScripts>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type RedisClient = any;
 
 // Redis configuration interface
 interface RedisConfig {
@@ -64,20 +65,20 @@ function createRedisClient(): RedisClient {
     url: config.url,
     socket: {
       connectTimeout: config.connectTimeout,
-      commandTimeout: config.commandTimeout,
-      keepAlive: config.keepAlive,
+      keepAlive: config.keepAlive ? true : false,
       reconnectStrategy: (retries) => {
         if (retries > config.maxRetriesPerRequest!) {
           console.error(`Redis connection failed after ${retries} retries`);
           return new Error('Redis connection failed');
         }
-        
+
         // Exponential backoff with jitter
         const delay = Math.min(config.retryDelayOnFailover! * Math.pow(2, retries), 3000);
         const jitter = Math.random() * 0.1 * delay;
         return delay + jitter;
       },
     },
+    commandsQueueMaxLength: config.maxRetriesPerRequest,
   });
 
   // Error handling
@@ -172,7 +173,7 @@ export async function getRedisInfo(): Promise<{
     
     // Parse Redis INFO response
     const infoObj: Record<string, string> = {};
-    info.split('\r\n').forEach(line => {
+    info.split('\r\n').forEach((line: string) => {
       if (line && !line.startsWith('#') && line.includes(':')) {
         const [key, value] = line.split(':');
         infoObj[key] = value;

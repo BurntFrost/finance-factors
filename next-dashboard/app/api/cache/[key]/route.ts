@@ -32,12 +32,12 @@ export async function OPTIONS() {
 
 /**
  * GET /api/cache/[key]
- * 
+ *
  * Get data for a specific cache key
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
     // Check Redis availability
@@ -45,13 +45,13 @@ export async function GET(
       return NextResponse.json({
         error: 'Redis unavailable',
         message: 'Redis cache is not available',
-      }, { 
+      }, {
         status: 503,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    const { key } = params;
+    const { key } = await params;
     
     if (!key) {
       return NextResponse.json({
@@ -110,7 +110,7 @@ export async function GET(
 
 /**
  * PUT /api/cache/[key]
- * 
+ *
  * Set or update data for a specific cache key
  * Body:
  * - data: any - the data to cache
@@ -119,7 +119,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
     // Check Redis availability
@@ -127,13 +127,13 @@ export async function PUT(
       return NextResponse.json({
         error: 'Redis unavailable',
         message: 'Redis cache is not available',
-      }, { 
+      }, {
         status: 503,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    const { key } = params;
+    const { key } = await params;
     
     if (!key) {
       return NextResponse.json({
@@ -204,12 +204,12 @@ export async function PUT(
 
 /**
  * DELETE /api/cache/[key]
- * 
+ *
  * Delete a specific cache key
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
     // Check Redis availability
@@ -217,13 +217,13 @@ export async function DELETE(
       return NextResponse.json({
         error: 'Redis unavailable',
         message: 'Redis cache is not available',
-      }, { 
+      }, {
         status: 503,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
     }
 
-    const { key } = params;
+    const { key } = await params;
     
     if (!key) {
       return NextResponse.json({

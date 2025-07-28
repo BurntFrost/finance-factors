@@ -14,6 +14,7 @@ import { useIsEditMode } from '../context/ViewModeContext';
 import { ChartData } from '../types/dashboard';
 import DataSourceIndicator from './DataSourceIndicator';
 import ChartSkeleton from './ChartSkeleton';
+import { getChartConfig } from '../config/chartConfiguration';
 import styles from './AutomaticChart.module.css';
 
 // Lazy load the chart component for better performance
@@ -102,6 +103,8 @@ export default function AutomaticChart({
           onRetry={handleRetry}
           position={indicatorPosition}
           size="medium"
+          dataType={dataType}
+          timePeriod={getChartConfig(dataType)?.timePeriod.default}
         />
       )}
 
@@ -185,6 +188,7 @@ export default function AutomaticChart({
                 data={displayData}
                 title=""
                 type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
+                dataType={dataType}
                 hideHeader={true}
               />
               
@@ -302,6 +306,7 @@ export function CompactAutomaticChart({
               data={displayData}
               title=""
               type={`${chartType}-chart` as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart'}
+              dataType={dataType}
               hideHeader={true}
             />
           </Suspense>

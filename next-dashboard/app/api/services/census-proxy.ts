@@ -15,7 +15,7 @@ import {
   checkRateLimit,
   getCachedResponse,
   setCachedResponse,
-  generateCacheKey,
+  generateLegacyCacheKey,
   getOptionalEnvVar,
   makeHttpRequest,
   createErrorResponse,
@@ -81,7 +81,7 @@ export class CensusProxyService {
       }
 
       // Generate cache key
-      const cacheKey = generateCacheKey('CENSUS', dataType, {
+      const cacheKey = generateLegacyCacheKey('CENSUS', dataType, {
         startYear: startYear?.toString() || '2015',
         endYear: endYear?.toString() || '2023'
       });

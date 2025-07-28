@@ -16,7 +16,7 @@ import {
   checkRateLimit,
   getCachedResponse,
   setCachedResponse,
-  generateCacheKey,
+  generateLegacyCacheKey,
   transformFredData,
   getRequiredEnvVar,
   makeHttpRequest,
@@ -101,7 +101,7 @@ export class FredProxyService {
       }
 
       // Generate cache key
-      const cacheKey = generateCacheKey('FRED', seriesId, Object.fromEntries(params));
+      const cacheKey = generateLegacyCacheKey('FRED', seriesId, Object.fromEntries(params));
 
       // Check cache if enabled
       if (options.useCache !== false) {

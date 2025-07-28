@@ -6,6 +6,7 @@
  */
 
 import { ChartData, SummaryCardData, TableData } from '../types/dashboard';
+import { getChartConfig } from '../config/chartConfiguration';
 
 // Color palettes for charts (matching existing historical data)
 const CHART_COLORS = {
@@ -119,10 +120,14 @@ class ChartDataTransformer extends BaseTransformer<ApiTimeSeriesData[], ChartDat
   }
   
   private getDatasetConfig(dataType: string): { label: string } {
+    // Use the new chart configuration system
+    const chartConfig = getChartConfig(dataType);
+    if (chartConfig) {
+      return { label: chartConfig.name };
+    }
+
+    // Fallback for data types not in the new configuration
     const configs: Record<string, { label: string }> = {
-      'house-prices': { label: 'Average House Price (USD)' },
-      'salary-income': { label: 'Average Household Income (USD)' },
-      'cost-of-living': { label: 'Cost of Living Index' },
       'tuition-education': { label: 'Average Tuition Cost (USD)' },
       'medical-costs': { label: 'Average Medical Costs (USD)' },
       'childcare-costs': { label: 'Average Childcare Costs (USD)' },
@@ -131,7 +136,7 @@ class ChartDataTransformer extends BaseTransformer<ApiTimeSeriesData[], ChartDat
       'utilities-costs': { label: 'Average Utility Costs (USD)' },
       'investment-returns': { label: 'Investment Returns (%)' },
     };
-    
+
     return configs[dataType] || { label: 'Value' };
   }
 }

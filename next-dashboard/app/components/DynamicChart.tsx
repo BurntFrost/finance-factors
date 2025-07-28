@@ -4,6 +4,7 @@ import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import { ChartData } from '../types/dashboard';
 import DataStatusPill, { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
+import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
 import styles from './LazyChart.module.css';
 
 // Lazy load Chart.js components to reduce initial bundle size
@@ -32,6 +33,7 @@ interface DynamicChartProps {
   type: 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart';
   data: ChartData;
   title: string;
+  dataType?: string; // Data type for configuration lookup
   onRemove?: () => void;
   config?: Record<string, unknown>;
   hideHeader?: boolean;
@@ -85,7 +87,7 @@ const RemoveButton = ({ onClick }: { onClick: () => void }) => (
   </button>
 );
 
-export default function DynamicChart({ type, data, title, onRemove, config, hideHeader = false }: DynamicChartProps) {
+export default function DynamicChart({ type, data, title, dataType, onRemove, config, hideHeader = false }: DynamicChartProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -112,6 +114,10 @@ export default function DynamicChart({ type, data, title, onRemove, config, hide
   }, [isRefreshing]);
 
   const getChartOptions = () => {
+    // Get configuration for this data type
+    const chartConfig = dataType ? getChartConfig(dataType) : null;
+    const axisConfig = dataType ? getAxisConfig(dataType) : null;
+
     const baseOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -121,11 +127,19 @@ export default function DynamicChart({ type, data, title, onRemove, config, hide
       },
       plugins: {
         legend: {
-          position: 'top' as const,
+          display: chartConfig?.legend.display ?? true,
+          position: chartConfig?.legend.position ?? 'top' as const,
         },
         title: {
           display: false, // We're using our own title
         },
+        tooltip: chartConfig ? {
+          callbacks: {
+            title: chartConfig.tooltip.title,
+            label: chartConfig.tooltip.label,
+            afterLabel: chartConfig.tooltip.afterLabel,
+          }
+        } : undefined,
       },
       ...config
     };
@@ -136,12 +150,33 @@ export default function DynamicChart({ type, data, title, onRemove, config, hide
         ...baseOptions,
         scales: {
           y: {
-            beginAtZero: type === 'bar-chart',
+            beginAtZero: axisConfig?.y.beginAtZero ?? (type === 'bar-chart'),
+            title: {
+              display: true,
+              text: axisConfig ? `${axisConfig.y.label} (${axisConfig.y.unit})` : 'Value',
+              font: {
+                size: 12,
+                weight: 'bold' as const,
+              },
+            },
+            ticks: axisConfig ? {
+              callback: function(value: number | string) {
+                return axisConfig.y.formatValue(Number(value));
+              }
+            } : undefined,
             grid: {
               color: 'rgba(0, 0, 0, 0.1)',
             },
           },
           x: {
+            title: {
+              display: true,
+              text: axisConfig?.x.label ?? 'Time',
+              font: {
+                size: 12,
+                weight: 'bold' as const,
+              },
+            },
             grid: {
               color: 'rgba(0, 0, 0, 0.1)',
             },

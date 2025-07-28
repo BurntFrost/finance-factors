@@ -199,7 +199,7 @@ export async function setCachedResponse(
 /**
  * Generate a cache key for a request (legacy function for backward compatibility)
  */
-export function generateCacheKey(provider: string, seriesId: string, params: Record<string, string>): string {
+export function generateLegacyCacheKey(provider: string, seriesId: string, params: Record<string, string>): string {
   const paramString = Object.keys(params)
     .sort()
     .map(key => `${key}=${params[key]}`)
@@ -212,7 +212,7 @@ export function generateCacheKey(provider: string, seriesId: string, params: Rec
  * Enhanced cache key generation with Redis integration
  */
 export function generateApiCacheKey(provider: string, seriesId: string, params: Record<string, string>): string {
-  return generateCacheKey(provider, seriesId, params);
+  return generateLegacyCacheKey(provider, seriesId, params);
 }
 
 /**

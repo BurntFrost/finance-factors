@@ -15,7 +15,7 @@ import {
   checkRateLimit,
   getCachedResponse,
   setCachedResponse,
-  generateCacheKey,
+  generateLegacyCacheKey,
   getOptionalEnvVar,
   makeHttpRequest,
   createErrorResponse,
@@ -122,7 +122,7 @@ export class AlphaVantageProxyService {
       }
 
       // Generate cache key
-      const cacheKey = generateCacheKey('ALPHA_VANTAGE', dataType, {
+      const cacheKey = generateLegacyCacheKey('ALPHA_VANTAGE', dataType, {
         startDate: options.startDate || '',
         endDate: options.endDate || '',
         useCache: useCache.toString()

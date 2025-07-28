@@ -68,35 +68,35 @@ async function slidingWindowRateLimit(
   config: RateLimitConfig,
   _identifier: string
 ): Promise<RateLimitResult> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const now = Date.now();
       const windowStart = now - config.windowMs;
-      
+
       // Use Redis pipeline for atomic operations
       const pipeline = client.multi();
-      
+
       // Remove expired entries
       pipeline.zRemRangeByScore(key, 0, windowStart);
-      
+
       // Count current requests in window
       pipeline.zCard(key);
-      
+
       // Add current request
       pipeline.zAdd(key, { score: now, value: `${now}-${Math.random()}` });
-      
+
       // Set expiration
       pipeline.expire(key, Math.ceil(config.windowMs / 1000));
-      
+
       const results = await pipeline.exec();
-      
+
       if (!results) {
         throw new Error('Redis pipeline execution failed');
       }
-      
-      const currentCount = (results[1] as number) || 0;
+
+      const currentCount = Number(results[1]) || 0;
       const allowed = currentCount < config.maxRequests;
-      
+
       return {
         allowed,
         remaining: Math.max(0, config.maxRequests - currentCount - 1),
@@ -110,7 +110,9 @@ async function slidingWindowRateLimit(
       resetTime: Date.now() + config.windowMs,
       totalRequests: 0,
     }
-  ) ?? {
+  );
+
+  return result ?? {
     allowed: false,
     remaining: 0,
     resetTime: Date.now() + config.windowMs,
@@ -126,28 +128,28 @@ async function fixedWindowRateLimit(
   config: RateLimitConfig,
   _identifier: string
 ): Promise<RateLimitResult> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const now = Date.now();
       const windowStart = Math.floor(now / config.windowMs) * config.windowMs;
       const windowKey = `${key}:${windowStart}`;
-      
+
       // Get current count
       const currentCount = await client.get(windowKey);
       const count = currentCount ? parseInt(currentCount, 10) : 0;
-      
+
       const allowed = count < config.maxRequests;
-      
+
       if (allowed) {
         // Increment counter
         await client.incr(windowKey);
-        
+
         // Set expiration if this is the first request in the window
         if (count === 0) {
           await client.expire(windowKey, Math.ceil(config.windowMs / 1000));
         }
       }
-      
+
       return {
         allowed,
         remaining: Math.max(0, config.maxRequests - count - (allowed ? 1 : 0)),
@@ -161,7 +163,9 @@ async function fixedWindowRateLimit(
       resetTime: Date.now() + config.windowMs,
       totalRequests: 0,
     }
-  ) ?? {
+  );
+
+  return result ?? {
     allowed: false,
     remaining: 0,
     resetTime: Date.now() + config.windowMs,
@@ -177,37 +181,37 @@ async function tokenBucketRateLimit(
   config: RateLimitConfig,
   _identifier: string
 ): Promise<RateLimitResult> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const now = Date.now();
       const refillRate = config.maxRequests / config.windowMs; // tokens per ms
-      
+
       // Get current bucket state
       const bucketData = await client.hGetAll(key);
-      
+
       let tokens = bucketData.tokens ? parseFloat(bucketData.tokens) : config.maxRequests;
       const lastRefill = bucketData.lastRefill ? parseInt(bucketData.lastRefill, 10) : now;
-      
+
       // Calculate tokens to add based on time elapsed
       const timePassed = now - lastRefill;
       const tokensToAdd = timePassed * refillRate;
       tokens = Math.min(config.maxRequests, tokens + tokensToAdd);
-      
+
       const allowed = tokens >= 1;
-      
+
       if (allowed) {
         tokens -= 1;
       }
-      
+
       // Update bucket state
       await client.hSet(key, {
         tokens: tokens.toString(),
         lastRefill: now.toString(),
       });
-      
+
       // Set expiration
       await client.expire(key, Math.ceil(config.windowMs / 1000) * 2);
-      
+
       return {
         allowed,
         remaining: Math.floor(tokens),
@@ -221,7 +225,9 @@ async function tokenBucketRateLimit(
       resetTime: Date.now() + config.windowMs,
       totalRequests: 0,
     }
-  ) ?? {
+  );
+
+  return result ?? {
     allowed: false,
     remaining: 0,
     resetTime: Date.now() + config.windowMs,
@@ -259,14 +265,15 @@ export async function resetRateLimit(
   identifier: string = 'default'
 ): Promise<boolean> {
   const key = generateRateLimitKey(provider, identifier);
-  
-  return executeRedisCommand(
+
+  const result = await executeRedisCommand(
     async (client) => {
       const deleted = await client.del(key);
       return deleted > 0;
     },
     false
-  ) ?? false;
+  );
+  return result ?? false;
 }
 
 /**
@@ -275,11 +282,7 @@ export async function resetRateLimit(
 export async function getRateLimitStatus(
   provider: string,
   identifier: string = 'default'
-): Promise<{
-  remaining: number;
-  resetTime: number;
-  totalRequests: number;
-} | null> {
+): Promise<RateLimitResult | null> {
   const config = RATE_LIMIT_CONFIGS[provider] || RATE_LIMIT_CONFIGS.DEFAULT;
   const key = generateRateLimitKey(provider, identifier);
   
@@ -293,6 +296,7 @@ export async function getRateLimitStatus(
         const currentCount = await client.zCard(key);
         
         return {
+          allowed: currentCount < config.maxRequests,
           remaining: Math.max(0, config.maxRequests - currentCount),
           resetTime: now + config.windowMs,
           totalRequests: currentCount,
@@ -304,6 +308,7 @@ export async function getRateLimitStatus(
         const count = currentCount ? parseInt(currentCount, 10) : 0;
         
         return {
+          allowed: count < config.maxRequests,
           remaining: Math.max(0, config.maxRequests - count),
           resetTime: windowStart + config.windowMs,
           totalRequests: count,
@@ -314,6 +319,7 @@ export async function getRateLimitStatus(
         const tokens = bucketData.tokens ? parseFloat(bucketData.tokens) : config.maxRequests;
         
         return {
+          allowed: tokens >= 1,
           remaining: Math.floor(tokens),
           resetTime: now + config.windowMs,
           totalRequests: 0, // Not tracked in token bucket
@@ -337,8 +343,8 @@ export async function getAllRateLimitStatuses(): Promise<Record<string, RateLimi
     try {
       const status = await getRateLimitStatus(provider);
       statuses[provider] = status;
-    } catch (error) {
-      statuses[provider] = { error: error instanceof Error ? error.message : 'Unknown error' };
+    } catch (_error) {
+      statuses[provider] = null;
     }
   }
   
@@ -349,12 +355,13 @@ export async function getAllRateLimitStatuses(): Promise<Record<string, RateLimi
  * Clear all rate limit data
  */
 export async function clearAllRateLimits(): Promise<number> {
-  return executeRedisCommand(
+  const result = await executeRedisCommand(
     async (client) => {
       const keys = await client.keys(`${CACHE_PREFIXES.RATE_LIMIT}*`);
       if (keys.length === 0) return 0;
       return await client.del(keys);
     },
     0
-  ) ?? 0;
+  );
+  return result ?? 0;
 }
