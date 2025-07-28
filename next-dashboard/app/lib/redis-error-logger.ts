@@ -16,6 +16,7 @@ export enum RedisErrorType {
   DATA_CORRUPTION = 'data_corruption',
   MEMORY_ERROR = 'memory_error',
   CLUSTER_ERROR = 'cluster_error',
+  PREDICTIVE_FAILURE = 'predictive_failure',
   UNKNOWN_ERROR = 'unknown_error',
 }
 

@@ -5,7 +5,7 @@
  * preferences, and current system state.
  */
 
-import { UserExperienceIndicator, PerformanceImpact as _PerformanceImpact } from '../api/types/proxy';
+import { UserExperienceIndicator, PerformanceImpact } from '../api/types/proxy';
 import { redisFallbackService } from './redis-fallback-service';
 
 interface UserContext {

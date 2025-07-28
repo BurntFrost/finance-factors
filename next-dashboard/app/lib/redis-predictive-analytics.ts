@@ -5,7 +5,7 @@
  * before issues impact users.
  */
 
-import { redisErrorLogger as _redisErrorLogger, RedisOperationType as _RedisOperationType } from './redis-error-logger';
+import { redisErrorLogger, RedisOperationType } from './redis-error-logger';
 import { redisHealthMonitor } from './redis-health-monitor';
 
 interface PredictiveMetrics {
