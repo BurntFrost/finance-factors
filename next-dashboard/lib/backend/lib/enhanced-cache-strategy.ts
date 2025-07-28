@@ -320,8 +320,8 @@ export class EnhancedCacheStrategy {
   private storeBrowserCacheHeaders(key: string, headers: Record<string, string>): void {
     // Store headers in a way that API routes can access them
     if (typeof globalThis !== 'undefined') {
-      globalThis.__cacheHeaders = globalThis.__cacheHeaders || new Map();
-      globalThis.__cacheHeaders.set(key, headers);
+      (globalThis as any).__cacheHeaders = (globalThis as any).__cacheHeaders || new Map();
+      (globalThis as any).__cacheHeaders.set(key, headers);
     }
   }
 

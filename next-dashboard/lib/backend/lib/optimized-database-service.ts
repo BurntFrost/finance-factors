@@ -141,7 +141,7 @@ export class OptimizedDatabaseService {
             } : false,
             apiKeys: includeOptions.apiKeys ? {
               where: { isActive: true },
-              select: { id: true, name: true, lastUsed: true },
+              select: { id: true, name: true, lastUsedAt: true },
             } : false,
             sessions: includeOptions.sessions ? {
               where: { expiresAt: { gt: new Date() } },
@@ -353,7 +353,7 @@ export class OptimizedDatabaseService {
   private canBatch(queryFn: Function): boolean {
     // Simple heuristic - check if it's a read-only query
     const queryString = queryFn.toString();
-    return this.readOnlyQueries.some(op => queryString.includes(op));
+    return Array.from(this.readOnlyQueries).some(op => queryString.includes(op));
   }
 
   private async executeBatchedQuery<T>(
@@ -427,27 +427,33 @@ export class OptimizedDatabaseService {
     retries: number = 2
   ): Promise<T> {
     let lastError: any;
-    
+
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        return await safeDatabaseOperation(
+        const result = await safeDatabaseOperation(
           () => Promise.race([
             queryFn(),
-            new Promise<never>((_, reject) => 
+            new Promise<never>((_, reject) =>
               setTimeout(() => reject(new Error('Query timeout')), timeout)
             ),
           ])
         );
+
+        if (result === null) {
+          throw new Error('Database operation returned null (connection limit reached)');
+        }
+
+        return result;
       } catch (error) {
         lastError = error;
-        
+
         if (attempt < retries) {
           // Exponential backoff
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
         }
       }
     }
-    
+
     throw lastError;
   }
 

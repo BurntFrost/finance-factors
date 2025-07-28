@@ -1,13 +1,13 @@
 'use client';
 
-import React, { Suspense, lazy, ComponentType, ReactNode, useMemo } from 'react';
+import React, { Suspense, lazy, ComponentType, ReactNode, useMemo, ErrorInfo } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 interface LazyComponentLoaderProps {
   children: ReactNode;
   fallback?: ReactNode;
   errorFallback?: ComponentType<{ error: Error; resetErrorBoundary: () => void }>;
-  onError?: (error: Error, errorInfo: { componentStack: string }) => void;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 // Default loading skeleton
@@ -68,7 +68,7 @@ export const LazyComponentLoader = React.memo(function LazyComponentLoader({
 }: LazyComponentLoaderProps) {
   // Memoize error handler to prevent recreation
   const handleError = useMemo(() => {
-    return onError || ((error: Error, errorInfo: { componentStack: string }) => {
+    return onError || ((error: Error, errorInfo: ErrorInfo) => {
       console.error('LazyComponentLoader error:', error, errorInfo);
     });
   }, [onError]);

@@ -214,7 +214,7 @@ async function collectDatabaseMetrics() {
     },
     connections: {
       active: connectionMetrics.activeConnections,
-      total: connectionMetrics.totalConnections,
+      total: connectionMetrics.totalQueries, // Using totalQueries as a proxy for total connections
       errors: connectionMetrics.connectionErrors,
       poolUtilization: dbMetrics.connectionPoolUtilization,
     },
