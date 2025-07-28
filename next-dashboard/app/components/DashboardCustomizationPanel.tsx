@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { DashboardElement, VisualizationType } from '../types/dashboard';
+import { DashboardElement } from '../types/dashboard';
 import { useDashboard } from '../context/DashboardContext';
 import { useIsEditMode } from '../context/ViewModeContext';
 import { userPreferences } from '../utils/localStorage';

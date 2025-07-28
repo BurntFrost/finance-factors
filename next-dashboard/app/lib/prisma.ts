@@ -27,14 +27,6 @@ const prismaClientConfig = {
 
   // Error formatting for better debugging
   errorFormat: 'pretty' as const,
-
-  // Connection pool settings for Prisma Accelerate
-  __internal: {
-    engine: {
-      connectTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
-      requestTimeout: parseInt(process.env.DB_QUERY_TIMEOUT || '10') * 1000,
-    },
-  },
 };
 
 /**

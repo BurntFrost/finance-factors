@@ -4,11 +4,10 @@ import React, { useState } from 'react';
 import AutomaticChart from './components/AutomaticChart';
 // import EnhancedInteractiveChart from './components/EnhancedInteractiveChart'; // Will be used by DynamicElementRenderer
 import DragDropDashboard from './components/DragDropDashboard';
-import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
+import { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
-import ViewModeToggle from './components/ViewModeToggle';
+import DashboardTabBar from './components/DashboardTabBar';
 import DarkModeToggle from './components/DarkModeToggle';
-import ApiHealthStatus from './components/ApiHealthStatus';
 import HydrationSafeWrapper from './components/HydrationSafeWrapper';
 import ClientOnlyRealTimeFeatures from './components/ClientOnlyRealTimeFeatures';
 import DashboardCustomizationPanel from './components/DashboardCustomizationPanel';
@@ -37,7 +36,7 @@ const HARDCODED_CHARTS = [
 
 export default function Home() {
   const { state, addElement, removeElement, reorderElements } = useDashboard();
-  const { state: viewModeState } = useViewMode();
+  const { state: _viewModeState } = useViewMode();
   // const _crossfilter = useCrossfilter(); // Temporarily disabled
 
   // State to track which hardcoded charts are visible
@@ -118,27 +117,16 @@ export default function Home() {
         </div>
         <h1>Finance Factor Dashboard</h1>
         <div className={styles.headerContent}>
-          <ViewModeToggle size="medium" />
-          <HydrationSafeWrapper fallback={<div className="ml-4 p-3 bg-gray-50 rounded-lg">Loading API status...</div>}>
-            <ApiHealthStatus className="ml-4" />
-          </HydrationSafeWrapper>
+          <DashboardTabBar
+            onSettingsClick={() => setShowCustomizationPanel(true)}
+            onElementSelect={handleElementSelect}
+            onElementCreate={handleElementCreate}
+            showAddElement={true}
+          />
           <ClientOnlyRealTimeFeatures
             enableRealTime={enableRealTime}
             showRealTimeIndicator={true}
           />
-          <button
-            onClick={() => setShowCustomizationPanel(true)}
-            className="ml-4 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-            title="Dashboard Settings"
-          >
-            ⚙️ Settings
-          </button>
-          {viewModeState.isEditMode && (
-            <AddElementDropdown
-              onElementSelect={handleElementSelect}
-              onElementCreate={handleElementCreate}
-            />
-          )}
         </div>
       </div>
 
