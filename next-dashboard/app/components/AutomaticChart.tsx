@@ -8,7 +8,8 @@
  * visual indicators and retry functionality.
  */
 
-import React, { Suspense, useRef } from 'react';
+import React, { Suspense, useRef, useCallback, useState } from 'react';
+import type { Chart } from 'chart.js';
 import { useAutomaticDataSource } from '../hooks/useAutomaticDataSource';
 // import { useWebSocket } from '../services/websocketService'; // Temporarily disabled for SSR
 import { useIsEditMode } from '../context/ViewModeContext';
@@ -18,6 +19,12 @@ import RealTimeStatusIndicator from './RealTimeStatusIndicator';
 import ExportMenu from './ExportMenu';
 import ChartSkeleton from './ChartSkeleton';
 import { getChartConfig } from '../config/chartConfiguration';
+import {
+  getInteractiveChartOptions,
+  resetChartZoom,
+  toggleChartZoom,
+  toggleChartPan
+} from '../config/interactiveChartConfiguration';
 import styles from './AutomaticChart.module.css';
 
 // Lazy load the chart component for better performance
@@ -39,6 +46,13 @@ export interface AutomaticChartProps {
   onVisualizationChange?: (newType: 'line' | 'bar' | 'pie' | 'doughnut') => void;
   enableRealTime?: boolean;
   showRealTimeIndicator?: boolean;
+  // Enhanced interactive features
+  enableZoom?: boolean;
+  enablePan?: boolean;
+  enableCrossfilter?: boolean;
+  onDataPointClick?: (dataPoint: any, chart: Chart) => void;
+  onDataPointHover?: (dataPoint: any, chart: Chart) => void;
+  showInteractiveControls?: boolean;
 }
 
 export default function AutomaticChart({
@@ -57,11 +71,24 @@ export default function AutomaticChart({
   onVisualizationChange,
   enableRealTime = false,
   showRealTimeIndicator = false,
+  // Enhanced interactive features with defaults
+  enableZoom = true,
+  enablePan = true,
+  enableCrossfilter = false,
+  onDataPointClick,
+  onDataPointHover,
+  showInteractiveControls = true,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);
+  const dynamicChartRef = useRef<Chart | null>(null);
   const [currentChartType, setCurrentChartType] = React.useState(chartType);
   const [isChangingVisualization, setIsChangingVisualization] = React.useState(false);
+
+  // Interactive chart state
+  const [isZoomEnabled, setIsZoomEnabled] = useState(enableZoom);
+  const [isPanEnabled, setIsPanEnabled] = useState(enablePan);
+  const [selectedDataPoints, setSelectedDataPoints] = useState<any[]>([]);
 
   // Use WebSocket for real-time data if enabled (temporarily disabled for SSR)
   const wsData = null;
@@ -97,6 +124,58 @@ export default function AutomaticChart({
       onDataChange(data, status);
     }
   }, [data, status, onDataChange]);
+
+  // Interactive chart handlers
+  const handleDataPointClick = useCallback((dataPoint: any, chart: Chart) => {
+    if (enableCrossfilter) {
+      setSelectedDataPoints(prev => {
+        const isSelected = prev.some(p =>
+          p.datasetIndex === dataPoint.datasetIndex && p.dataIndex === dataPoint.dataIndex
+        );
+
+        if (isSelected) {
+          return prev.filter(p =>
+            !(p.datasetIndex === dataPoint.datasetIndex && p.dataIndex === dataPoint.dataIndex)
+          );
+        } else {
+          return [...prev, dataPoint];
+        }
+      });
+    }
+
+    if (onDataPointClick) {
+      onDataPointClick(dataPoint, chart);
+    }
+  }, [enableCrossfilter, onDataPointClick]);
+
+  const handleDataPointHover = useCallback((dataPoint: any, chart: Chart) => {
+    if (onDataPointHover) {
+      onDataPointHover(dataPoint, chart);
+    }
+  }, [onDataPointHover]);
+
+  // Interactive controls handlers
+  const handleResetZoom = useCallback(() => {
+    if (dynamicChartRef.current) {
+      resetChartZoom(dynamicChartRef.current);
+    }
+  }, []);
+
+  const handleToggleZoom = useCallback(() => {
+    if (dynamicChartRef.current) {
+      const newZoomState = !isZoomEnabled;
+      setIsZoomEnabled(newZoomState);
+      toggleChartZoom(dynamicChartRef.current, newZoomState);
+    }
+  }, [isZoomEnabled]);
+
+  const handleTogglePan = useCallback(() => {
+    if (dynamicChartRef.current) {
+      const newPanState = !isPanEnabled;
+      setIsPanEnabled(newPanState);
+      toggleChartPan(dynamicChartRef.current, newPanState);
+    }
+  }, [isPanEnabled]);
 
   // Handle visualization type changes
   const handleVisualizationChange = React.useCallback(async (newVisualization: VisualizationType) => {
@@ -188,6 +267,41 @@ export default function AutomaticChart({
         <h3 className={styles.title}>{title}</h3>
         
         <div className={styles.actions}>
+          {/* Interactive controls */}
+          {showInteractiveControls && displayData && (
+            <div className={styles.interactiveControls}>
+              <button
+                className={`${styles.controlButton} ${isZoomEnabled ? styles.active : ''}`}
+                onClick={handleToggleZoom}
+                title={`${isZoomEnabled ? 'Disable' : 'Enable'} zoom`}
+                aria-label={`${isZoomEnabled ? 'Disable' : 'Enable'} chart zoom`}
+              >
+                🔍
+              </button>
+              <button
+                className={`${styles.controlButton} ${isPanEnabled ? styles.active : ''}`}
+                onClick={handleTogglePan}
+                title={`${isPanEnabled ? 'Disable' : 'Enable'} pan`}
+                aria-label={`${isPanEnabled ? 'Disable' : 'Enable'} chart pan`}
+              >
+                ✋
+              </button>
+              <button
+                className={styles.controlButton}
+                onClick={handleResetZoom}
+                title="Reset zoom and pan"
+                aria-label="Reset chart zoom and pan"
+              >
+                🏠
+              </button>
+              {enableCrossfilter && selectedDataPoints.length > 0 && (
+                <span className={styles.selectionIndicator}>
+                  {selectedDataPoints.length} selected
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Real-time status indicator */}
           {enableRealTime && showRealTimeIndicator && (
             <RealTimeStatusIndicator
@@ -279,6 +393,14 @@ export default function AutomaticChart({
                 onVisualizationChange={showVisualizationSwitcher ? handleVisualizationChange : undefined}
                 onRemove={onRemove}
                 isChangingVisualization={isChangingVisualization}
+                enableZoom={isZoomEnabled}
+                enablePan={isPanEnabled}
+                enableCrossfilter={enableCrossfilter}
+                onDataPointClick={handleDataPointClick}
+                onDataPointHover={handleDataPointHover}
+                onChartReady={(chart) => {
+                  dynamicChartRef.current = chart;
+                }}
               />
               
               {/* Loading overlay for refresh */}

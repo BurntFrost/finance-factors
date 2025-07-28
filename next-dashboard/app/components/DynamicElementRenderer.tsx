@@ -129,29 +129,58 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
             }}
             enableRealTime={true}
             showRealTimeIndicator={true}
+            // Enhanced interactive features enabled by default
+            enableZoom={true}
+            enablePan={true}
+            enableCrossfilter={false}
+            showInteractiveControls={true}
+            onDataPointClick={(dataPoint, chart) => {
+              console.log('Data point clicked:', dataPoint, chart);
+              // Could add custom click handling here
+            }}
           />
         );
       }
 
-      // For elements with data, use EnhancedInteractiveChart
+      // For elements with data, use AutomaticChart with fallback data
       if (!isChartData(element.data)) {
         return <div>No chart data available</div>;
       }
       return (
-        <EnhancedInteractiveChart
-          type={element.type}
-          data={element.data}
-          title={element.title}
+        <AutomaticChart
           dataType={element.dataType}
+          title={element.title}
+          chartType={element.type.replace('-chart', '') as 'line' | 'bar' | 'pie' | 'doughnut'}
+          height={400}
+          showIndicator={true}
+          indicatorPosition="top-right"
+          refreshInterval={15 * 60 * 1000} // 15 minutes
+          fallbackData={element.data} // Use element data as fallback
           onRemove={handleRemove}
-          onVisualizationChange={handleVisualizationChange}
-          config={element.config}
-          isChangingVisualization={isChangingVisualization}
+          showVisualizationSwitcher={true}
+          onVisualizationChange={(newType) => {
+            handleVisualizationChange({
+              id: `${newType}-chart` as VisualizationType['id'],
+              name: newType.charAt(0).toUpperCase() + newType.slice(1) + ' Chart',
+              icon: '📊',
+              description: `${newType.charAt(0).toUpperCase() + newType.slice(1)} chart visualization`,
+              category: 'chart',
+              suitableFor: ['time-series', 'categorical']
+            });
+          }}
+          enableRealTime={true}
+          showRealTimeIndicator={true}
+          // Enhanced interactive features enabled by default
           enableZoom={true}
           enablePan={true}
           enableCrossfilter={true}
-          onDataPointClick={handleDataPointClick}
-          onDataPointSelect={handleDataPointSelect}
+          showInteractiveControls={true}
+          onDataPointClick={(dataPoint, chart) => {
+            console.log('Data point clicked:', dataPoint, chart);
+            if (handleDataPointClick) {
+              handleDataPointClick(dataPoint);
+            }
+          }}
         />
       );
 

@@ -5,6 +5,7 @@ import { ChartData, VisualizationType } from '../types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
 import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
+import { getInteractiveChartOptions } from '../config/interactiveChartConfiguration';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { ChartCard } from '../../components/ui/chart-card';
 import ChartErrorBoundary, { useChartErrorHandler } from './ChartErrorBoundary';
@@ -44,6 +45,13 @@ interface DynamicChartProps {
   hideHeader?: boolean;
   hideFooter?: boolean;
   isChangingVisualization?: boolean;
+  // Interactive chart options
+  enableZoom?: boolean;
+  enablePan?: boolean;
+  enableCrossfilter?: boolean;
+  onDataPointClick?: (dataPoint: any, chart: any) => void;
+  onDataPointHover?: (dataPoint: any, chart: any) => void;
+  onChartReady?: (chart: any) => void;
 }
 
 // Chart skeleton component for loading state
@@ -74,7 +82,13 @@ export default function DynamicChart({
   config,
   hideHeader = false,
   hideFooter = false,
-  isChangingVisualization = false
+  isChangingVisualization = false,
+  enableZoom = true,
+  enablePan = true,
+  enableCrossfilter = false,
+  onDataPointClick,
+  onDataPointHover,
+  onChartReady
 }: DynamicChartProps) {
   const chartRef = useRef<any>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -123,79 +137,24 @@ export default function DynamicChart({
   }, [isRefreshing]);
 
   const getChartOptions = () => {
-    // Get configuration for this data type
-    const chartConfig = dataType ? getChartConfig(dataType) : null;
-    const axisConfig = dataType ? getAxisConfig(dataType) : null;
+    // Get interactive chart options with enhanced features
+    const interactiveOptions = getInteractiveChartOptions(dataType || '', {
+      enableZoom,
+      enablePan,
+      enableCrossfilter,
+      onDataPointClick: onDataPointClick ? (dataPoint: any, chart: any) => {
+        onDataPointClick(dataPoint, chart);
+      } : undefined,
+      onDataPointHover: onDataPointHover ? (dataPoint: any, chart: any) => {
+        onDataPointHover(dataPoint, chart);
+      } : undefined,
+      customTooltip: true,
+    });
 
+    // Merge with any additional config
     const baseOptions = {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: {
-        duration: 750,
-        easing: 'easeInOutQuart' as const,
-        onComplete: function() {
-          // Animation complete callback - ensure proper binding
-        },
-        onProgress: function() {
-          // Animation progress callback - ensure proper binding
-        }
-      },
-      plugins: {
-        legend: {
-          display: chartConfig?.legend.display ?? true,
-          position: chartConfig?.legend.position ?? 'top' as const,
-        },
-        title: {
-          display: false, // We're using our own title
-        },
-        tooltip: chartConfig ? {
-          callbacks: {
-            title: function(tooltipItems: any[]) {
-              try {
-                if (chartConfig.tooltip?.title && typeof chartConfig.tooltip.title === 'function') {
-                  return chartConfig.tooltip.title(tooltipItems);
-                }
-                return tooltipItems[0]?.label || '';
-              } catch (error) {
-                console.warn('Tooltip title callback error:', error);
-                return tooltipItems[0]?.label || '';
-              }
-            },
-            label: function(tooltipItem: any) {
-              try {
-                if (chartConfig.tooltip?.label && typeof chartConfig.tooltip.label === 'function') {
-                  return chartConfig.tooltip.label(tooltipItem);
-                }
-                return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
-              } catch (error) {
-                console.warn('Tooltip label callback error:', error);
-                return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
-              }
-            },
-            afterLabel: function(tooltipItem: any) {
-              try {
-                if (chartConfig.tooltip?.afterLabel && typeof chartConfig.tooltip.afterLabel === 'function') {
-                  return chartConfig.tooltip.afterLabel(tooltipItem);
-                }
-                return '';
-              } catch (error) {
-                console.warn('Tooltip afterLabel callback error:', error);
-                return '';
-              }
-            },
-          }
-        } : {
-          callbacks: {
-            title: function(tooltipItems: any[]) {
-              return tooltipItems[0]?.label || '';
-            },
-            label: function(tooltipItem: any) {
-              return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
-            }
-          }
-        },
-      },
-      ...config
+      ...interactiveOptions,
+      ...config,
     };
 
     // Add scales for line and bar charts
@@ -246,15 +205,31 @@ export default function DynamicChart({
   const renderChart = () => {
     const options = getChartOptions();
 
+    // Chart ready callback to capture chart instance
+    const handleChartReady = useCallback((chart: any) => {
+      if (onChartReady) {
+        onChartReady(chart);
+      }
+    }, [onChartReady]);
+
+    const commonProps = {
+      ref: chartRef,
+      data,
+      options: {
+        ...options,
+        onReady: handleChartReady,
+      },
+    };
+
     switch (type) {
       case 'line-chart':
-        return <Line ref={chartRef} data={data} options={options} />;
+        return <Line {...commonProps} />;
       case 'bar-chart':
-        return <Bar ref={chartRef} data={data} options={options} />;
+        return <Bar {...commonProps} />;
       case 'pie-chart':
-        return <Pie ref={chartRef} data={data} options={options} />;
+        return <Pie {...commonProps} />;
       case 'doughnut-chart':
-        return <Doughnut ref={chartRef} data={data} options={options} />;
+        return <Doughnut {...commonProps} />;
       default:
         return <div>Unsupported chart type</div>;
     }

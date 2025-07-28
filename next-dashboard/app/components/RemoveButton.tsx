@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import styles from './LazyChart.module.css';
 
 interface RemoveButtonProps {
   onClick: () => void;
@@ -46,7 +45,19 @@ export default function RemoveButton({
     <button
       onClick={handleClick}
       disabled={disabled}
-      className={`${styles.removeButton} ${sizeClasses[size]} ${className}`}
+      className={`${sizeClasses[size]} ${className}`}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        background: '#ef4444',
+        color: 'white',
+        border: '1px solid #dc2626',
+        borderRadius: '0.375rem',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'all 0.2s ease',
+        opacity: disabled ? 0.5 : 1,
+      }}
       aria-label="Remove item"
       title="Remove this item"
     >

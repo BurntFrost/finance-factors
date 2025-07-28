@@ -185,6 +185,14 @@ export default function Home() {
                 }}
                 enableRealTime={enableRealTime}
                 showRealTimeIndicator={enableRealTime}
+                // Enhanced interactive features enabled by default
+                enableZoom={true}
+                enablePan={true}
+                enableCrossfilter={false}
+                showInteractiveControls={true}
+                onDataPointClick={(dataPoint, chart) => {
+                  console.log(`Chart ${chart.id} data point clicked:`, dataPoint, chart);
+                }}
               />
             </div>
           ))}

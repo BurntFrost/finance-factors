@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import styles from './LazyChart.module.css';
 
 interface RefreshButtonProps {
   onClick: () => void;
@@ -35,17 +34,37 @@ export default function RefreshButton({
   };
 
   return (
-    <div className={className} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+    <>
+      <style jsx>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
+      <div className={className} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
       <button
         onClick={onClick}
         disabled={isRefreshing || disabled}
-        className={`${styles.refreshButton} ${sizeClasses[size]}`}
+        className={`${sizeClasses[size]} ${className}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          background: 'transparent',
+          border: '1px solid #d1d5db',
+          borderRadius: '0.375rem',
+          cursor: disabled || isRefreshing ? 'not-allowed' : 'pointer',
+          transition: 'all 0.2s ease',
+          opacity: disabled || isRefreshing ? 0.5 : 1,
+        }}
         title={lastRefresh ? `Last refreshed: ${lastRefresh.toLocaleTimeString()}` : 'Refresh chart'}
         aria-label={isRefreshing ? 'Refreshing chart' : 'Refresh chart'}
       >
-        <span 
-          className={`${styles.refreshIcon} ${isRefreshing ? styles.spinning : ''}`}
-          style={{ fontSize: iconSizes[size] }}
+        <span
+          style={{
+            fontSize: iconSizes[size],
+            animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
+          }}
         >
           ↻
         </span>
@@ -62,5 +81,6 @@ export default function RefreshButton({
         </small>
       )}
     </div>
+    </>
   );
 }
