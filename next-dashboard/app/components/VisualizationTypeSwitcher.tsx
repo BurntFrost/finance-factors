@@ -12,7 +12,7 @@ import { VisualizationType } from '../types/dashboard';
 import { getSuitableVisualizations } from '../config/elementTypes';
 import styles from './VisualizationTypeSwitcher.module.css';
 
-interface VisualizationTypeSwitcherProps {
+export interface VisualizationTypeSwitcherProps {
   dataType: string;
   currentVisualizationType: string;
   onVisualizationChange: (newType: VisualizationType) => void;

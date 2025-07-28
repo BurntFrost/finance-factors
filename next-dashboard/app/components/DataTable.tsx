@@ -2,10 +2,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { TableData, TableColumn, VisualizationType } from '../types/dashboard';
-import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
-import styles from './DataTable.module.css';
+import { TableCard } from '../../components/ui/table-card';
 
 interface DataTableProps {
   title: string;
@@ -122,72 +122,87 @@ export default function DataTable({
 
   const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
 
-  return (
-    <div className={styles.tableContainer}>
-      <div className={styles.tableHeader}>
-        <div className={styles.titleSection}>
-          <h2 className={styles.tableTitle}>{title}</h2>
-          <DataStatusPill
-            status={dataStatus}
-            lastUpdated={data.lastUpdated}
-            size="small"
-          />
-        </div>
-        <div className={styles.tableControls}>
-          {dataType && onVisualizationChange && (
-            <VisualizationTypeSwitcher
-              dataType={dataType}
-              currentVisualizationType="data-table"
-              onVisualizationChange={onVisualizationChange}
-              size="small"
-              showLabels={false}
-              showIcons={true}
-              disabled={isChangingVisualization}
-              isLoading={isChangingVisualization}
-            />
-          )}
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className={styles.searchInput}
-          />
-          {onRemove && isEditMode && (
-            <button
-              className={styles.removeButton}
-              onClick={onRemove}
-              aria-label="Remove table"
-            >
-              🗑️ Remove
-            </button>
-          )}
-        </div>
-      </div>
+  // Prepare header actions
+  const headerActions = (
+    <>
+      {dataType && onVisualizationChange && (
+        <VisualizationTypeSwitcher
+          dataType={dataType}
+          currentVisualizationType="data-table"
+          onVisualizationChange={onVisualizationChange}
+          size="small"
+          showLabels={false}
+          showIcons={true}
+          disabled={isChangingVisualization}
+          isLoading={isChangingVisualization}
+        />
+      )}
+    </>
+  );
 
-      <div className={styles.tableWrapper}>
+  return (
+    <TableCard
+      title={title}
+      status={dataStatus}
+      lastUpdated={data.lastUpdated}
+      isEditable={isEditMode}
+      onRemove={onRemove}
+      headerActions={headerActions}
+      searchValue={searchTerm}
+      onSearchChange={(value) => {
+        setSearchTerm(value);
+        setCurrentPage(1);
+      }}
+      showSearch={true}
+      footerContent={
+        totalPages > 1 ? (
+          <div className="flex justify-between items-center">
+            <button
+              className="px-3 py-1 text-sm border rounded hover:bg-muted disabled:opacity-50"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+
+            <span className="text-sm text-muted-foreground">
+              Page {currentPage} of {totalPages} ({sortedData.length} total rows)
+            </span>
+
+            <button
+              className="px-3 py-1 text-sm border rounded hover:bg-muted disabled:opacity-50"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </div>
+        ) : null
+      }
+    >
+
+      <div className="relative w-full">
         {isChangingVisualization && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}>⟳</div>
-            <div className={styles.loadingText}>Switching visualization...</div>
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="animate-spin text-2xl">⟳</div>
+              <div className="text-sm text-muted-foreground">Switching visualization...</div>
+            </div>
           </div>
         )}
-        <table className={styles.table}>
+        <table className="w-full border-collapse">
           <thead>
-            <tr>
+            <tr className="border-b">
               {data.columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`${styles.tableHeaderCell} ${column.sortable ? styles.sortable : ''}`}
+                  className={`text-left p-3 font-medium text-muted-foreground ${column.sortable ? 'cursor-pointer hover:text-foreground' : ''}`}
                   onClick={() => handleSort(column.key)}
                 >
-                  <div className={styles.headerContent}>
+                  <div className="flex items-center justify-between">
                     <span>{column.label}</span>
                     {column.sortable && (
-                      <span className={styles.sortIcon}>
+                      <span className="ml-2 text-xs">
                         {getSortIcon(column.key)}
                       </span>
                     )}
@@ -198,9 +213,9 @@ export default function DataTable({
           </thead>
           <tbody>
             {paginatedData.map((row, index) => (
-              <tr key={index} className={styles.tableRow}>
+              <tr key={index} className="border-b hover:bg-muted/50">
                 {data.columns.map((column) => (
-                  <td key={column.key} className={styles.tableCell}>
+                  <td key={column.key} className="p-3 text-sm">
                     {formatCellValue(row[column.key], column)}
                   </td>
                 ))}
@@ -210,35 +225,11 @@ export default function DataTable({
         </table>
 
         {paginatedData.length === 0 && (
-          <div className={styles.emptyState}>
+          <div className="flex items-center justify-center py-8 text-muted-foreground">
             <p>No data found</p>
           </div>
         )}
       </div>
-
-      {totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          
-          <span className={styles.paginationInfo}>
-            Page {currentPage} of {totalPages} ({sortedData.length} total rows)
-          </span>
-          
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
+    </TableCard>
   );
 }

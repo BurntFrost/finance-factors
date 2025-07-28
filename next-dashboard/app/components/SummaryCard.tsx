@@ -2,10 +2,14 @@
 
 import React from 'react';
 import { SummaryCardData, VisualizationType } from '../types/dashboard';
-import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
-import styles from './SummaryCard.module.css';
+import { FinancialCard } from '../../components/ui/financial-card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { ModernStatusPill } from '../../components/ui/modern-status-pill';
+import { Button } from '../../components/ui/button';
+import { X } from 'lucide-react';
 
 interface SummaryCardProps {
   title: string;
@@ -13,7 +17,7 @@ interface SummaryCardProps {
   onRemove?: () => void;
 }
 
-export default function SummaryCard({ title, data, onRemove }: SummaryCardProps) {
+export default function SummaryCard({ title: _title, data, onRemove }: SummaryCardProps) {
   const isEditMode = useIsEditMode();
 
   const formatValue = (value: string | number) => {
@@ -29,92 +33,24 @@ export default function SummaryCard({ title, data, onRemove }: SummaryCardProps)
     return value;
   };
 
-  const getChangeIcon = (type: 'increase' | 'decrease' | 'neutral') => {
-    switch (type) {
-      case 'increase':
-        return '📈';
-      case 'decrease':
-        return '📉';
-      case 'neutral':
-        return '➡️';
-      default:
-        return '';
-    }
-  };
-
-  const getChangeColor = (type: 'increase' | 'decrease' | 'neutral') => {
-    switch (type) {
-      case 'increase':
-        return '#28a745';
-      case 'decrease':
-        return '#dc3545';
-      case 'neutral':
-        return '#6c757d';
-      default:
-        return 'inherit';
-    }
-  };
+  // These functions are now handled by FinancialCard
 
   return (
-    <div 
-      className={styles.card}
-      style={{ 
-        borderLeftColor: data.color || '#007bff',
-        backgroundColor: data.color ? `${data.color}08` : undefined
-      }}
-    >
-      <div className={styles.cardHeader}>
-        <div className={styles.cardTitle}>
-          {data.icon && <span className={styles.cardIcon}>{data.icon}</span>}
-          <h3 className={styles.title}>{data.title}</h3>
-        </div>
-        <div className={styles.cardActions}>
-          <DataStatusPill
-            status={getDataStatus(data.lastUpdated, data.isRealData)}
-            lastUpdated={data.lastUpdated}
-            size="small"
-          />
-          {onRemove && isEditMode && (
-            <button
-              className={styles.removeButton}
-              onClick={onRemove}
-              aria-label="Remove card"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.cardBody}>
-        <div className={styles.mainValue}>
-          {formatValue(data.value)}
-        </div>
-
-        {data.change && (
-          <div className={styles.changeContainer}>
-            <div 
-              className={styles.changeValue}
-              style={{ color: getChangeColor(data.change.type) }}
-            >
-              <span className={styles.changeIcon}>
-                {getChangeIcon(data.change.type)}
-              </span>
-              <span className={styles.changeText}>
-                {data.change.value > 0 ? '+' : ''}{data.change.value}%
-              </span>
-            </div>
-            <div className={styles.changePeriod}>
-              {data.change.period}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className={styles.cardFooter}>
-        <span className={styles.cardSubtitle}>{title}</span>
-      </div>
-    </div>
+    <FinancialCard
+      title={data.title}
+      value={formatValue(data.value)}
+      change={data.change ? {
+        value: data.change.value,
+        period: data.change.period,
+        type: data.change.type
+      } : undefined}
+      status={getDataStatus(data.lastUpdated, data.isRealData)}
+      lastUpdated={data.lastUpdated}
+      icon={data.icon}
+      color={data.color}
+      isEditable={isEditMode}
+      onRemove={onRemove}
+    />
   );
 }
 
@@ -147,17 +83,21 @@ export function SummaryCardGrid({
   }, undefined as Date | undefined);
 
   return (
-    <div className={styles.gridContainer}>
-      <div className={styles.gridHeader}>
-        <div className={styles.titleSection}>
-          <h2 className={styles.gridTitle}>{title}</h2>
-          <DataStatusPill
+    <Card className="relative transition-all duration-200 hover:shadow-md h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="flex items-center space-x-3">
+          <CardTitle className="text-lg font-semibold text-foreground">
+            {title}
+          </CardTitle>
+          <ModernStatusPill
             status={getDataStatus(latestUpdate, hasRealData)}
             lastUpdated={latestUpdate}
-            size="small"
+            size="sm"
+            showTimestamp={false}
           />
         </div>
-        <div className={styles.gridControls}>
+
+        <div className="flex items-center space-x-2">
           {dataType && onVisualizationChange && (
             <VisualizationTypeSwitcher
               dataType={dataType}
@@ -171,32 +111,40 @@ export function SummaryCardGrid({
             />
           )}
           {onRemove && isEditMode && (
-            <button
-              className={styles.removeButton}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
               onClick={onRemove}
               aria-label="Remove card grid"
             >
-              🗑️ Remove
-            </button>
+              <X className="h-4 w-4" />
+            </Button>
           )}
         </div>
-      </div>
+      </CardHeader>
 
-      <div className={styles.cardGrid}>
-        {isChangingVisualization && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}>⟳</div>
-            <div className={styles.loadingText}>Switching visualization...</div>
+      <CardContent className="flex-1 p-6 pt-0">
+        <div className="relative">
+          {isChangingVisualization && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
+              <div className="flex flex-col items-center space-y-2">
+                <div className="animate-spin text-2xl">⟳</div>
+                <div className="text-sm text-muted-foreground">Switching visualization...</div>
+              </div>
+            </div>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {cards.map((cardData, index) => (
+              <SummaryCard
+                key={index}
+                title={cardData.title}
+                data={cardData}
+              />
+            ))}
           </div>
-        )}
-        {cards.map((cardData, index) => (
-          <SummaryCard
-            key={index}
-            title={cardData.title}
-            data={cardData}
-          />
-        ))}
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

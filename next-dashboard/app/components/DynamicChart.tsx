@@ -2,11 +2,11 @@
 
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import { ChartData, VisualizationType } from '../types/dashboard';
-import DataStatusPill, { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
 import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
-import styles from './LazyChart.module.css';
+import { ChartCard } from '../../components/ui/chart-card';
 
 // Lazy load Chart.js components to reduce initial bundle size
 const Line = lazy(() =>
@@ -45,15 +45,11 @@ interface DynamicChartProps {
 
 // Chart skeleton component for loading state
 const ChartSkeleton = () => (
-  <div className={styles.chartWrapper}>
-    <div style={{
-      width: '100%',
-      height: '100%',
-      background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
-      backgroundSize: '200% 100%',
-      animation: 'loading 1.5s infinite',
-      borderRadius: '4px'
-    }} />
+  <div className="w-full h-full min-h-[300px] flex items-center justify-center">
+    <div className="w-full h-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 bg-[length:200%_100%] animate-pulse rounded"
+         style={{
+           animation: 'loading 1.5s infinite',
+         }} />
     <style jsx>{`
       @keyframes loading {
         0% { background-position: 200% 0; }
@@ -63,33 +59,7 @@ const ChartSkeleton = () => (
   </div>
 );
 
-// Refresh button component
-const _RefreshButton = ({ onClick, isRefreshing }: { onClick: () => void; isRefreshing: boolean }) => (
-  <button
-    className={styles.refreshButton}
-    onClick={onClick}
-    disabled={isRefreshing}
-    aria-label="Refresh chart"
-  >
-    <span className={`${styles.refreshIcon} ${isRefreshing ? styles.spinning : ''}`}>
-      🔄
-    </span>
-    {isRefreshing ? 'Refreshing...' : 'Refresh'}
-  </button>
-);
-
-// Remove button component
-const RemoveButton = ({ onClick }: { onClick: () => void }) => (
-  <button
-    className={`${styles.refreshButton} ${styles.removeButton}`}
-    onClick={onClick}
-    aria-label="Remove chart"
-    style={{ backgroundColor: '#dc3545', marginLeft: '8px' }}
-  >
-    <span>🗑️</span>
-    Remove
-  </button>
-);
+// These button components are now handled by ChartCard
 
 export default function DynamicChart({
   type,
@@ -221,77 +191,65 @@ export default function DynamicChart({
 
   const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
 
-  return (
-    <div className={styles.chartContainer}>
-      {!hideHeader && (
-        <div className={styles.chartHeader}>
-          <div className={styles.titleSection}>
-            <h2 className={styles.chartTitle}>{title}</h2>
-            <DataStatusPill
-              status={dataStatus}
-              lastUpdated={data.lastUpdated}
-              size="small"
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            {dataType && onVisualizationChange && (
-              <VisualizationTypeSwitcher
-                dataType={dataType}
-                currentVisualizationType={type}
-                onVisualizationChange={onVisualizationChange}
-                size="small"
-                showLabels={false}
-                showIcons={true}
-                disabled={isChangingVisualization}
-                isLoading={isChangingVisualization}
-              />
-            )}
-            {onRemove && isEditMode && <RemoveButton onClick={onRemove} />}
-          </div>
-        </div>
+  // Prepare header actions
+  const headerActions = (
+    <>
+      {dataType && onVisualizationChange && (
+        <VisualizationTypeSwitcher
+          dataType={dataType}
+          currentVisualizationationType={type}
+          onVisualizationChange={onVisualizationChange}
+          size="small"
+          showLabels={false}
+          showIcons={true}
+          disabled={isChangingVisualization}
+          isLoading={isChangingVisualization}
+        />
       )}
-      <div className={styles.chartWrapper}>
-        <Suspense fallback={<ChartSkeleton />}>
-          <ChartRegistration />
-          {isChangingVisualization ? <ChartSkeleton /> : renderChart()}
-        </Suspense>
-        {isChangingVisualization && (
-          <div className={styles.loadingOverlay}>
-            <div className={styles.loadingSpinner}>⟳</div>
-            <div className={styles.loadingText}>Switching visualization...</div>
-          </div>
+    </>
+  );
+
+  // Prepare footer content
+  const footerContent = !hideFooter ? (
+    <div className="flex justify-between items-center text-sm text-muted-foreground">
+      <div className="flex flex-col space-y-1">
+        {data.lastUpdated && (
+          <span>
+            Updated: {data.lastUpdated.toLocaleTimeString()}
+          </span>
         )}
+        <span>
+          Source: Live API Data
+        </span>
       </div>
+    </div>
+  ) : null;
 
-      {/* Footer with data source info and refresh button */}
-      {!hideFooter && (
-        <div className={styles.footer}>
-          <div className={styles.dataInfo}>
-            {data.lastUpdated && (
-              <span className={styles.timestamp}>
-                Updated: {data.lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
-
-            <span className={styles.source}>
-              Source: Live API Data
-            </span>
+  return (
+    <ChartCard
+      title={hideHeader ? "" : title}
+      status={hideHeader ? undefined : dataStatus}
+      lastUpdated={hideHeader ? undefined : data.lastUpdated}
+      isEditable={isEditMode}
+      onRemove={onRemove}
+      onRefresh={handleRefresh}
+      isRefreshing={isRefreshing}
+      headerActions={hideHeader ? undefined : headerActions}
+      footerContent={footerContent}
+      showFooter={!hideFooter}
+    >
+      <Suspense fallback={<ChartSkeleton />}>
+        <ChartRegistration />
+        {isChangingVisualization ? <ChartSkeleton /> : renderChart()}
+      </Suspense>
+      {isChangingVisualization && (
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-2">
+            <div className="animate-spin text-2xl">⟳</div>
+            <div className="text-sm text-muted-foreground">Switching visualization...</div>
           </div>
-
-          {/* Refresh button in footer */}
-          <button
-            className={styles.footerRefreshButton}
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            title="Refresh data"
-            aria-label="Refresh chart data"
-          >
-            <span className={isRefreshing ? styles.spinning : ''}>
-              🔄
-            </span>
-          </button>
         </div>
       )}
-    </div>
+    </ChartCard>
   );
 }
