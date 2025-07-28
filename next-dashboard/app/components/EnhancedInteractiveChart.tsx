@@ -217,15 +217,12 @@ export default function EnhancedInteractiveChart({
         </div>
       ) : undefined}
     >
-      {!hideHeader && (
+      {!hideHeader && selectedPoints.length > 0 && (
         <div className={styles.chartHeader}>
           <div className={styles.titleSection}>
-            <h3 className={styles.chartTitle}>{title}</h3>
-            {selectedPoints.length > 0 && (
-              <span className={styles.selectionCount}>
-                {selectedPoints.length} point{selectedPoints.length !== 1 ? 's' : ''} selected
-              </span>
-            )}
+            <span className={styles.selectionCount}>
+              {selectedPoints.length} point{selectedPoints.length !== 1 ? 's' : ''} selected
+            </span>
           </div>
           
           <div className={styles.headerControls}>
