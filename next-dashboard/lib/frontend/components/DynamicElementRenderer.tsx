@@ -164,6 +164,7 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
             enablePan={true}
             enableCrossfilter={false}
             showInteractiveControls={true}
+
             onDataPointClick={(dataPoint, chart) => {
               console.log('Data point clicked:', dataPoint, chart);
               // Could add custom click handling here
@@ -205,6 +206,7 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
           enablePan={true}
           enableCrossfilter={true}
           showInteractiveControls={true}
+
           onDataPointClick={(dataPoint, chart) => {
             console.log('Data point clicked:', dataPoint, chart);
             if (handleDataPointClick) {

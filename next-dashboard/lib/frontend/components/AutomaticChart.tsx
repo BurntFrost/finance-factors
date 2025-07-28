@@ -54,6 +54,8 @@ export interface AutomaticChartProps {
   onDataPointClick?: (dataPoint: any, chart: Chart) => void;
   onDataPointHover?: (dataPoint: any, chart: Chart) => void;
   showInteractiveControls?: boolean;
+  // Footer control
+  showFooterRefresh?: boolean;
 }
 
 export default function AutomaticChart({
@@ -79,6 +81,8 @@ export default function AutomaticChart({
   onDataPointClick,
   onDataPointHover,
   showInteractiveControls = true,
+  // Footer control with default
+  showFooterRefresh = true,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);
@@ -275,14 +279,20 @@ export default function AutomaticChart({
     // Could show success notification
   }, [title]);
 
-  // Handle refresh
+  // Handle refresh - combines both refresh and retry functionality
   const handleRefresh = React.useCallback(async () => {
     try {
-      await refresh();
+      if (status === 'historical-fallback') {
+        // If showing historical data, try to retry live data first
+        await forceRetryLive();
+      } else {
+        // Otherwise, do a regular refresh
+        await refresh();
+      }
     } catch (error) {
       console.error('Refresh failed:', error);
     }
-  }, [refresh]);
+  }, [refresh, forceRetryLive, status]);
 
   return (
     <div className={`${styles.container} ${className}`}>
@@ -348,20 +358,7 @@ export default function AutomaticChart({
             />
           )}
 
-          {/* Historical data retry button - positioned to the left */}
-          {status === 'historical-fallback' && (
-            <button
-              className={styles.retryButton}
-              onClick={handleRetry}
-              disabled={isLoading}
-              title="Retry live data"
-              aria-label="Retry fetching live data"
-            >
-              <span className={isLoading ? styles.spinning : ''}>
-                🔄
-              </span>
-            </button>
-          )}
+
 
           {/* Remove button */}
           {onRemove && isEditMode && (
@@ -471,7 +468,7 @@ export default function AutomaticChart({
       </div>
 
       {/* Footer with data source info and refresh button */}
-      {displayData && (
+      {displayData && showFooterRefresh && (
         <div className={styles.footer}>
           <div className={styles.dataInfo}>
             {lastUpdated && (
@@ -481,17 +478,17 @@ export default function AutomaticChart({
             )}
 
             <span className={styles.source}>
-              Source: Live API Data
+              {status === 'historical-fallback' ? 'Source: Historical Data' : 'Source: Live API Data'}
             </span>
           </div>
 
-          {/* Refresh button in footer */}
+          {/* Unified refresh/retry button in footer */}
           <button
             className={styles.footerRefreshButton}
             onClick={handleRefresh}
             disabled={isLoading}
-            title="Refresh data"
-            aria-label="Refresh chart data"
+            title={status === 'historical-fallback' ? 'Retry live data' : 'Refresh data'}
+            aria-label={status === 'historical-fallback' ? 'Retry fetching live data' : 'Refresh chart data'}
           >
             <span className={isLoading ? styles.spinning : ''}>
               🔄
