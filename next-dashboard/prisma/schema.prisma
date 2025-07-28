@@ -1,0 +1,267 @@
+// Finance Factors Dashboard - Prisma Schema
+// Optimized for performance with proper indexing and relationships
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+  previewFeatures = ["fullTextSearch", "views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // For connection pooling
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  ANALYST
+  VIEWER
+}
+
+enum DataSourceType {
+  LIVE_API
+  HISTORICAL
+  CACHED
+}
+
+enum AuditAction {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+}
+
+// User management and authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  role      UserRole @default(VIEWER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  dashboards Dashboard[]
+  preferences UserPreferences?
+  sessions    Session[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+
+  @@map("users")
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Dashboard preferences
+  defaultTheme      String  @default("light")
+  defaultLayout     String  @default("grid")
+  autoRefresh       Boolean @default(true)
+  refreshInterval   Int     @default(900000) // 15 minutes in ms
+  enableNotifications Boolean @default(true)
+
+  // Chart preferences
+  defaultChartType  String  @default("line")
+  animationsEnabled Boolean @default(true)
+  showDataLabels    Boolean @default(false)
+
+  // Data preferences
+  preferredDataSource String @default("live-api")
+  cacheEnabled        Boolean @default(true)
+
+  // UI preferences
+  compactMode       Boolean @default(false)
+  showTooltips      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_preferences")
+}
+
+// Dashboard and element management
+model Dashboard {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(false)
+  isTemplate  Boolean  @default(false)
+  layout      String   @default("grid")
+
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  elements  DashboardElement[]
+  shares    DashboardShare[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([isPublic])
+  @@index([isTemplate])
+  @@map("dashboards")
+}
+
+model DashboardElement {
+  id          String   @id @default(cuid())
+  type        String   // line-chart, bar-chart, etc.
+  dataType    String   // house-prices, unemployment, etc.
+  title       String
+  config      Json     @default("{}")
+  position    Json     @default("{}")
+  size        Json     @default("{}")
+
+  dashboardId String
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dashboardId])
+  @@index([dataType])
+  @@map("dashboard_elements")
+}
+
+model DashboardShare {
+  id          String   @id @default(cuid())
+  dashboardId String
+  dashboard   Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  shareToken  String   @unique
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([shareToken])
+  @@index([dashboardId])
+  @@map("dashboard_shares")
+}
+
+// Session management
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  token     String   @unique
+  expiresAt DateTime
+  userAgent String?
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+// API key management
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  keyHash     String   @unique
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+// Data caching and performance
+model CachedData {
+  id          String   @id @default(cuid())
+  cacheKey    String   @unique
+  dataType    String
+  data        Json
+  source      DataSourceType
+
+  expiresAt   DateTime
+  lastAccessed DateTime @default(now())
+  accessCount  Int      @default(1)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([dataType])
+  @@index([expiresAt])
+  @@index([lastAccessed])
+  @@map("cached_data")
+}
+
+// Audit logging
+model AuditLog {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  action    AuditAction
+  resource  String      // dashboard, element, user, etc.
+  resourceId String?
+  details   Json?
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// Performance monitoring
+model PerformanceMetric {
+  id          String   @id @default(cuid())
+  metricType  String   // api_response_time, chart_render_time, etc.
+  value       Float
+  unit        String   // ms, bytes, count, etc.
+
+  context     Json?    // Additional context data
+
+  createdAt DateTime @default(now())
+
+  @@index([metricType])
+  @@index([createdAt])
+  @@map("performance_metrics")
+}
+
+// Rate limiting tracking
+model RateLimitEntry {
+  id          String   @id @default(cuid())
+  identifier  String   // IP address, user ID, API key, etc.
+  provider    String   // FRED, BLS, CENSUS, etc.
+
+  requestCount Int     @default(1)
+  windowStart  DateTime
+  windowEnd    DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([identifier, provider, windowStart])
+  @@index([identifier])
+  @@index([provider])
+  @@index([windowStart])
+  @@map("rate_limit_entries")
+}

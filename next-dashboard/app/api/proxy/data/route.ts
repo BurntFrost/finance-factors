@@ -22,6 +22,9 @@ import { fredProxyService } from '../../services/fred-proxy';
 import { blsProxyService } from '../../services/bls-proxy';
 import { censusProxyService } from '../../services/census-proxy';
 import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
+import { cache } from '../../../lib/advanced-cache';
+import { compressionManager } from '../../../lib/compression';
+import { httpPool } from '../../../lib/connection-pool';
 
 /**
  * CORS headers for all responses
@@ -69,6 +72,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const { dataType, timeRange, useCache } = extractRequestOptionsFromBody(body);
+
+    // Check advanced cache first
+    if (useCache) {
+      const cacheKey = `api:${dataType}:${JSON.stringify(timeRange)}`;
+      const cached = await cache.get<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
+      if (cached) {
+        // Add cache hit headers and apply compression
+        const acceptEncoding = request.headers.get('accept-encoding');
+        const compressed = acceptEncoding ?
+          await compressionManager.compressJson(cached, acceptEncoding) : null;
+
+        const headers = {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'X-Cache': 'HIT',
+          'X-Cache-Level': 'advanced',
+          ...(compressed && {
+            'Content-Encoding': compressed.encoding,
+            'Content-Length': compressed.data.length.toString(),
+            'Vary': 'Accept-Encoding',
+          }),
+        };
+
+        return new NextResponse(compressed?.data || JSON.stringify(cached), {
+          status: 200,
+          headers,
+        });
+      }
+    }
 
     // Get endpoint configuration
     const endpointConfig = PROXY_API_ENDPOINTS[dataType];
@@ -132,6 +165,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
     }
 
+    // Cache successful responses
+    if (response.success && useCache) {
+      const cacheKey = `api:${dataType}:${JSON.stringify(timeRange)}`;
+      await cache.set(cacheKey, response, {
+        ttl: 900, // 15 minutes
+        tags: [dataType, endpointConfig.provider, 'api-response'],
+        priority: 'normal',
+      });
+    }
+
     // Log the request
     const duration = Date.now() - startTime;
     logApiRequest(
@@ -142,11 +185,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       response.error
     );
 
-    // Send response with appropriate status code and CORS headers
+    // Apply compression and send response
     const statusCode = response.success ? 200 : getStatusCodeFromError(response.error);
-    return NextResponse.json(response, {
+    const acceptEncoding = request.headers.get('accept-encoding');
+    const compressed = acceptEncoding ?
+      await compressionManager.compressJson(response, acceptEncoding) : null;
+
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'X-Response-Time': `${duration}ms`,
+      'X-Cache': 'MISS',
+      ...(compressed && {
+        'Content-Encoding': compressed.encoding,
+        'Content-Length': compressed.data.length.toString(),
+        'Vary': 'Accept-Encoding',
+        'X-Compression-Ratio': compressed.stats.compressionRatio.toFixed(2),
+      }),
+    };
+
+    return new NextResponse(compressed?.data || JSON.stringify(response), {
       status: statusCode,
-      headers: CORS_HEADERS,
+      headers,
     });
 
   } catch (error) {

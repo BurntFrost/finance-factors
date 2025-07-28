@@ -12,6 +12,34 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_DEBUG_API: process.env.NEXT_PUBLIC_DEBUG_API || 'false',
   },
 
+  // Performance optimizations
+  experimental: {
+    // Enable optimized package imports for better tree shaking
+    optimizePackageImports: ['chart.js', 'react-chartjs-2', 'redis'],
+    // Enable turbo mode for faster builds
+    turbo: {
+      rules: {
+        // Optimize Chart.js imports
+        '*.{js,jsx,ts,tsx}': {
+          loaders: ['swc-loader'],
+          options: {
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+              },
+              transform: {
+                react: {
+                  runtime: 'automatic',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+
   // Turbopack configuration (for development with --turbopack flag)
   turbopack: {
     rules: {
@@ -33,27 +61,60 @@ const nextConfig: NextConfig = {
 
     // Production optimizations (webpack only, not used in Turbopack development)
     if (!dev && !isServer) {
-      // Split chunks for better caching
+      // Advanced chunk splitting for better caching and performance
       config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
+        chunks: 'all',
         cacheGroups: {
-          ...config.optimization.splitChunks.cacheGroups,
-          // Separate chunk for Chart.js
-          chartjs: {
+          // Framework chunk (React, Next.js)
+          framework: {
+            test: /[\\/]node_modules[\\/](react|react-dom|next)[\\/]/,
+            name: 'framework',
+            chunks: 'all',
+            priority: 40,
+            enforce: true,
+          },
+          // Chart.js and visualization libraries
+          charts: {
             test: /[\\/]node_modules[\\/](chart\.js|react-chartjs-2)[\\/]/,
-            name: 'chartjs',
+            name: 'charts',
+            chunks: 'all',
+            priority: 35,
+            enforce: true,
+          },
+          // Redis and caching libraries
+          redis: {
+            test: /[\\/]node_modules[\\/](redis|ioredis)[\\/]/,
+            name: 'redis',
             chunks: 'all',
             priority: 30,
+            enforce: true,
           },
-          // Separate chunk for React
-          react: {
-            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-            name: 'react',
+          // Utilities and smaller libraries
+          lib: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'lib',
             chunks: 'all',
             priority: 20,
+            minChunks: 2,
+            reuseExistingChunk: true,
+          },
+          // Common application code
+          common: {
+            name: 'common',
+            chunks: 'all',
+            priority: 10,
+            minChunks: 2,
+            reuseExistingChunk: true,
           },
         },
       };
+
+      // Enable tree shaking for better bundle optimization
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+
+      // Minimize bundle size
+      config.optimization.minimize = true;
     }
 
     return config;
