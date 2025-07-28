@@ -30,7 +30,7 @@ async function registerChartJSGlobally(): Promise<void> {
 
   try {
     // Import Chart.js components with proper error handling
-    const [chartModule, dateAdapterModule] = await Promise.all([
+    const [chartModule, _dateAdapterModule] = await Promise.all([
       import('chart.js/auto'),
       import('chartjs-adapter-date-fns').catch(() => null)
     ]);

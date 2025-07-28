@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
+import React, { Suspense, lazy, useRef, useState, useCallback, useEffect } from 'react';
 import { ChartData, VisualizationType } from '../types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
