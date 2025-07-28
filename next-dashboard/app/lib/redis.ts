@@ -37,7 +37,6 @@ const DEFAULT_CONFIG: Partial<RedisConfig> = {
 // Redis queue configuration
 const REDIS_QUEUE_CONFIG = {
   commandsQueueMaxLength: 1000, // Increased from 3 to handle concurrent operations
-  enableAutoPipelining: true, // Enable automatic pipelining for better performance
 };
 
 // Global Redis client instance
@@ -92,7 +91,6 @@ function createRedisClient(): RedisClient {
       },
     },
     commandsQueueMaxLength: REDIS_QUEUE_CONFIG.commandsQueueMaxLength,
-    enableAutoPipelining: REDIS_QUEUE_CONFIG.enableAutoPipelining,
   });
 
   // Error handling
