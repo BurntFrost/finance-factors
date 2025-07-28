@@ -110,7 +110,10 @@ function getRedisConfig(): RedisConfig {
 function createRedisClient(): RedisClient | null {
   // FEATURE TOGGLE: Don't create client if Redis is disabled
   if (!isRedisEnabled()) {
-    console.debug('Redis is disabled - skipping client creation');
+    // Only log in development mode to avoid noise in production logs
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Redis is disabled - skipping client creation');
+    }
     return null;
   }
 
@@ -192,7 +195,10 @@ function createRedisClient(): RedisClient | null {
 export async function getRedisClient(): Promise<RedisClientOrNull> {
   // FEATURE TOGGLE: Return null if Redis is disabled
   if (!isRedisEnabled()) {
-    console.debug('Redis is disabled - returning null client');
+    // Only log in development mode to avoid noise in production logs
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Redis is disabled - returning null client');
+    }
     return null;
   }
 
@@ -311,7 +317,10 @@ function determineFallbackStrategy(error: unknown): FallbackStrategy {
 export async function isRedisAvailable(): Promise<boolean> {
   // FEATURE TOGGLE: Return false immediately when Redis is disabled
   if (!isRedisEnabled()) {
-    console.debug('Redis disabled via feature toggle - returning false for availability check');
+    // Only log in development mode to avoid noise in production logs
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('Redis disabled via feature toggle - returning false for availability check');
+    }
     return false;
   }
 
@@ -504,7 +513,10 @@ export async function executeRedisCommand<T>(
 
     // If client is null (Redis disabled), return fallback
     if (!client) {
-      console.debug('Redis client is null (disabled) - using fallback');
+      // Only log in development mode to avoid noise in production logs
+      if (process.env.NODE_ENV === 'development') {
+        console.debug('Redis client is null (disabled) - using fallback');
+      }
       return fallback !== undefined ? fallback : null;
     }
 

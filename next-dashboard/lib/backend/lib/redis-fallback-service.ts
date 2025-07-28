@@ -163,7 +163,10 @@ export class RedisFallbackService {
   ): Promise<T> {
     // If fallback is already active, skip Redis and use fallback
     if (this.shouldActivateFallback()) {
-      console.debug(`Using fallback for ${operationName} (fallback mode active)`);
+      // Only log in development mode to avoid noise in production logs
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Using fallback for ${operationName} (fallback mode active)`);
+      }
       return await this.executeFallbackWithMetadata(fallbackOperation, operationName);
     }
 
@@ -214,9 +217,12 @@ export class RedisFallbackService {
         };
       }
       
-      console.debug(`Fallback operation successful for ${operationName}`, {
-        duration: Date.now() - startTime,
-      });
+      // Only log in development mode to avoid noise in production logs
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Fallback operation successful for ${operationName}`, {
+          duration: Date.now() - startTime,
+        });
+      }
       
       return result;
     } catch (fallbackError) {

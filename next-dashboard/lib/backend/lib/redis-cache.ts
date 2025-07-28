@@ -64,7 +64,10 @@ export async function setCacheData<T>(
 ): Promise<boolean> {
   // FEATURE TOGGLE: Skip Redis operations when disabled
   if (!isRedisEnabled()) {
-    console.debug(`Redis disabled - skipping cache set for key: ${key}`);
+    // Only log in development mode to avoid noise in production logs
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`Redis disabled - skipping cache set for key: ${key}`);
+    }
     return false;
   }
 
@@ -94,7 +97,10 @@ export async function setCacheData<T>(
 export async function getCacheData<T>(key: string): Promise<T | null> {
   // FEATURE TOGGLE: Skip Redis operations when disabled
   if (!isRedisEnabled()) {
-    console.debug(`Redis disabled - skipping cache get for key: ${key}`);
+    // Only log in development mode to avoid noise in production logs
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`Redis disabled - skipping cache get for key: ${key}`);
+    }
     return null;
   }
 
