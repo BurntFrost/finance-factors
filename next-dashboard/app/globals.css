@@ -31,6 +31,28 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --accent: 210 40% 96%;
+  --accent-foreground: 222.2 84% 4.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+  --radius: 0.5rem;
+
+  /* shadcn/ui CSS variables - Light theme */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
   --primary: 210 100% 50%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 98%;
@@ -235,45 +257,46 @@ a {
 
 @layer base {
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
   }
 }
 
 /* Custom utility classes for financial dashboard */
 @layer utilities {
   .text-financial-positive {
-    @apply text-chart-positive;
+    color: hsl(var(--chart-positive));
   }
 
   .text-financial-negative {
-    @apply text-chart-negative;
+    color: hsl(var(--chart-negative));
   }
 
   .text-financial-neutral {
-    @apply text-chart-neutral;
+    color: hsl(var(--chart-neutral));
   }
 
   .bg-financial-positive {
-    @apply bg-chart-positive;
+    background-color: hsl(var(--chart-positive));
   }
 
   .bg-financial-negative {
-    @apply bg-chart-negative;
+    background-color: hsl(var(--chart-negative));
   }
 
   .bg-financial-neutral {
-    @apply bg-chart-neutral;
+    background-color: hsl(var(--chart-neutral));
   }
 
   .border-financial-positive {
-    @apply border-chart-positive;
+    border-color: hsl(var(--chart-positive));
   }
 
   .border-financial-negative {
-    @apply border-chart-negative;
+    border-color: hsl(var(--chart-negative));
   }
 
   .border-financial-neutral {
-    @apply border-chart-neutral;
+    border-color: hsl(var(--chart-neutral));
   }
 }

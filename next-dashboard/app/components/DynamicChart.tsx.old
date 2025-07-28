@@ -197,7 +197,7 @@ export default function DynamicChart({
       {dataType && onVisualizationChange && (
         <VisualizationTypeSwitcher
           dataType={dataType}
-          currentVisualizationType={type as string}
+          currentVisualizationationType={type}
           onVisualizationChange={onVisualizationChange}
           size="small"
           showLabels={false}
