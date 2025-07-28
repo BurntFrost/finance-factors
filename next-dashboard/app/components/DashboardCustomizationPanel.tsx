@@ -7,9 +7,17 @@ import { useIsEditMode } from '../context/ViewModeContext';
 import { userPreferences } from '../utils/localStorage';
 import styles from './DashboardCustomizationPanel.module.css';
 
+interface DashboardSettings {
+  enableDragDrop: boolean;
+  enableRealTime: boolean;
+  visibleCharts: string[];
+}
+
 interface DashboardCustomizationPanelProps {
   isOpen: boolean;
   onClose: () => void;
+  onSettingsChange?: (settings: Partial<DashboardSettings>) => void;
+  currentSettings?: Partial<DashboardSettings>;
 }
 
 interface DataSourceOption {
@@ -75,6 +83,8 @@ const AVAILABLE_DATA_SOURCES: DataSourceOption[] = [
 export default function DashboardCustomizationPanel({
   isOpen,
   onClose,
+  onSettingsChange,
+  currentSettings = {},
 }: DashboardCustomizationPanelProps) {
   const { state, dispatch } = useDashboard();
   const isEditMode = useIsEditMode();
@@ -90,10 +100,12 @@ export default function DashboardCustomizationPanel({
     return {
       theme: saved.theme || 'auto',
       refreshInterval: saved.refreshInterval || 300000, // 5 minutes
-      showDataStatus: saved.showDataStatus !== false,
-      enableAnimations: saved.enableAnimations !== false,
-      compactMode: saved.compactMode || false,
-      defaultChartType: saved.defaultChartType || 'line-chart',
+      showDataStatus: true, // Default to true since it's not in the saved preferences type
+      enableAnimations: true, // Default to true
+      compactMode: false, // Default to false
+      defaultChartType: 'line-chart', // Default chart type
+      enableDragDrop: currentSettings.enableDragDrop ?? true,
+      enableRealTime: currentSettings.enableRealTime ?? false,
     };
   });
 
@@ -103,7 +115,7 @@ export default function DashboardCustomizationPanel({
 
     const newElement: DashboardElement = {
       id: `element-${Date.now()}`,
-      type: preferences.defaultChartType as VisualizationType,
+      type: preferences.defaultChartType as 'line-chart' | 'bar-chart' | 'pie-chart' | 'doughnut-chart' | 'data-table' | 'summary-card',
       dataType: dataSourceId,
       title: dataSource.name,
       position: { row: 0, col: 0 },
@@ -132,9 +144,15 @@ export default function DashboardCustomizationPanel({
     setPreferences(prev => {
       const newPrefs = { ...prev, [key]: value };
       userPreferences.save(newPrefs);
+
+      // Notify parent of settings changes for advanced features
+      if ((key === 'enableDragDrop' || key === 'enableRealTime') && onSettingsChange) {
+        onSettingsChange({ [key]: value });
+      }
+
       return newPrefs;
     });
-  }, []);
+  }, [onSettingsChange]);
 
   const filteredDataSources = AVAILABLE_DATA_SOURCES.filter(ds => 
     selectedCategory === 'all' || ds.category === selectedCategory
@@ -379,6 +397,36 @@ export default function DashboardCustomizationPanel({
                     <option value={1800000}>30 minutes</option>
                     <option value={3600000}>1 hour</option>
                   </select>
+                </div>
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={preferences.enableRealTime}
+                      onChange={(e) => handlePreferenceChange('enableRealTime', e.target.checked)}
+                    />
+                    Enable Real-time Updates
+                  </label>
+                  <small className={styles.preferenceDescription}>
+                    Connect to WebSocket for live data updates
+                  </small>
+                </div>
+              </div>
+
+              <div className={styles.preferenceSection}>
+                <h3>Interactive Features</h3>
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.checkboxLabel}>
+                    <input
+                      type="checkbox"
+                      checked={preferences.enableDragDrop}
+                      onChange={(e) => handlePreferenceChange('enableDragDrop', e.target.checked)}
+                    />
+                    Enable Drag & Drop
+                  </label>
+                  <small className={styles.preferenceDescription}>
+                    Allow reordering dashboard elements by dragging
+                  </small>
                 </div>
                 <div className={styles.preferenceGroup}>
                   <label className={styles.checkboxLabel}>

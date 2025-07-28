@@ -5,13 +5,14 @@ import { Chart } from 'chart.js';
 import { ChartData, VisualizationType } from '../types/dashboard';
 import { getDataStatus } from './DataStatusPill';
 import { useIsEditMode } from '../context/ViewModeContext';
-import { 
-  getInteractiveChartOptions, 
-  resetChartZoom, 
-  toggleChartZoom, 
-  toggleChartPan 
+import {
+  getInteractiveChartOptions,
+  resetChartZoom,
+  toggleChartZoom,
+  toggleChartPan
 } from '../config/interactiveChartConfiguration';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
+import ExportMenu from './ExportMenu';
 import { ChartCard } from '../../components/ui/chart-card';
 import ChartSkeleton from './ChartSkeleton';
 import styles from './EnhancedInteractiveChart.module.css';
@@ -74,6 +75,7 @@ export default function EnhancedInteractiveChart({
 }: EnhancedInteractiveChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<Chart | null>(null);
+  const _containerRef = useRef<HTMLDivElement>(null);
   const [selectedPoints, setSelectedPoints] = useState<any[]>([]);
   const [isZoomEnabled, setIsZoomEnabled] = useState(enableZoom);
   const [isPanEnabled, setIsPanEnabled] = useState(enablePan);
@@ -176,10 +178,45 @@ export default function EnhancedInteractiveChart({
     }
   };
 
-  const _dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+  const dataStatus = getDataStatus(data.lastUpdated, data.isRealData);
+
+  // Create dashboard element for export
+  const dashboardElement = React.useMemo(() => ({
+    id: `enhanced-chart-${dataType || 'unknown'}`,
+    type,
+    dataType: dataType || 'unknown',
+    title,
+    data,
+    config,
+    isRealData: data.isRealData || false,
+    dataSource: data.dataSource || 'Unknown',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    lastUpdated: data.lastUpdated,
+  }), [type, dataType, title, data, config]);
+
+  // Handle export completion
+  const handleExportComplete = useCallback((format: string) => {
+    console.log(`Export completed: ${format} for chart ${title}`);
+  }, [title]);
 
   return (
-    <ChartCard className={styles.enhancedChart}>
+    <ChartCard
+      title={hideHeader ? "" : title}
+      status={hideHeader ? undefined : dataStatus}
+      lastUpdated={hideHeader ? undefined : data.lastUpdated}
+      isEditable={isEditMode}
+      onRemove={onRemove}
+      className={styles.enhancedChart}
+      headerActions={!hideHeader ? (
+        <div className={styles.headerActions}>
+          <ExportMenu
+            element={dashboardElement}
+            onExportComplete={handleExportComplete}
+          />
+        </div>
+      ) : undefined}
+    >
       {!hideHeader && (
         <div className={styles.chartHeader}>
           <div className={styles.titleSection}>
@@ -271,8 +308,9 @@ export default function EnhancedInteractiveChart({
       {!hideFooter && onVisualizationChange && (
         <div className={styles.chartFooter}>
           <VisualizationTypeSwitcher
-            currentType={type}
-            onTypeChange={onVisualizationChange}
+            dataType={dataType || 'unknown'}
+            currentVisualizationType={type}
+            onVisualizationChange={onVisualizationChange}
             disabled={isChangingVisualization}
           />
         </div>

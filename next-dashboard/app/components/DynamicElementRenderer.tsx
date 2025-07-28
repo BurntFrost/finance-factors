@@ -2,12 +2,15 @@
 
 import React, { useState, useCallback } from 'react';
 import { DashboardElement, ChartData, TableData, SummaryCardData, VisualizationType } from '../types/dashboard';
-import DynamicChart from './DynamicChart';
+// import DynamicChart from './DynamicChart'; // Replaced by EnhancedInteractiveChart
+import EnhancedInteractiveChart from './EnhancedInteractiveChart';
+import AutomaticChart from './AutomaticChart';
 import DataTable from './DataTable';
 import { SummaryCardGrid } from './SummaryCard';
 import { convertVisualizationData } from '../utils/dataConverter';
 import { visualizationPreferences } from '../utils/localStorage';
 import { useDashboard } from '../context/DashboardContext';
+import { useCrossfilter } from '../context/CrossfilterContext';
 
 interface DynamicElementRendererProps {
   element: DashboardElement;
@@ -16,11 +19,30 @@ interface DynamicElementRendererProps {
 
 export default function DynamicElementRenderer({ element, onRemove }: DynamicElementRendererProps) {
   const { updateElement } = useDashboard();
+  const _crossfilter = useCrossfilter();
   const [isChangingVisualization, setIsChangingVisualization] = useState(false);
 
   const handleRemove = () => {
     onRemove(element.id);
   };
+
+  // Handler for data point interactions
+  const handleDataPointClick = useCallback((dataPoint: any) => {
+    console.log('Data point clicked:', dataPoint, 'in element:', element.id);
+    // Could trigger crossfilter updates or detailed views
+  }, [element.id]);
+
+  // Handler for data point selection (for crossfilter)
+  const handleDataPointSelect = useCallback((selectedPoints: any[]) => {
+    console.log('Data points selected:', selectedPoints, 'in element:', element.id);
+    // Could apply crossfilter based on selection
+  }, [element.id]);
+
+  // Handler for export completion
+  const _handleExportComplete = useCallback((format: string) => {
+    console.log(`Export completed: ${format} for element ${element.id}`);
+    // Could show success notification
+  }, [element.id]);
 
   const handleVisualizationChange = useCallback(async (newVisualization: VisualizationType) => {
     if (newVisualization.id === element.type) {
@@ -82,11 +104,41 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
     case 'bar-chart':
     case 'pie-chart':
     case 'doughnut-chart':
-      if (!element.data || !isChartData(element.data)) {
+      // For elements without data (like hardcoded charts), use AutomaticChart
+      if (!element.data) {
+        return (
+          <AutomaticChart
+            dataType={element.dataType}
+            title={element.title}
+            chartType={element.type.replace('-chart', '') as 'line' | 'bar' | 'pie' | 'doughnut'}
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={15 * 60 * 1000} // 15 minutes
+            onRemove={handleRemove}
+            showVisualizationSwitcher={true}
+            onVisualizationChange={(newType) => {
+              handleVisualizationChange({
+                id: `${newType}-chart` as VisualizationType['id'],
+                name: newType.charAt(0).toUpperCase() + newType.slice(1) + ' Chart',
+                icon: '📊',
+                description: `${newType.charAt(0).toUpperCase() + newType.slice(1)} chart visualization`,
+                category: 'chart',
+                suitableFor: ['time-series', 'categorical']
+              });
+            }}
+            enableRealTime={true}
+            showRealTimeIndicator={true}
+          />
+        );
+      }
+
+      // For elements with data, use EnhancedInteractiveChart
+      if (!isChartData(element.data)) {
         return <div>No chart data available</div>;
       }
       return (
-        <DynamicChart
+        <EnhancedInteractiveChart
           type={element.type}
           data={element.data}
           title={element.title}
@@ -95,6 +147,11 @@ export default function DynamicElementRenderer({ element, onRemove }: DynamicEle
           onVisualizationChange={handleVisualizationChange}
           config={element.config}
           isChangingVisualization={isChangingVisualization}
+          enableZoom={true}
+          enablePan={true}
+          enableCrossfilter={true}
+          onDataPointClick={handleDataPointClick}
+          onDataPointSelect={handleDataPointSelect}
         />
       );
 

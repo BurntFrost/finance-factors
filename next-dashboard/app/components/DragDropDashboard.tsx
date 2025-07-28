@@ -25,6 +25,7 @@ import { DashboardElement } from '../types/dashboard';
 import { useDashboard } from '../context/DashboardContext';
 import { useIsEditMode } from '../context/ViewModeContext';
 import DynamicElementRenderer from './DynamicElementRenderer';
+import ResizableChartContainer from './ResizableChartContainer';
 import styles from './DragDropDashboard.module.css';
 
 interface DragDropDashboardProps {
@@ -33,6 +34,7 @@ interface DragDropDashboardProps {
   onElementRemove: (elementId: string) => void;
   gridColumns?: number;
   gap?: number;
+  enableResize?: boolean;
 }
 
 interface SortableItemProps {
@@ -40,9 +42,10 @@ interface SortableItemProps {
   element: DashboardElement;
   onRemove: (id: string) => void;
   isDragging?: boolean;
+  enableResize?: boolean;
 }
 
-function SortableItem({ id, element, onRemove, isDragging: _isDragging = false }: SortableItemProps) {
+function SortableItem({ id, element, onRemove, isDragging: _isDragging = false, enableResize = true }: SortableItemProps) {
   const isEditMode = useIsEditMode();
   const {
     attributes,
@@ -52,6 +55,17 @@ function SortableItem({ id, element, onRemove, isDragging: _isDragging = false }
     transition,
     isDragging: isSortableDragging,
   } = useSortable({ id });
+
+  // Handle resize events
+  const handleResize = useCallback((width: number, height: number) => {
+    console.log(`Element ${id} resized to ${width}x${height}`);
+    // Could update element dimensions in context
+  }, [id]);
+
+  const handleResizeEnd = useCallback((width: number, height: number) => {
+    console.log(`Element ${id} resize ended at ${width}x${height}`);
+    // Could save dimensions to localStorage or context
+  }, [id]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -77,10 +91,25 @@ function SortableItem({ id, element, onRemove, isDragging: _isDragging = false }
 
       {/* Element content */}
       <div className={styles.elementContent}>
-        <DynamicElementRenderer
-          element={element}
-          onRemove={onRemove}
-        />
+        {enableResize && isEditMode ? (
+          <ResizableChartContainer
+            element={element}
+            onResize={handleResize}
+            onResizeEnd={handleResizeEnd}
+            minWidth={300}
+            minHeight={200}
+          >
+            <DynamicElementRenderer
+              element={element}
+              onRemove={onRemove}
+            />
+          </ResizableChartContainer>
+        ) : (
+          <DynamicElementRenderer
+            element={element}
+            onRemove={onRemove}
+          />
+        )}
       </div>
 
       {/* Overlay for dragging state */}
@@ -117,6 +146,7 @@ export default function DragDropDashboard({
   onElementRemove,
   gridColumns = 2,
   gap = 24,
+  enableResize = true,
 }: DragDropDashboardProps) {
   const isEditMode = useIsEditMode();
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
@@ -215,6 +245,7 @@ export default function DragDropDashboard({
                 element={element}
                 onRemove={handleElementRemove}
                 isDragging={activeId === element.id}
+                enableResize={enableResize}
               />
             ))}
           </div>

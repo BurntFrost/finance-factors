@@ -102,10 +102,10 @@ export function getInteractiveChartOptions(
           enabled: enablePan,
           mode: 'x',
           rangeMin: {
-            x: null,
+            x: undefined,
           },
           rangeMax: {
-            x: null,
+            x: undefined,
           },
         },
         zoom: {
@@ -118,10 +118,10 @@ export function getInteractiveChartOptions(
           },
           mode: 'x',
           rangeMin: {
-            x: null,
+            x: undefined,
           },
           rangeMax: {
-            x: null,
+            x: undefined,
           },
         },
       },

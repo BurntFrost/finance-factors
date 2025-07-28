@@ -3,7 +3,7 @@
 import { ChartData } from '../types/dashboard';
 
 export interface WebSocketMessage {
-  type: 'data_update' | 'status_update' | 'error' | 'connection_status';
+  type: 'data_update' | 'status_update' | 'error' | 'connection_status' | 'subscribe' | 'unsubscribe' | 'ping' | 'pong';
   payload: any;
   timestamp: number;
   dataType?: string;

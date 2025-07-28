@@ -187,21 +187,87 @@ export function EnhancedVisualizationSwitcher({
   const { isTransitioning, startTransition } = useChartTransition(currentType, onTypeChange);
 
   const chartTypes: { type: VisualizationType; icon: string; label: string }[] = [
-    { type: 'line-chart', icon: '📈', label: 'Line' },
-    { type: 'bar-chart', icon: '📊', label: 'Bar' },
-    { type: 'pie-chart', icon: '🥧', label: 'Pie' },
-    { type: 'doughnut-chart', icon: '🍩', label: 'Doughnut' },
-    { type: 'data-table', icon: '📋', label: 'Table' },
-    { type: 'summary-card', icon: '📇', label: 'Cards' },
+    {
+      type: {
+        id: 'line-chart',
+        name: 'Line Chart',
+        icon: '📈',
+        description: 'Line chart visualization',
+        category: 'chart',
+        suitableFor: ['time-series']
+      },
+      icon: '📈',
+      label: 'Line'
+    },
+    {
+      type: {
+        id: 'bar-chart',
+        name: 'Bar Chart',
+        icon: '📊',
+        description: 'Bar chart visualization',
+        category: 'chart',
+        suitableFor: ['categorical']
+      },
+      icon: '📊',
+      label: 'Bar'
+    },
+    {
+      type: {
+        id: 'pie-chart',
+        name: 'Pie Chart',
+        icon: '🥧',
+        description: 'Pie chart visualization',
+        category: 'chart',
+        suitableFor: ['categorical']
+      },
+      icon: '🥧',
+      label: 'Pie'
+    },
+    {
+      type: {
+        id: 'doughnut-chart',
+        name: 'Doughnut Chart',
+        icon: '🍩',
+        description: 'Doughnut chart visualization',
+        category: 'chart',
+        suitableFor: ['categorical']
+      },
+      icon: '🍩',
+      label: 'Doughnut'
+    },
+    {
+      type: {
+        id: 'data-table',
+        name: 'Data Table',
+        icon: '📋',
+        description: 'Data table visualization',
+        category: 'data',
+        suitableFor: ['tabular']
+      },
+      icon: '📋',
+      label: 'Table'
+    },
+    {
+      type: {
+        id: 'summary-card',
+        name: 'Summary Cards',
+        icon: '📇',
+        description: 'Summary card visualization',
+        category: 'widget',
+        suitableFor: ['summary']
+      },
+      icon: '📇',
+      label: 'Cards'
+    },
   ];
 
   return (
     <div className={styles.visualizationSwitcher}>
       {chartTypes.map(({ type, icon, label }) => (
         <button
-          key={type}
+          key={type.id}
           className={`${styles.typeButton} ${
-            currentType === type ? styles.active : ''
+            currentType.id === type.id ? styles.active : ''
           } ${isTransitioning ? styles.transitioning : ''}`}
           onClick={() => startTransition(type)}
           disabled={disabled || isTransitioning}

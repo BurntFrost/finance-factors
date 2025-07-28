@@ -2,14 +2,19 @@
 
 import React, { useState } from 'react';
 import AutomaticChart from './components/AutomaticChart';
+// import EnhancedInteractiveChart from './components/EnhancedInteractiveChart'; // Will be used by DynamicElementRenderer
+import DragDropDashboard from './components/DragDropDashboard';
 import AddElementDropdown, { ElementType } from './components/AddElementDropdown';
 import DynamicElementRenderer from './components/DynamicElementRenderer';
 import ViewModeToggle from './components/ViewModeToggle';
 import DarkModeToggle from './components/DarkModeToggle';
 import ApiHealthStatus from './components/ApiHealthStatus';
 import HydrationSafeWrapper from './components/HydrationSafeWrapper';
+import ClientOnlyRealTimeFeatures from './components/ClientOnlyRealTimeFeatures';
+import DashboardCustomizationPanel from './components/DashboardCustomizationPanel';
 import { useDashboard } from './context/DashboardContext';
 import { useViewMode } from './context/ViewModeContext';
+// import { useCrossfilter } from './context/CrossfilterContext'; // Temporarily disabled
 import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from './utils/historicalDataGenerators';
 import { DataType, VisualizationType } from './types/dashboard';
 import styles from './page.module.css';
@@ -31,13 +36,19 @@ const HARDCODED_CHARTS = [
 ];
 
 export default function Home() {
-  const { state, addElement, removeElement } = useDashboard();
+  const { state, addElement, removeElement, reorderElements } = useDashboard();
   const { state: viewModeState } = useViewMode();
+  // const _crossfilter = useCrossfilter(); // Temporarily disabled
 
   // State to track which hardcoded charts are visible
   const [visibleCharts, setVisibleCharts] = useState<Set<string>>(
     new Set(HARDCODED_CHARTS.map(chart => chart.id))
   );
+
+  // State for advanced features
+  const [showCustomizationPanel, setShowCustomizationPanel] = useState(false);
+  const [enableDragDrop, setEnableDragDrop] = useState(false); // Temporarily disabled
+  const [enableRealTime, setEnableRealTime] = useState(false); // Temporarily disabled
 
   // Handler to remove hardcoded charts
   const handleRemoveHardcodedChart = (chartId: string) => {
@@ -46,6 +57,23 @@ export default function Home() {
       newSet.delete(chartId);
       return newSet;
     });
+  };
+
+  // Handler for drag and drop reordering
+  const handleElementsReorder = (reorderedElements: any[]) => {
+    reorderElements(reorderedElements);
+  };
+
+  // Handler for data point interactions
+  const _handleDataPointClick = (dataPoint: any, chartId: string) => {
+    console.log('Data point clicked:', dataPoint, 'in chart:', chartId);
+    // Could trigger crossfilter updates or detailed views
+  };
+
+  // Handler for export completion
+  const _handleExportComplete = (format: string, chartId: string) => {
+    console.log(`Export completed: ${format} for chart ${chartId}`);
+    // Could show success notification
   };
 
   // Legacy handler for backward compatibility
@@ -94,6 +122,17 @@ export default function Home() {
           <HydrationSafeWrapper fallback={<div className="ml-4 p-3 bg-gray-50 rounded-lg">Loading API status...</div>}>
             <ApiHealthStatus className="ml-4" />
           </HydrationSafeWrapper>
+          <ClientOnlyRealTimeFeatures
+            enableRealTime={enableRealTime}
+            showRealTimeIndicator={true}
+          />
+          <button
+            onClick={() => setShowCustomizationPanel(true)}
+            className="ml-4 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            title="Dashboard Settings"
+          >
+            ⚙️ Settings
+          </button>
           {viewModeState.isEditMode && (
             <AddElementDropdown
               onElementSelect={handleElementSelect}
@@ -103,40 +142,94 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Dashboard Grid Layout */}
-      <div className={styles.dashboardGrid}>
-        {/* Render hardcoded charts dynamically */}
-        {HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => (
-          <div key={chart.id} className={styles.chartContainer}>
-            <AutomaticChart
-              dataType={chart.dataType}
-              title={chart.title}
-              chartType="line"
-              height={400}
-              showIndicator={true}
-              indicatorPosition="top-right"
-              refreshInterval={15 * 60 * 1000} // 15 minutes
-              onRemove={() => handleRemoveHardcodedChart(chart.id)}
-              showVisualizationSwitcher={true}
-              onVisualizationChange={(newType) => {
-                console.log(`Chart ${chart.id} visualization changed to ${newType}`);
-                // Note: For hardcoded charts, we could store the preference in localStorage
-                // or update the chart state if needed
-              }}
-            />
-          </div>
-        ))}
+      {/* Enhanced Dashboard Layout with Drag & Drop */}
+      {enableDragDrop ? (
+        <DragDropDashboard
+          elements={[
+            // Convert hardcoded charts to dashboard elements
+            ...HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => ({
+              id: chart.id,
+              type: 'line-chart' as const,
+              dataType: chart.dataType,
+              title: chart.title,
+              data: undefined, // Will be loaded by AutomaticChart
+              config: {},
+              isRealData: false,
+              dataSource: 'API',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+              position: { row: 0, col: 0 }, // Add required position property
+            })),
+            // Include dynamic elements
+            ...state.elements
+          ]}
+          onElementsReorder={handleElementsReorder}
+          onElementRemove={(elementId) => {
+            // Handle removal for both hardcoded and dynamic elements
+            if (HARDCODED_CHARTS.some(chart => chart.id === elementId)) {
+              handleRemoveHardcodedChart(elementId);
+            } else {
+              removeElement(elementId);
+            }
+          }}
+          gridColumns={2}
+          gap={24}
+          enableResize={enableDragDrop} // Enable resize when drag & drop is enabled
+        />
+      ) : (
+        // Fallback to traditional grid layout
+        <div className={styles.dashboardGrid}>
+          {/* Render hardcoded charts dynamically */}
+          {HARDCODED_CHARTS.filter(chart => visibleCharts.has(chart.id)).map((chart) => (
+            <div key={chart.id} className={styles.chartContainer}>
+              <AutomaticChart
+                dataType={chart.dataType}
+                title={chart.title}
+                chartType="line"
+                height={400}
+                showIndicator={true}
+                indicatorPosition="top-right"
+                refreshInterval={enableRealTime ? 15 * 60 * 1000 : undefined} // 15 minutes if real-time enabled
+                onRemove={() => handleRemoveHardcodedChart(chart.id)}
+                showVisualizationSwitcher={true}
+                onVisualizationChange={(newType) => {
+                  console.log(`Chart ${chart.id} visualization changed to ${newType}`);
+                }}
+                enableRealTime={enableRealTime}
+                showRealTimeIndicator={enableRealTime}
+              />
+            </div>
+          ))}
 
-        {/* Dynamic elements */}
-        {state.elements.map((element) => (
-          <div key={element.id} className={styles.chartContainer}>
-            <DynamicElementRenderer
-              element={element}
-              onRemove={removeElement}
-            />
-          </div>
-        ))}
-      </div>
+          {/* Dynamic elements */}
+          {state.elements.map((element) => (
+            <div key={element.id} className={styles.chartContainer}>
+              <DynamicElementRenderer
+                element={element}
+                onRemove={removeElement}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dashboard Customization Panel - Temporarily disabled */}
+      {false && (
+        <DashboardCustomizationPanel
+          isOpen={showCustomizationPanel}
+          onClose={() => setShowCustomizationPanel(false)}
+          onSettingsChange={(settings) => {
+            setEnableDragDrop(settings.enableDragDrop ?? enableDragDrop);
+            setEnableRealTime(settings.enableRealTime ?? enableRealTime);
+            console.log('Dashboard settings updated:', settings);
+          }}
+          currentSettings={{
+            enableDragDrop,
+            enableRealTime,
+            visibleCharts: Array.from(visibleCharts),
+          }}
+        />
+      )}
     </div>
   );
 }

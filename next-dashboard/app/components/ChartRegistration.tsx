@@ -37,10 +37,28 @@ ChartJS.defaults.color = '#374151';
 ChartJS.defaults.borderColor = 'rgba(0, 0, 0, 0.1)';
 
 // Enable better interactions
-ChartJS.defaults.interaction = {
-  mode: 'index' as const,
-  intersect: false,
+if (ChartJS.defaults.interaction) {
+  ChartJS.defaults.interaction.mode = 'index';
+  ChartJS.defaults.interaction.intersect = false;
+}
+
+// Configure responsive behavior
+ChartJS.defaults.responsive = true;
+ChartJS.defaults.maintainAspectRatio = false;
+
+// Configure animation defaults for smooth transitions
+ChartJS.defaults.animation = {
+  duration: 750,
+  easing: 'easeInOutQuart',
 };
+
+// Configure hover animations
+if (ChartJS.defaults.hover) {
+  (ChartJS.defaults.hover as any).animationDuration = 200;
+}
+
+// Configure zoom plugin defaults (will be overridden per chart as needed)
+// Note: These are just defaults, individual charts will configure zoom as needed
 
 // This component doesn't render anything, it just registers Chart.js components
 export default function ChartRegistration() {

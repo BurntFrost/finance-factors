@@ -8,11 +8,14 @@
  * visual indicators and retry functionality.
  */
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useRef } from 'react';
 import { useAutomaticDataSource } from '../hooks/useAutomaticDataSource';
+// import { useWebSocket } from '../services/websocketService'; // Temporarily disabled for SSR
 import { useIsEditMode } from '../context/ViewModeContext';
 import { ChartData, VisualizationType } from '../types/dashboard';
 import DataSourceIndicator from './DataSourceIndicator';
+import RealTimeStatusIndicator from './RealTimeStatusIndicator';
+import ExportMenu from './ExportMenu';
 import ChartSkeleton from './ChartSkeleton';
 import { getChartConfig } from '../config/chartConfiguration';
 import styles from './AutomaticChart.module.css';
@@ -34,6 +37,8 @@ export interface AutomaticChartProps {
   onRemove?: () => void;
   showVisualizationSwitcher?: boolean;
   onVisualizationChange?: (newType: 'line' | 'bar' | 'pie' | 'doughnut') => void;
+  enableRealTime?: boolean;
+  showRealTimeIndicator?: boolean;
 }
 
 export default function AutomaticChart({
@@ -50,10 +55,19 @@ export default function AutomaticChart({
   onRemove,
   showVisualizationSwitcher = true,
   onVisualizationChange,
+  enableRealTime = false,
+  showRealTimeIndicator = false,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
+  const chartRef = useRef<HTMLDivElement>(null);
   const [currentChartType, setCurrentChartType] = React.useState(chartType);
   const [isChangingVisualization, setIsChangingVisualization] = React.useState(false);
+
+  // Use WebSocket for real-time data if enabled (temporarily disabled for SSR)
+  const wsData = null;
+  const wsConnected = false;
+  const _wsError = null;
+  const wsLastUpdate = null;
 
   const {
     data,
@@ -70,6 +84,12 @@ export default function AutomaticChart({
     refreshInterval,
     retryOnError: true,
   });
+
+  // Determine which data to use - WebSocket data takes priority if available
+  const displayData = enableRealTime && wsData ? wsData : (data || fallbackData);
+  const _displayStatus = enableRealTime && wsConnected ? 'live' : status;
+  const _displayError = enableRealTime ? _wsError : error?.message;
+  const displayLastUpdated = enableRealTime && wsLastUpdate ? wsLastUpdate : lastUpdated;
 
   // Notify parent of data changes
   React.useEffect(() => {
@@ -105,8 +125,8 @@ export default function AutomaticChart({
     }
   }, [currentChartType, onVisualizationChange]);
 
-  // Determine which data to display
-  const displayData = data || fallbackData;
+  // Determine which data to display (already defined above with WebSocket integration)
+  // const displayData = data || fallbackData; // Moved to WebSocket integration section
 
   // Handle retry
   const handleRetry = React.useCallback(async () => {
@@ -116,6 +136,27 @@ export default function AutomaticChart({
       console.error('Retry failed:', error);
     }
   }, [forceRetryLive]);
+
+  // Create dashboard element for export
+  const dashboardElement = React.useMemo(() => ({
+    id: `auto-chart-${dataType}`,
+    type: `${currentChartType}-chart` as const,
+    dataType,
+    title,
+    data: displayData,
+    config: {},
+    isRealData: enableRealTime ? wsConnected : (status !== 'historical-fallback'),
+    dataSource: enableRealTime && wsConnected ? 'WebSocket' : (status === 'historical-fallback' ? 'Historical Data' : 'API'),
+    createdAt: new Date(),
+    updatedAt: displayLastUpdated || new Date(),
+    lastUpdated: displayLastUpdated || undefined,
+  }), [dataType, currentChartType, title, displayData, enableRealTime, wsConnected, status, displayLastUpdated]);
+
+  // Handle export completion
+  const _handleExportComplete = React.useCallback((format: string) => {
+    console.log(`Export completed: ${format} for chart ${title}`);
+    // Could show success notification
+  }, [title]);
 
   // Handle refresh
   const handleRefresh = React.useCallback(async () => {
@@ -147,6 +188,14 @@ export default function AutomaticChart({
         <h3 className={styles.title}>{title}</h3>
         
         <div className={styles.actions}>
+          {/* Real-time status indicator */}
+          {enableRealTime && showRealTimeIndicator && (
+            <RealTimeStatusIndicator
+              position="top-right"
+              showDetails={false}
+            />
+          )}
+
           {/* Historical data retry button - positioned to the left */}
           {status === 'historical-fallback' && (
             <button
@@ -175,16 +224,31 @@ export default function AutomaticChart({
           )}
 
           {/* Status indicator in header */}
-          {status === 'historical-fallback' && (
+          {status === 'historical-fallback' && !enableRealTime && (
             <span className={styles.fallbackBadge} title="Showing historical data">
               Historical Data
             </span>
+          )}
+
+          {/* WebSocket status indicator */}
+          {enableRealTime && wsConnected && (
+            <span className={styles.liveBadge} title="Live data connection active">
+              🟢 Live
+            </span>
+          )}
+
+          {/* Export menu */}
+          {displayData && (
+            <ExportMenu
+              element={dashboardElement}
+              onExportComplete={_handleExportComplete}
+            />
           )}
         </div>
       </div>
 
       {/* Chart content */}
-      <div className={styles.chartWrapper} style={{ height }}>
+      <div className={styles.chartWrapper} style={{ height }} ref={chartRef}>
         {isLoading && !displayData ? (
           <ChartSkeleton height={height} />
         ) : error && !displayData ? (
