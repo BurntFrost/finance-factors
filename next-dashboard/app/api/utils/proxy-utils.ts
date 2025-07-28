@@ -26,7 +26,7 @@ import {
   checkRateLimit as redisCheckRateLimit,
   RateLimitResult
 } from '../../lib/redis-rate-limit';
-import { isRedisAvailable } from '../../lib/redis';
+import { isRedisAvailable as _isRedisAvailable } from '../../lib/redis';
 import { redisFallbackService } from '../../lib/redis-fallback-service';
 import { userExperienceService } from '../../lib/user-experience-service';
 
