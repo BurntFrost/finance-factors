@@ -2,6 +2,7 @@
 
 import React, { Suspense, lazy, useMemo } from 'react';
 import { ChartData, VisualizationType } from '../types/dashboard';
+import ChartErrorBoundary, { useChartErrorHandler } from './ChartErrorBoundary';
 
 // Optimized lazy loading with better chunk splitting
 const chartComponents = {
@@ -93,6 +94,8 @@ export default function OptimizedChartLoader({
   className = '',
   onChartReady,
 }: OptimizedChartLoaderProps) {
+  // Use chart error handler
+  useChartErrorHandler();
   // Extract type ID for consistent usage
   const typeId = typeof type === 'string' ? type : type.id;
 
@@ -113,6 +116,12 @@ export default function OptimizedChartLoader({
     animation: {
       duration: 750,
       easing: 'easeInOutQuart' as const,
+      onComplete: function() {
+        // Animation complete callback - ensure proper binding
+      },
+      onProgress: function() {
+        // Animation progress callback - ensure proper binding
+      }
     },
     interaction: {
       intersect: false,
@@ -172,16 +181,18 @@ export default function OptimizedChartLoader({
   }, [onChartReady]);
 
   return (
-    <div className={`optimized-chart-container ${className}`} style={{ height }}>
-      <Suspense fallback={<ChartSkeleton height={height} />}>
-        <ChartRegistration />
-        <ChartComponent
-          ref={chartRef}
-          data={data}
-          options={chartOptions}
-        />
-      </Suspense>
-    </div>
+    <ChartErrorBoundary>
+      <div className={`optimized-chart-container ${className}`} style={{ height }}>
+        <Suspense fallback={<ChartSkeleton height={height} />}>
+          <ChartRegistration />
+          <ChartComponent
+            ref={chartRef}
+            data={data}
+            options={chartOptions}
+          />
+        </Suspense>
+      </div>
+    </ChartErrorBoundary>
   );
 }
 

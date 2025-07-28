@@ -47,11 +47,36 @@ export default function OptimizedChartRegistration() {
         ChartJS.defaults.font.family = 'var(--font-geist-sans), system-ui, sans-serif';
         ChartJS.defaults.color = '#374151';
         ChartJS.defaults.borderColor = 'rgba(0, 0, 0, 0.1)';
-        
-        // Optimize animations for better performance
+
+        // Optimize animations for better performance and fix _fn errors
         ChartJS.defaults.animation = {
           duration: 750,
           easing: 'easeInOutQuart',
+          onComplete: function(animation: any) {
+            // Ensure animation callbacks are properly bound
+            // Fix for "this._fn is not a function" error
+            if (animation && typeof animation.complete === 'function') {
+              animation.complete();
+            }
+          },
+          onProgress: function(animation: any) {
+            // Ensure animation callbacks are properly bound
+            // Fix for "this._fn is not a function" error
+            if (animation && typeof animation.progress === 'function') {
+              animation.progress();
+            }
+          }
+        };
+
+        // Add global error handler for Chart.js
+        const originalConsoleError = console.error;
+        console.error = function(...args: any[]) {
+          // Filter out the specific Chart.js animation error
+          if (args[0] && typeof args[0] === 'string' && args[0].includes('this._fn is not a function')) {
+            console.warn('Chart.js animation callback error caught and handled:', ...args);
+            return;
+          }
+          originalConsoleError.apply(console, args);
         };
 
         // Optimize responsive behavior

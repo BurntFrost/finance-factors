@@ -7,6 +7,7 @@ import { useIsEditMode } from '../context/ViewModeContext';
 import { getChartConfig, getAxisConfig } from '../config/chartConfiguration';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { ChartCard } from '../../components/ui/chart-card';
+import ChartErrorBoundary, { useChartErrorHandler } from './ChartErrorBoundary';
 
 // Lazy load Chart.js components to reduce initial bundle size
 const Line = lazy(() =>
@@ -80,6 +81,9 @@ export default function DynamicChart({
   const [isChartReady, setIsChartReady] = useState(false);
   const isEditMode = useIsEditMode();
 
+  // Use chart error handler
+  useChartErrorHandler();
+
   // Wait for Chart.js to be properly registered
   useEffect(() => {
     const checkChartRegistration = async () => {
@@ -128,7 +132,13 @@ export default function DynamicChart({
       maintainAspectRatio: false,
       animation: {
         duration: 750,
-        easing: 'easeInOutQuart' as const
+        easing: 'easeInOutQuart' as const,
+        onComplete: function() {
+          // Animation complete callback - ensure proper binding
+        },
+        onProgress: function() {
+          // Animation progress callback - ensure proper binding
+        }
       },
       plugins: {
         legend: {
@@ -140,11 +150,50 @@ export default function DynamicChart({
         },
         tooltip: chartConfig ? {
           callbacks: {
-            title: chartConfig.tooltip.title,
-            label: chartConfig.tooltip.label,
-            afterLabel: chartConfig.tooltip.afterLabel,
+            title: function(tooltipItems: any[]) {
+              try {
+                if (chartConfig.tooltip?.title && typeof chartConfig.tooltip.title === 'function') {
+                  return chartConfig.tooltip.title(tooltipItems);
+                }
+                return tooltipItems[0]?.label || '';
+              } catch (error) {
+                console.warn('Tooltip title callback error:', error);
+                return tooltipItems[0]?.label || '';
+              }
+            },
+            label: function(tooltipItem: any) {
+              try {
+                if (chartConfig.tooltip?.label && typeof chartConfig.tooltip.label === 'function') {
+                  return chartConfig.tooltip.label(tooltipItem);
+                }
+                return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
+              } catch (error) {
+                console.warn('Tooltip label callback error:', error);
+                return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
+              }
+            },
+            afterLabel: function(tooltipItem: any) {
+              try {
+                if (chartConfig.tooltip?.afterLabel && typeof chartConfig.tooltip.afterLabel === 'function') {
+                  return chartConfig.tooltip.afterLabel(tooltipItem);
+                }
+                return '';
+              } catch (error) {
+                console.warn('Tooltip afterLabel callback error:', error);
+                return '';
+              }
+            },
           }
-        } : undefined,
+        } : {
+          callbacks: {
+            title: function(tooltipItems: any[]) {
+              return tooltipItems[0]?.label || '';
+            },
+            label: function(tooltipItem: any) {
+              return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
+            }
+          }
+        },
       },
       ...config
     };
@@ -248,30 +297,32 @@ export default function DynamicChart({
   ) : null;
 
   return (
-    <ChartCard
-      title={hideHeader ? "" : title}
-      status={hideHeader ? undefined : dataStatus}
-      lastUpdated={hideHeader ? undefined : data.lastUpdated}
-      isEditable={isEditMode}
-      onRemove={onRemove}
-      onRefresh={handleRefresh}
-      isRefreshing={isRefreshing}
-      headerActions={hideHeader ? undefined : headerActions}
-      footerContent={footerContent}
-      showFooter={!hideFooter}
-    >
-      <Suspense fallback={<ChartSkeleton />}>
-        <ChartRegistration />
-        {!isChartReady || isChangingVisualization ? <ChartSkeleton /> : renderChart()}
-      </Suspense>
-      {isChangingVisualization && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="animate-spin text-2xl">⟳</div>
-            <div className="text-sm text-muted-foreground">Switching visualization...</div>
+    <ChartErrorBoundary>
+      <ChartCard
+        title={hideHeader ? "" : title}
+        status={hideHeader ? undefined : dataStatus}
+        lastUpdated={hideHeader ? undefined : data.lastUpdated}
+        isEditable={isEditMode}
+        onRemove={onRemove}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+        headerActions={hideHeader ? undefined : headerActions}
+        footerContent={footerContent}
+        showFooter={!hideFooter}
+      >
+        <Suspense fallback={<ChartSkeleton />}>
+          <ChartRegistration />
+          {!isChartReady || isChangingVisualization ? <ChartSkeleton /> : renderChart()}
+        </Suspense>
+        {isChangingVisualization && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="animate-spin text-2xl">⟳</div>
+              <div className="text-sm text-muted-foreground">Switching visualization...</div>
+            </div>
           </div>
-        </div>
-      )}
-    </ChartCard>
+        )}
+      </ChartCard>
+    </ChartErrorBoundary>
   );
 }

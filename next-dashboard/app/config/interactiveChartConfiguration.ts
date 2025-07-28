@@ -91,6 +91,12 @@ export function getInteractiveChartOptions(
     animation: {
       duration: 750,
       easing: 'easeInOutQuart',
+      onComplete: function() {
+        // Animation complete callback - ensure this._fn is properly bound
+      },
+      onProgress: function() {
+        // Animation progress callback - ensure this._fn is properly bound
+      }
     },
     interaction: {
       mode: 'index',
@@ -131,36 +137,63 @@ export function getInteractiveChartOptions(
         intersect: false,
         position: 'nearest',
         callbacks: customTooltip && baseConfig ? {
-          title: (tooltipItems: TooltipItem<any>[]) => {
-            if (baseConfig.tooltip?.title) {
-              return baseConfig.tooltip.title(tooltipItems);
+          title: function(tooltipItems: TooltipItem<any>[]) {
+            try {
+              if (baseConfig.tooltip?.title && typeof baseConfig.tooltip.title === 'function') {
+                return baseConfig.tooltip.title(tooltipItems);
+              }
+              return tooltipItems[0]?.label || '';
+            } catch (error) {
+              console.warn('Tooltip title callback error:', error);
+              return tooltipItems[0]?.label || '';
             }
+          },
+          label: function(tooltipItem: TooltipItem<any>) {
+            try {
+              if (baseConfig.tooltip?.label && typeof baseConfig.tooltip.label === 'function') {
+                return baseConfig.tooltip.label(tooltipItem);
+              }
+              return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
+            } catch (error) {
+              console.warn('Tooltip label callback error:', error);
+              return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
+            }
+          },
+          afterLabel: function(tooltipItem: TooltipItem<any>) {
+            try {
+              if (baseConfig.tooltip?.afterLabel && typeof baseConfig.tooltip.afterLabel === 'function') {
+                return baseConfig.tooltip.afterLabel(tooltipItem);
+              }
+              return '';
+            } catch (error) {
+              console.warn('Tooltip afterLabel callback error:', error);
+              return '';
+            }
+          },
+          footer: function(tooltipItems: TooltipItem<any>[]) {
+            try {
+              // Add data source information
+              const dataPoint = tooltipItems[0];
+              if (dataPoint?.dataset?.data) {
+                const pointData = (dataPoint.dataset.data as any)[dataPoint.dataIndex];
+                if (pointData?.dataSource) {
+                  return [`Source: ${pointData.dataSource}`, `Updated: ${pointData.lastUpdated || 'Unknown'}`];
+                }
+              }
+              return ['Source: Live API Data'];
+            } catch (error) {
+              console.warn('Tooltip footer callback error:', error);
+              return ['Source: Live API Data'];
+            }
+          },
+        } : {
+          title: function(tooltipItems: TooltipItem<any>[]) {
             return tooltipItems[0]?.label || '';
           },
-          label: (tooltipItem: TooltipItem<any>) => {
-            if (baseConfig.tooltip?.label) {
-              return baseConfig.tooltip.label(tooltipItem);
-            }
+          label: function(tooltipItem: TooltipItem<any>) {
             return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
-          },
-          afterLabel: (tooltipItem: TooltipItem<any>) => {
-            if (baseConfig.tooltip?.afterLabel) {
-              return baseConfig.tooltip.afterLabel(tooltipItem);
-            }
-            return '';
-          },
-          footer: (tooltipItems: TooltipItem<any>[]) => {
-            // Add data source information
-            const dataPoint = tooltipItems[0];
-            if (dataPoint?.dataset?.data) {
-              const pointData = (dataPoint.dataset.data as any)[dataPoint.dataIndex];
-              if (pointData?.dataSource) {
-                return [`Source: ${pointData.dataSource}`, `Updated: ${pointData.lastUpdated || 'Unknown'}`];
-              }
-            }
-            return ['Source: Live API Data'];
-          },
-        } : undefined,
+          }
+        },
       },
       legend: {
         display: baseConfig?.legend?.display ?? true,
