@@ -218,10 +218,7 @@ function getProviderFromDataType(dataType: string): string {
   return primaryProvider || 'UNKNOWN';
 }
 
-function getSecondaryProviderFromDataType(dataType: string): string | null {
-  // Get secondary provider if available
-  return DataSourceConfigManager.getSecondaryProvider(dataType);
-}
+
 
 function shouldAllowRequest(circuitBreaker: CircuitBreakerInfo | undefined): boolean {
   if (!circuitBreaker) return true;
@@ -546,7 +543,8 @@ export function AutomaticDataSourceProvider({
 
     console.warn(`All ${providersToTry.length} providers failed for ${dataType}. Last error: ${lastError}`);
     return null; // All providers failed
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // attemptLiveDataFromProvider is stable within component scope
 
   // Attempt to fetch live data from a specific provider with circuit breaker protection
   const attemptLiveDataFromProvider = useCallback(async <T = unknown>(

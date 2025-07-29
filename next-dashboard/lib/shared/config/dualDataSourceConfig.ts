@@ -106,7 +106,7 @@ export interface FailoverEvent {
   dataType: string;
   fromProvider: string;
   toProvider: string;
-  reason: 'timeout' | 'error' | 'rate-limit' | 'circuit-breaker' | 'manual';
+  reason: 'timeout' | 'error' | 'rate-limit' | 'circuit-breaker' | 'manual' | 'configured_secondary' | 'intelligent_fallback';
   duration: number; // milliseconds
   success: boolean;
   metadata?: Record<string, unknown>;
