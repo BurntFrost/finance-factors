@@ -9,8 +9,6 @@
 import {
   ProxyApiResponse,
   StandardDataPoint,
-  OECDDataPoint,
-  OECDApiResponse,
   ProxyError,
   PROXY_API_ENDPOINTS,
 } from '../../../lib/shared/types/proxy';
@@ -208,7 +206,7 @@ export class OECDProxyService {
             );
             
             if (timeDimension && timeDimension.values) {
-              Object.keys(observations).forEach((key, index) => {
+              Object.keys(observations).forEach((key, _index) => {
                 const observation = observations[key];
                 const timeValue = timeDimension.values[parseInt(key)];
                 

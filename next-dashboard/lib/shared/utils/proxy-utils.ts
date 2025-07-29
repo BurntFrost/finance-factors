@@ -371,7 +371,7 @@ export function transformOECDData(data: any): StandardDataPoint[] {
           );
 
           if (timeDimension && timeDimension.values) {
-            Object.keys(observations).forEach((key, index) => {
+            Object.keys(observations).forEach((key, _index) => {
               const observation = observations[key];
               const timeValue = timeDimension.values[parseInt(key)];
 

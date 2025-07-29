@@ -12,14 +12,14 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, u
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
 import { rateLimitLogger } from '@/shared/utils/rateLimitLogger';
 import {
-  EnhancedDataSourceStatus,
   ProviderHealth,
   FailoverEvent,
   DataSourceConfigManager,
-  PROVIDER_CONFIGS
+  EnhancedDataSourceStatus,
+  // PROVIDER_CONFIGS
 } from '@/shared/config/dualDataSourceConfig';
 import {
-  dualDataSourceMonitor,
+  // dualDataSourceMonitor,
   logFailoverEvent,
   logApiHealthCheck,
   logDataSourceSwitch,
@@ -244,26 +244,26 @@ function shouldAllowRequest(circuitBreaker: CircuitBreakerInfo | undefined): boo
   }
 }
 
-function shouldImmediatelyFallback(error: string, apiResponse?: any): boolean {
-  // Immediately fall back for rate limit errors
-  if (isRateLimitError(error, apiResponse)) {
-    return true;
-  }
+// function shouldImmediatelyFallback(error: string, apiResponse?: any): boolean {
+//   // Immediately fall back for rate limit errors
+//   if (isRateLimitError(error, apiResponse)) {
+//     return true;
+//   }
 
-  // Immediately fall back for certain API errors that won't recover quickly
-  const immediateFailurePatterns = [
-    'api key',
-    'unauthorized',
-    'forbidden',
-    'invalid key',
-    'authentication',
-    'quota exceeded'
-  ];
+//   // Immediately fall back for certain API errors that won't recover quickly
+//   const immediateFailurePatterns = [
+//     'api key',
+//     'unauthorized',
+//     'forbidden',
+//     'invalid key',
+//     'authentication',
+//     'quota exceeded'
+//   ];
 
-  return immediateFailurePatterns.some(pattern =>
-    error.toLowerCase().includes(pattern)
-  );
-}
+//   return immediateFailurePatterns.some(pattern =>
+//     error.toLowerCase().includes(pattern)
+//   );
+// }
 
 // Context
 const AutomaticDataSourceContext = createContext<AutomaticDataSourceContextType | null>(null);
@@ -536,7 +536,7 @@ export function AutomaticDataSourceProvider({
     }
 
     return null; // Both providers failed
-  }, [state.circuitBreakers, state.pendingRequests]);
+  }, []);
 
   // Attempt to fetch live data from a specific provider with circuit breaker protection
   const attemptLiveDataFromProvider = useCallback(async <T = unknown>(
@@ -853,7 +853,7 @@ export function AutomaticDataSourceProvider({
       // Individual components manage their own loading state
       // Don't set global loading state here
     }
-  }, [attemptLiveDataWithFailover, fetchHistoricalData, getCachedData, scheduleRetry]);
+  }, [attemptLiveDataWithFailover, fetchHistoricalData, getCachedData, scheduleRetry, state.circuitBreakers]);
 
   // Clear cache
   const clearCache = useCallback((): void => {
@@ -981,7 +981,7 @@ export function AutomaticDataSourceProvider({
       success: true,
     };
     dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
-  }, [state.cache, state.activeDataSources, getActiveDataSource]);
+  }, [state.cache, getActiveDataSource]);
 
   const getProviderStatus = useCallback((provider: string): 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open' => {
     const health = state.providerHealth.get(provider);

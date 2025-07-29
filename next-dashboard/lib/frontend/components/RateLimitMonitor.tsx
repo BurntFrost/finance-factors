@@ -6,7 +6,7 @@
  * Displays rate limiting information and API call patterns for debugging and monitoring
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAutomaticDataSource } from '../context/AutomaticDataSourceContext';
 
 interface RateLimitMonitorProps {
@@ -27,10 +27,10 @@ export function RateLimitMonitor({
   const [isExpanded, setIsExpanded] = useState(showDetails);
 
   // Refresh monitoring data
-  const refreshData = () => {
+  const refreshData = useCallback(() => {
     const data = getMonitoringData();
     setMonitoringData(data);
-  };
+  }, [getMonitoringData]);
 
   // Auto-refresh effect
   useEffect(() => {
@@ -40,7 +40,7 @@ export function RateLimitMonitor({
       const interval = setInterval(refreshData, refreshInterval);
       return () => clearInterval(interval);
     }
-  }, [autoRefresh, refreshInterval]);
+  }, [autoRefresh, refreshInterval, refreshData]);
 
   if (!monitoringData) {
     return (

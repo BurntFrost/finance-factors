@@ -6,10 +6,10 @@
  */
 
 import { cache } from '../lib/advanced-cache';
-import { worldBankProxyService } from '../../app/api/services/world-bank-proxy';
-import { oecdProxyService } from '../../app/api/services/oecd-proxy';
-import { CACHE_PREFIXES, DEFAULT_TTL } from '../lib/redis-cache';
-import { DataSourceConfigManager } from '../../shared/config/dualDataSourceConfig';
+import { worldBankProxyService } from '../../../app/api/services/world-bank-proxy';
+import { oecdProxyService } from '../../../app/api/services/oecd-proxy';
+import { CACHE_PREFIXES } from '../lib/redis-cache';
+// import { DataSourceConfigManager } from '../../shared/config/dualDataSourceConfig';
 
 export interface InternationalDataConfig {
   provider: 'WORLD_BANK' | 'OECD';
@@ -309,7 +309,7 @@ class InternationalDataCacheService {
     }
 
     for (const tag of tags) {
-      await cache.invalidateByTag(tag);
+      await cache.invalidate(tag);
     }
 
     console.log(`🗑️ Invalidated international cache for tags: ${tags.join(', ')}`);

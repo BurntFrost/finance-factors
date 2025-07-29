@@ -5,7 +5,7 @@
  * including failover events, API health tracking, and performance metrics.
  */
 
-import { FailoverEvent, ProviderHealth, EnhancedDataSourceStatus } from '@/shared/config/dualDataSourceConfig';
+import { FailoverEvent, ProviderHealth } from '@/shared/config/dualDataSourceConfig';
 import { performanceMonitor } from '@/backend/lib/performance-monitoring';
 
 // Event types for monitoring

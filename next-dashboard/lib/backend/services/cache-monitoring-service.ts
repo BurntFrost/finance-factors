@@ -5,7 +5,7 @@
  * and optimization recommendations for the Finance Factors Dashboard.
  */
 
-import { executeRedisCommand } from '../lib/redis';
+// import { executeRedisCommand } from '../lib/redis';
 import { getCacheStats } from '../lib/redis-cache';
 import { cacheKeyManager } from './cache-key-manager';
 
@@ -100,10 +100,10 @@ class CacheMonitoringService {
     try {
       // Get Redis stats
       const redisStats = await getCacheStats();
-      
+
       // Get key-level metrics
       const keyStats = await this.collectKeyLevelMetrics();
-      
+
       // Update overall metrics
       const overallMetrics: CacheMetrics = {
         hitRate: this.calculateHitRate(redisStats),
@@ -112,8 +112,8 @@ class CacheMonitoringService {
         totalHits: keyStats.totalHits,
         totalMisses: keyStats.totalMisses,
         averageResponseTime: keyStats.averageResponseTime,
-        memoryUsage: this.parseMemoryUsage(redisStats.memoryUsage),
-        keyCount: redisStats.totalKeys,
+        memoryUsage: redisStats ? this.parseMemoryUsage(redisStats.memoryUsage) : 0,
+        keyCount: redisStats?.totalKeys || 0,
         evictionCount: keyStats.evictionCount,
         lastUpdated: new Date(),
       };
@@ -156,7 +156,7 @@ class CacheMonitoringService {
     const keyStats = cacheKeyManager.getKeyStatistics();
     
     // Metrics by prefix (which corresponds to data types)
-    for (const [prefix, count] of Object.entries(keyStats.keysByPrefix)) {
+    for (const [prefix, _count] of Object.entries(keyStats.keysByPrefix)) {
       const segmentMetrics = await this.getSegmentMetrics(prefix);
       this.metrics.set(`prefix:${prefix}`, segmentMetrics);
     }
@@ -171,7 +171,7 @@ class CacheMonitoringService {
   /**
    * Get metrics for a specific segment (prefix/provider)
    */
-  private async getSegmentMetrics(segment: string): Promise<CacheMetrics> {
+  private async getSegmentMetrics(_segment: string): Promise<CacheMetrics> {
     // This would analyze Redis data for specific key patterns
     // For now, return estimated metrics
     const overall = this.metrics.get('overall');
@@ -402,6 +402,7 @@ class CacheMonitoringService {
    * Utility functions
    */
   private calculateHitRate(stats: any): number {
+    if (!stats) return 0;
     const hits = stats.keysByPrefix?.hits || 0;
     const misses = stats.keysByPrefix?.misses || 0;
     const total = hits + misses;

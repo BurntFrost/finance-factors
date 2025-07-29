@@ -6,16 +6,16 @@
  */
 
 import { cache } from '../lib/advanced-cache';
-import { enhancedCacheStrategy } from '../lib/enhanced-cache-strategy';
-import { fredProxyService } from '../../app/api/services/fred-proxy';
-import { blsProxyService } from '../../app/api/services/bls-proxy';
-import { censusProxyService } from '../../app/api/services/census-proxy';
-import { alphaVantageProxyService } from '../../app/api/services/alpha-vantage-proxy';
-import { worldBankProxyService } from '../../app/api/services/world-bank-proxy';
-import { oecdProxyService } from '../../app/api/services/oecd-proxy';
-import { DATA_SOURCE_ELEMENTS, DataSourceConfigManager } from '../../shared/config/dualDataSourceConfig';
-import { CACHE_PREFIXES, DEFAULT_TTL } from '../lib/redis-cache';
-import { executeRedisCommand } from '../lib/redis';
+// import { enhancedCacheStrategy } from '../lib/enhanced-cache-strategy';
+import { fredProxyService } from '../../../app/api/services/fred-proxy';
+import { blsProxyService } from '../../../app/api/services/bls-proxy';
+import { censusProxyService } from '../../../app/api/services/census-proxy';
+import { alphaVantageProxyService } from '../../../app/api/services/alpha-vantage-proxy';
+import { worldBankProxyService } from '../../../app/api/services/world-bank-proxy';
+import { oecdProxyService } from '../../../app/api/services/oecd-proxy';
+import { DATA_SOURCE_ELEMENTS } from '../../shared/config/dualDataSourceConfig';
+import { CACHE_PREFIXES } from '../lib/redis-cache';
+// import { executeRedisCommand } from '../lib/redis';
 
 export interface CacheWarmingConfig {
   dataTypes: string[];

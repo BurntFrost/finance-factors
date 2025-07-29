@@ -5,16 +5,16 @@
  * including simulated API failures, failover testing, and performance validation.
  */
 
-import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
-import { 
+import { ApiResponse } from '@/shared/types/dataSource';
+import {
   dualDataSourceMonitor,
   MonitoringEventType,
-  EventSeverity,
+  // EventSeverity,
 } from './dualDataSourceMonitor';
-import { 
+import {
   DataSourceConfigManager,
-  PROVIDER_CONFIGS,
-  ProviderHealth,
+  // PROVIDER_CONFIGS,
+  // ProviderHealth,
 } from '@/shared/config/dualDataSourceConfig';
 
 // Test scenario types
@@ -307,7 +307,7 @@ class DualDataSourceTester {
   /**
    * Cleanup test scenario
    */
-  private async cleanupTestScenario(scenario: TestScenario, dataType: string): Promise<void> {
+  private async cleanupTestScenario(_scenario: TestScenario, _dataType: string): Promise<void> {
     // Reset all simulations
     this.failureSimulations.clear();
     this.mockResponses.clear();

@@ -9,13 +9,10 @@
 import {
   ProxyApiResponse,
   StandardDataPoint,
-  WorldBankDataPoint,
-  WorldBankApiResponse,
   ProxyError,
   PROXY_API_ENDPOINTS,
 } from '../../../lib/shared/types/proxy';
 import {
-  checkRateLimit,
   getCachedResponse,
   setCachedResponse,
   generateLegacyCacheKey,
@@ -129,7 +126,7 @@ export class WorldBankProxyService {
         return createErrorResponse(error, 'World Bank API');
       }
 
-      const [metadata, dataPoints] = data;
+      const [_metadata, dataPoints] = data;
       
       if (!Array.isArray(dataPoints)) {
         const error: ProxyError = {
