@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Data Fetch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+            max-height: 300px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <h1>Finance Factors Dashboard - Data Fetch Debug</h1>
+    
+    <div class="test-section">
+        <h2>API Proxy Test</h2>
+        <button onclick="testApiProxy()">Test API Proxy</button>
+        <div id="proxy-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Data Types Test</h2>
+        <button onclick="testDataType('house-prices')">Test House Prices</button>
+        <button onclick="testDataType('salary-income')">Test Salary Income</button>
+        <button onclick="testDataType('unemployment-rate')">Test Unemployment</button>
+        <div id="datatype-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Chart Data Transformation Test</h2>
+        <button onclick="testDataTransformation()">Test Data Transformation</button>
+        <div id="transform-result"></div>
+    </div>
+
+    <script>
+        async function testApiProxy() {
+            const resultDiv = document.getElementById('proxy-result');
+            resultDiv.innerHTML = '<div class="loading">Testing API proxy...</div>';
+            
+            try {
+                const response = await fetch('/api/proxy/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dataType: 'house-prices',
+                        useCache: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ API Proxy Working</h3>
+                        <p><strong>Success:</strong> ${data.success}</p>
+                        <p><strong>Data Points:</strong> ${data.data ? data.data.length : 0}</p>
+                        <p><strong>Source:</strong> ${data.source}</p>
+                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        <details>
+                            <summary>Raw Response</summary>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ API Proxy Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <pre>${error.stack || error}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDataType(dataType) {
+            const resultDiv = document.getElementById('datatype-result');
+            resultDiv.innerHTML = `<div class="loading">Testing ${dataType}...</div>`;
+            
+            try {
+                const response = await fetch('/api/proxy/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dataType: dataType,
+                        useCache: false
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ ${dataType} Data Retrieved</h3>
+                        <p><strong>Success:</strong> ${data.success}</p>
+                        <p><strong>Data Points:</strong> ${data.data ? data.data.length : 0}</p>
+                        <p><strong>Source:</strong> ${data.source}</p>
+                        <p><strong>Sample Data:</strong></p>
+                        <pre>${JSON.stringify(data.data ? data.data.slice(0, 3) : [], null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ ${dataType} Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testDataTransformation() {
+            const resultDiv = document.getElementById('transform-result');
+            resultDiv.innerHTML = '<div class="loading">Testing data transformation...</div>';
+            
+            try {
+                // First get raw data
+                const response = await fetch('/api/proxy/data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        dataType: 'house-prices',
+                        useCache: false
+                    })
+                });
+
+                const apiData = await response.json();
+                
+                if (!apiData.success || !apiData.data) {
+                    throw new Error('Failed to get API data for transformation test');
+                }
+
+                // Transform to Chart.js format
+                const chartData = {
+                    labels: apiData.data.map(point => point.date),
+                    datasets: [{
+                        label: 'House Prices',
+                        data: apiData.data.map(point => point.value),
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: false
+                    }]
+                };
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Data Transformation Working</h3>
+                        <p><strong>Original Data Points:</strong> ${apiData.data.length}</p>
+                        <p><strong>Chart Labels:</strong> ${chartData.labels.length}</p>
+                        <p><strong>Chart Data Points:</strong> ${chartData.datasets[0].data.length}</p>
+                        <p><strong>Sample Labels:</strong> ${chartData.labels.slice(0, 5).join(', ')}</p>
+                        <p><strong>Sample Values:</strong> ${chartData.datasets[0].data.slice(0, 5).join(', ')}</p>
+                        <details>
+                            <summary>Chart Data Structure</summary>
+                            <pre>${JSON.stringify(chartData, null, 2)}</pre>
+                        </details>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Data Transformation Failed</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-run basic test on page load
+        window.addEventListener('load', () => {
+            testApiProxy();
+        });
+    </script>
+</body>
+</html>

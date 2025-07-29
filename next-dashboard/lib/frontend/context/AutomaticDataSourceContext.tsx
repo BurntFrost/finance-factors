@@ -330,13 +330,13 @@ export function AutomaticDataSourceProvider({
 
     logCacheEvent('check', key, isValid);
     return isValid;
-  }, [state.cache]);
+  }, [state.cache]); // Include state.cache dependency
 
   // Get cached data if valid
   const getCachedData = useCallback(<T = unknown>(key: string): T | null => {
     if (!isCacheValid(key)) return null;
     return state.cache.get(key)?.data as T || null;
-  }, [isCacheValid, state.cache]);
+  }, [isCacheValid, state.cache]); // Include state.cache dependency
 
   // Update provider health tracking
   const updateProviderHealth = useCallback((provider: string, success: boolean, responseTime?: number, error?: string) => {
@@ -682,6 +682,8 @@ export function AutomaticDataSourceProvider({
       const apiResponse = await realApiService.fetchData(options);
       const duration = Date.now() - startTime;
 
+
+
       if (apiResponse.success && apiResponse.data) {
         const transformedData = transformers.chartData.transform(
           apiResponse.data as Array<{ date: string; value: number; label?: string }>,
@@ -756,7 +758,7 @@ export function AutomaticDataSourceProvider({
       // Remove from pending requests
       dispatch({ type: 'REMOVE_PENDING_REQUEST', payload: requestKey });
     }
-  }, [state.circuitBreakers, state.pendingRequests, updateCircuitBreaker, updateProviderHealth]);
+  }, [updateCircuitBreaker, updateProviderHealth, state.circuitBreakers, state.pendingRequests]); // Include state dependencies
 
   // Fetch historical data as fallback
   const fetchHistoricalData = useCallback(async <T = unknown>(
@@ -790,12 +792,16 @@ export function AutomaticDataSourceProvider({
       clearTimeout(retryTimeoutRef.current);
     }
 
-    if (state.retryCount < maxRetries) {
+    // Use functional state access to avoid dependencies on state values
+    const currentRetryCount = state.retryCount;
+    const currentCache = state.cache;
+
+    if (currentRetryCount < maxRetries) {
       // Exponential backoff: 5min, 10min, 20min
-      const backoffMultiplier = Math.pow(2, state.retryCount);
+      const backoffMultiplier = Math.pow(2, currentRetryCount);
       const delay = retryInterval * backoffMultiplier;
 
-      console.info(`Scheduling retry ${state.retryCount + 1}/${maxRetries} in ${Math.round(delay / 1000 / 60)} minutes`);
+      console.info(`Scheduling retry ${currentRetryCount + 1}/${maxRetries} in ${Math.round(delay / 1000 / 60)} minutes`);
 
       retryTimeoutRef.current = setTimeout(async () => {
         if (!isMountedRef.current) return;
@@ -803,7 +809,7 @@ export function AutomaticDataSourceProvider({
         dispatch({ type: 'INCREMENT_RETRY_COUNT' });
 
         // Attempt to fetch live data for all cached data types
-        const cacheKeys = Array.from(state.cache.keys());
+        const cacheKeys = Array.from(currentCache.keys());
         for (const cacheKey of cacheKeys) {
           if (cacheKey.startsWith('auto-')) {
             const dataType = cacheKey.replace('auto-', '');
@@ -818,7 +824,7 @@ export function AutomaticDataSourceProvider({
     } else {
       console.info('Maximum retry attempts reached. Will retry on next user interaction.');
     }
-  }, [state.retryCount, maxRetries, retryInterval, state.cache, attemptLiveDataWithFailover]);
+  }, [maxRetries, retryInterval, attemptLiveDataWithFailover, state.cache, state.retryCount]); // Include state dependencies
 
   // Add mounted ref for cleanup
   const isMountedRef = useRef(true);
@@ -836,6 +842,8 @@ export function AutomaticDataSourceProvider({
   ): Promise<ApiResponse<T>> => {
     const { dataType, useCache = true } = options;
     const cacheKey = `auto-${dataType}`;
+
+
 
     try {
       // Don't set global loading state for individual component refreshes
@@ -961,7 +969,7 @@ export function AutomaticDataSourceProvider({
       // Individual components manage their own loading state
       // Don't set global loading state here
     }
-  }, [attemptLiveDataWithFailover, fetchHistoricalData, getCachedData, scheduleRetry, state.circuitBreakers]);
+  }, [attemptLiveDataWithFailover, fetchHistoricalData, getCachedData, scheduleRetry, debouncedDispatch, state.circuitBreakers]); // Include missing dependencies
 
   // Clear cache
   const clearCache = useCallback((): void => {
@@ -1027,7 +1035,7 @@ export function AutomaticDataSourceProvider({
   // Get current data source status - use ref to avoid re-renders
   const getDataSourceStatus = useCallback((): DataSourceStatus => {
     return state.status;
-  }, []);
+  }, [state.status]);
 
   // Get circuit breaker status - use ref to avoid re-renders
   const getCircuitBreakerStatus = useCallback((provider?: string): Map<string, CircuitBreakerInfo> | CircuitBreakerInfo | null => {
@@ -1035,7 +1043,7 @@ export function AutomaticDataSourceProvider({
       return state.circuitBreakers.get(provider) || null;
     }
     return state.circuitBreakers;
-  }, []);
+  }, [state.circuitBreakers]);
 
   // Get monitoring data
   const getMonitoringData = useCallback(() => {
@@ -1053,15 +1061,15 @@ export function AutomaticDataSourceProvider({
       return state.providerHealth.get(provider) || null;
     }
     return state.providerHealth;
-  }, []);
+  }, [state.providerHealth]);
 
   const getFailoverEvents = useCallback((limit: number = 50): FailoverEvent[] => {
     return state.failoverEvents.slice(-limit);
-  }, []);
+  }, [state.failoverEvents]);
 
   const getActiveDataSource = useCallback((dataType: string): string | null => {
     return state.activeDataSources.get(dataType) || null;
-  }, []);
+  }, [state.activeDataSources]);
 
   const switchDataSource = useCallback(async (dataType: string, provider: string): Promise<void> => {
     // Validate that the provider supports this data type
@@ -1094,7 +1102,7 @@ export function AutomaticDataSourceProvider({
   const getProviderStatus = useCallback((provider: string): 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open' => {
     const health = state.providerHealth.get(provider);
     return health?.status || 'unavailable';
-  }, []);
+  }, [state.providerHealth]);
 
   // Batch fetch multiple data types in parallel
   const fetchMultipleData = useCallback(async <T = unknown>(

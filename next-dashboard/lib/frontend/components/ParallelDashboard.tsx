@@ -77,6 +77,8 @@ export default function ParallelDashboard({
   // Get loading progress
   const progress = getLoadingProgress();
 
+
+
   return (
     <div className={styles.container}>
       {/* Loading Progress Indicator */}

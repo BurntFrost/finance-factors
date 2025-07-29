@@ -40,6 +40,8 @@ export function useParallelDashboardData<T = ChartData>(
   const { fetchData } = useAutomaticDataSourceContext();
   const { autoFetch = true, refreshInterval, staggerDelay = 100 } = options || {};
 
+
+
   // State for each data type
   const [data, setData] = useState<Record<string, T | null>>(() => 
     requests.reduce((acc, req) => ({ ...acc, [req.dataType]: null }), {})
@@ -66,8 +68,9 @@ export function useParallelDashboardData<T = ChartData>(
   // Function to fetch a single data type
   const fetchSingleData = useCallback(async (request: DashboardDataRequest): Promise<void> => {
     const { dataType, options: requestOptions } = request;
-    
-    if (!isMountedRef.current) return;
+
+    // Note: Removed mounted check to allow staggered requests to complete
+    // The state updates are protected by React's built-in safeguards
 
     // Set loading state for this specific data type
     setLoadingStates(prev => ({ ...prev, [dataType]: true }));
@@ -82,14 +85,16 @@ export function useParallelDashboardData<T = ChartData>(
 
       const response: ApiResponse<T> = await fetchData<T>(fetchOptions);
 
-      if (!isMountedRef.current) return;
-
       if (response.success && response.data) {
         setData(prev => ({ ...prev, [dataType]: response.data }));
         setLastUpdated(prev => ({ ...prev, [dataType]: response.timestamp }));
         console.log(`✅ Parallel fetch completed for ${dataType}:`, {
           source: response.source,
           timestamp: response.timestamp,
+          dataType: typeof response.data,
+          hasLabels: !!(response.data as any)?.labels,
+          hasDatasets: !!(response.data as any)?.datasets,
+          datasetCount: (response.data as any)?.datasets?.length || 0,
         });
       } else {
         const errorMessage = response.error || 'Failed to fetch data';
@@ -97,7 +102,6 @@ export function useParallelDashboardData<T = ChartData>(
         console.warn(`❌ Parallel fetch failed for ${dataType}:`, errorMessage);
       }
     } catch (error) {
-      if (!isMountedRef.current) return;
       
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       setErrors(prev => ({ ...prev, [dataType]: errorMessage }));
@@ -111,7 +115,6 @@ export function useParallelDashboardData<T = ChartData>(
 
   // Function to fetch all data types in parallel with optional staggering
   const fetchAllData = useCallback(async (): Promise<void> => {
-    if (!isMountedRef.current) return;
 
     setIsLoading(true);
     console.log(`🚀 Starting parallel fetch for ${requests.length} data types:`, 
@@ -120,7 +123,7 @@ export function useParallelDashboardData<T = ChartData>(
     try {
       if (staggerDelay > 0) {
         // Staggered parallel requests to be gentler on APIs
-        const promises = requests.map((request, index) => 
+        const promises = requests.map((request, index) =>
           new Promise<void>(resolve => {
             setTimeout(async () => {
               await fetchSingleData(request);
@@ -139,9 +142,7 @@ export function useParallelDashboardData<T = ChartData>(
     } catch (error) {
       console.error('💥 Error in parallel fetch:', error);
     } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, [requests, fetchSingleData, staggerDelay]);
 

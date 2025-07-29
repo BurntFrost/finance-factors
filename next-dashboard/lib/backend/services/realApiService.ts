@@ -87,37 +87,28 @@ class RealApiService {
             return proxyResponse;
           } else {
             console.warn(`Proxy failed for ${dataType}:`, proxyResponse.error);
-            // For production deployments, don't fall back to direct API calls
-            // as they will fail due to CORS
-            if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-              return {
-                data: null as T,
-                success: false,
-                error: `API proxy failed: ${proxyResponse.error}. Direct API calls are blocked by CORS in production.`,
-                timestamp: new Date(),
-                source: 'Real API Service',
-              };
-            }
-          }
-        } catch (proxyError) {
-          console.warn(`Proxy error for ${dataType}:`, proxyError);
-
-          // For production deployments, don't fall back to direct API calls
-          if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+            // Always return proxy error instead of falling back to direct API calls
+            // Direct API calls will fail due to CORS in browser environments
             return {
               data: null as T,
               success: false,
-              error: `API proxy error: ${proxyError instanceof Error ? proxyError.message : 'Unknown error'}. Direct API calls are blocked by CORS in production.`,
+              error: `API proxy failed: ${proxyResponse.error}. Direct API calls are blocked by CORS.`,
               timestamp: new Date(),
               source: 'Real API Service',
             };
           }
+        } catch (proxyError) {
+          console.warn(`Proxy error for ${dataType}:`, proxyError);
 
-          // Mark proxy as unavailable temporarily for local development
-          this.proxyAvailable = false;
-          setTimeout(() => {
-            this.proxyAvailable = null; // Reset availability check after 5 minutes
-          }, 5 * 60 * 1000);
+          // Always return proxy error instead of falling back to direct API calls
+          // Direct API calls will fail due to CORS in browser environments
+          return {
+            data: null as T,
+            success: false,
+            error: `API proxy error: ${proxyError instanceof Error ? proxyError.message : 'Unknown error'}. Direct API calls are blocked by CORS.`,
+            timestamp: new Date(),
+            source: 'Real API Service',
+          };
         }
       }
 
@@ -329,8 +320,8 @@ class RealApiService {
    * Test FRED API health
    */
   private async testFredHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return fredApiService.isConfigured();
     }
 
@@ -347,8 +338,8 @@ class RealApiService {
    * Test BLS API health
    */
   private async testBlsHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return blsApiService.isConfigured();
     }
 
@@ -367,8 +358,8 @@ class RealApiService {
    * Test Census API health
    */
   private async testCensusHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return censusApiService.isConfigured();
     }
 
@@ -387,8 +378,8 @@ class RealApiService {
    * Test Alpha Vantage API health
    */
   private async testAlphaVantageHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return alphaVantageApiService.isConfigured();
     }
 
@@ -405,8 +396,8 @@ class RealApiService {
    * Test World Bank API health
    */
   private async testWorldBankHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return true; // World Bank API is always available (no API key required)
     }
 
@@ -428,8 +419,8 @@ class RealApiService {
    * Test OECD API health
    */
   private async testOecdHealth(): Promise<boolean> {
-    // In production, skip direct API health checks to avoid CORS issues
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+    // Skip direct API health checks to avoid CORS issues in browser
+    if (typeof window !== 'undefined') {
       return true; // OECD API is always available (no API key required)
     }
 

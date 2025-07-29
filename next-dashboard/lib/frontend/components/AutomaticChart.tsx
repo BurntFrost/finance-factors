@@ -19,6 +19,7 @@ import DataSourceIndicator from './DataSourceIndicator';
 import RealTimeStatusIndicator from './RealTimeStatusIndicator';
 import ExportMenu from './ExportMenu';
 import ChartSkeleton from './ChartSkeleton';
+import DataFetchErrorBoundary from './DataFetchErrorBoundary';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
 import {
   resetChartZoom,
@@ -57,7 +58,7 @@ export interface AutomaticChartProps {
   showFooterRefresh?: boolean;
 }
 
-export default function AutomaticChart({
+function AutomaticChartInternal({
   dataType,
   title,
   chartType = 'line',
@@ -111,16 +112,17 @@ export default function AutomaticChart({
     forceRetryLive,
   } = useAutomaticDataSource<ChartData>({
     dataType,
-    autoFetch: true,
+    autoFetch: !fallbackData, // Don't auto-fetch if fallback data is provided
     refreshInterval,
     retryOnError: true,
   });
 
-  // Determine which data to use - WebSocket data takes priority if available
+
+
+  // Determine which data to use - WebSocket data takes priority, then fetched data, then fallback data
   const rawDisplayData = enableRealTime && wsData ? wsData : (data || fallbackData);
-  const _displayStatus = enableRealTime && wsConnected ? 'live' : status;
+  const _displayStatus = enableRealTime && wsConnected ? 'live' : (fallbackData && !data ? 'live-fred' : status);
   const _displayError = enableRealTime ? _wsError : error?.message;
-  const displayLastUpdated = enableRealTime && wsLastUpdate ? wsLastUpdate : lastUpdated;
 
   // Adapt data for the current chart type
   const displayData = React.useMemo(() => {
@@ -258,19 +260,24 @@ export default function AutomaticChart({
   }, [forceRetryLive]);
 
   // Create dashboard element for export
-  const dashboardElement = React.useMemo(() => ({
-    id: `auto-chart-${dataType}`,
-    type: `${currentChartType}-chart` as const,
-    dataType,
-    title,
-    data: displayData,
-    config: {},
-    isRealData: enableRealTime ? wsConnected : (status !== 'historical-fallback'),
-    dataSource: enableRealTime && wsConnected ? 'WebSocket' : (status === 'historical-fallback' ? 'Historical Data' : 'API'),
-    createdAt: new Date(),
-    updatedAt: displayLastUpdated || new Date(),
-    lastUpdated: displayLastUpdated || undefined,
-  }), [dataType, currentChartType, title, displayData, enableRealTime, wsConnected, status, displayLastUpdated]);
+  const dashboardElement = React.useMemo(() => {
+    // Move displayLastUpdated calculation inside useMemo to fix dependency warning
+    const displayLastUpdated = enableRealTime && wsLastUpdate ? wsLastUpdate : (lastUpdated || (fallbackData ? new Date() : null));
+
+    return {
+      id: `auto-chart-${dataType}`,
+      type: `${currentChartType}-chart` as const,
+      dataType,
+      title,
+      data: displayData,
+      config: {},
+      isRealData: enableRealTime ? wsConnected : (status !== 'historical-fallback'),
+      dataSource: enableRealTime && wsConnected ? 'WebSocket' : (status === 'historical-fallback' ? 'Historical Data' : 'API'),
+      createdAt: new Date(),
+      updatedAt: displayLastUpdated || new Date(),
+      lastUpdated: displayLastUpdated || undefined,
+    };
+  }, [dataType, currentChartType, title, displayData, enableRealTime, wsConnected, status, wsLastUpdate, lastUpdated, fallbackData]);
 
   // Handle export completion
   const _handleExportComplete = React.useCallback((format: string) => {
@@ -397,7 +404,7 @@ export default function AutomaticChart({
 
       {/* Chart content */}
       <div className={styles.chartWrapper} style={{ height }} ref={chartRef}>
-        {isLoading && !displayData ? (
+        {(isLoading && !displayData && !fallbackData) ? (
           <ChartSkeleton height={height} />
         ) : error && !displayData ? (
           <div className={styles.errorState}>
@@ -499,8 +506,22 @@ export default function AutomaticChart({
   );
 }
 
+// Wrapped version with error boundary to prevent infinite loops
+export default function AutomaticChart(props: AutomaticChartProps) {
+  return (
+    <DataFetchErrorBoundary
+      dataType={props.dataType}
+      maxRetries={2}
+      infiniteLoopThreshold={3}
+      infiniteLoopTimeWindow={3000}
+    >
+      <AutomaticChartInternal {...props} />
+    </DataFetchErrorBoundary>
+  );
+}
+
 // Compact version for use in grids or tight spaces
-export function CompactAutomaticChart({
+function CompactAutomaticChartInternal({
   dataType,
   title,
   chartType = 'line',
@@ -515,7 +536,7 @@ export function CompactAutomaticChart({
     forceRetryLive,
   } = useAutomaticDataSource<ChartData>({
     dataType,
-    autoFetch: true,
+    autoFetch: !fallbackData, // Don't auto-fetch if fallback data is provided
     retryOnError: true,
   });
 
@@ -577,5 +598,19 @@ export function CompactAutomaticChart({
         )}
       </div>
     </div>
+  );
+}
+
+// Wrapped compact version with error boundary
+export function CompactAutomaticChart(props: Omit<AutomaticChartProps, 'showIndicator' | 'indicatorPosition' | 'onDataChange'>) {
+  return (
+    <DataFetchErrorBoundary
+      dataType={props.dataType}
+      maxRetries={2}
+      infiniteLoopThreshold={3}
+      infiniteLoopTimeWindow={3000}
+    >
+      <CompactAutomaticChartInternal {...props} />
+    </DataFetchErrorBoundary>
   );
 }

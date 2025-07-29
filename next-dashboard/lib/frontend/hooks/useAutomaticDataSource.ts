@@ -96,28 +96,24 @@ export function useAutomaticDataSource<T = unknown>({
       } else {
         const errorMessage = response.error || 'Failed to fetch data';
         setError(new Error(errorMessage));
-        
-        // Don't clear data on error if we have existing data
-        if (!data) {
-          setData(null);
-        }
+
+        // Don't clear data on error if we have existing data - use functional update to avoid dependency
+        setData(prevData => prevData || null);
       }
     } catch (err) {
       if (!isMountedRef.current) return;
-      
+
       const error = err instanceof Error ? err : new Error('Unknown error occurred');
       setError(error);
-      
-      // Don't clear data on error if we have existing data
-      if (!data) {
-        setData(null);
-      }
+
+      // Don't clear data on error if we have existing data - use functional update to avoid dependency
+      setData(prevData => prevData || null);
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
       }
     }
-  }, [dataType, fetchData, data]);
+  }, [dataType, fetchData]); // Removed 'data' dependency to prevent infinite loop
 
   // Refresh function
   const refresh = useCallback(async (): Promise<void> => {
