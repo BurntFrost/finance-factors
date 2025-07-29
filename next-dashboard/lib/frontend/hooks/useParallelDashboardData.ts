@@ -27,6 +27,7 @@ export interface ParallelDashboardResult<T = ChartData> {
   refreshAll: () => Promise<void>;
   refreshSingle: (dataType: string) => Promise<void>;
   getLoadingProgress: () => { completed: number; total: number; percentage: number };
+  isInitialLoad: boolean; // New field to track initial vs retry loading
 }
 
 export function useParallelDashboardData<T = ChartData>(
@@ -43,10 +44,11 @@ export function useParallelDashboardData<T = ChartData>(
 
 
   // State for each data type
-  const [data, setData] = useState<Record<string, T | null>>(() => 
+  const [data, setData] = useState<Record<string, T | null>>(() =>
     requests.reduce((acc, req) => ({ ...acc, [req.dataType]: null }), {})
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true); // Track if this is initial load
   const [errors, setErrors] = useState<Record<string, string | null>>(() =>
     requests.reduce((acc, req) => ({ ...acc, [req.dataType]: null }), {})
   );
@@ -114,10 +116,19 @@ export function useParallelDashboardData<T = ChartData>(
   }, [fetchData]);
 
   // Function to fetch all data types in parallel with optional staggering
-  const fetchAllData = useCallback(async (): Promise<void> => {
+  const fetchAllData = useCallback(async (isUserTriggered: boolean = false): Promise<void> => {
 
     setIsLoading(true);
-    console.log(`🚀 Starting parallel fetch for ${requests.length} data types:`, 
+
+    // Only show progress bar for initial load or user-triggered refreshes
+    if (isInitialLoad || isUserTriggered) {
+      // Keep isInitialLoad true during the fetch
+    } else {
+      // This is a background retry, don't show progress bar
+      setIsInitialLoad(false);
+    }
+
+    console.log(`🚀 Starting parallel fetch for ${requests.length} data types:`,
       requests.map(r => r.dataType).join(', '));
 
     try {
@@ -139,12 +150,17 @@ export function useParallelDashboardData<T = ChartData>(
       }
 
       console.log(`✨ Parallel fetch completed for all ${requests.length} data types`);
+
+      // Mark initial load as complete after first successful fetch
+      if (isInitialLoad) {
+        setIsInitialLoad(false);
+      }
     } catch (error) {
       console.error('💥 Error in parallel fetch:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [requests, fetchSingleData, staggerDelay]);
+  }, [requests, fetchSingleData, staggerDelay, isInitialLoad]);
 
   // Function to refresh a single data type
   const refreshSingle = useCallback(async (dataType: string): Promise<void> => {
@@ -156,7 +172,7 @@ export function useParallelDashboardData<T = ChartData>(
 
   // Function to refresh all data types
   const refreshAll = useCallback(async (): Promise<void> => {
-    await fetchAllData();
+    await fetchAllData(true); // Mark as user-triggered to show progress bar
   }, [fetchAllData]);
 
   // Function to get loading progress
@@ -171,7 +187,7 @@ export function useParallelDashboardData<T = ChartData>(
   // Auto-fetch on mount
   useEffect(() => {
     if (autoFetch) {
-      fetchAllData();
+      fetchAllData(false); // Initial load, but not user-triggered
     }
   }, [autoFetch, fetchAllData]);
 
@@ -181,7 +197,7 @@ export function useParallelDashboardData<T = ChartData>(
       refreshIntervalRef.current = setInterval(() => {
         if (isMountedRef.current && !isAnyLoading) {
           console.log(`🔄 Auto-refreshing dashboard data (interval: ${refreshInterval}ms)`);
-          fetchAllData();
+          fetchAllData(false); // Automatic refresh, don't show progress bar
         }
       }, refreshInterval);
 
@@ -214,6 +230,7 @@ export function useParallelDashboardData<T = ChartData>(
     refreshAll,
     refreshSingle,
     getLoadingProgress,
+    isInitialLoad,
   };
 }
 

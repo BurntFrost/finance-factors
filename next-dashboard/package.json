@@ -8,6 +8,8 @@
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "deploy": "echo 'Deployment is handled automatically by GitHub Actions. Push to main branch to deploy to Vercel.'",
     "deploy:manual": "./deploy-vercel.sh",
     "setup:vercel": "./setup-vercel-env.sh",

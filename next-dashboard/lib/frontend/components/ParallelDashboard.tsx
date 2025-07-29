@@ -59,6 +59,7 @@ export default function ParallelDashboard({
     refreshAll,
     refreshSingle,
     getLoadingProgress,
+    isInitialLoad,
   } = useStandardDashboardData({
     autoFetch: true,
     refreshInterval: enableRealTime ? refreshInterval : undefined,
@@ -81,11 +82,11 @@ export default function ParallelDashboard({
 
   return (
     <div className={styles.container}>
-      {/* Loading Progress Indicator */}
-      {showLoadingProgress && (isLoading || isAnyLoading) && (
+      {/* Loading Progress Indicator - Only show during initial load or user-triggered refresh */}
+      {showLoadingProgress && isInitialLoad && (isLoading || isAnyLoading) && (
         <div className={styles.loadingProgress}>
           <div className={styles.progressBar}>
-            <div 
+            <div
               className={styles.progressFill}
               style={{ width: `${progress.percentage}%` }}
             />
