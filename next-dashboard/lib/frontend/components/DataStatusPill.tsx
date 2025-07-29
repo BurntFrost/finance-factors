@@ -2,24 +2,110 @@
 
 import React from 'react';
 import styles from './DataStatusPill.module.css';
+import { EnhancedDataSourceStatus, DataSourceConfigManager } from '@/shared/config/dualDataSourceConfig';
 
-export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd';
+export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd' | EnhancedDataSourceStatus;
 
 interface DataStatusPillProps {
   status: DataStatus;
   lastUpdated?: Date;
   className?: string;
   size?: 'small' | 'medium' | 'large';
+  provider?: string; // Optional provider name for enhanced display
+  showDetails?: boolean; // Show detailed tooltip information
 }
 
-export default function DataStatusPill({ 
-  status, 
-  lastUpdated, 
+export default function DataStatusPill({
+  status,
+  lastUpdated,
   className = '',
-  size = 'medium'
+  size = 'medium',
+  provider,
+  showDetails = true
 }: DataStatusPillProps) {
   const getStatusConfig = (status: DataStatus) => {
     switch (status) {
+      // Enhanced live API statuses
+      case 'live-fred':
+        return {
+          label: 'FRED Live',
+          icon: '🏦',
+          color: '#28a745',
+          description: 'Live data from Federal Reserve Economic Data (FRED)'
+        };
+      case 'live-bls':
+        return {
+          label: 'BLS Live',
+          icon: '📈',
+          color: '#28a745',
+          description: 'Live data from Bureau of Labor Statistics'
+        };
+      case 'live-census':
+        return {
+          label: 'Census Live',
+          icon: '🏛️',
+          color: '#28a745',
+          description: 'Live data from U.S. Census Bureau'
+        };
+      case 'live-alpha-vantage':
+        return {
+          label: 'Alpha Vantage Live',
+          icon: '📊',
+          color: '#28a745',
+          description: 'Live financial data from Alpha Vantage'
+        };
+      case 'live-world-bank':
+        return {
+          label: 'World Bank Live',
+          icon: '🌍',
+          color: '#28a745',
+          description: 'Live data from World Bank Open Data'
+        };
+      case 'live-oecd':
+        return {
+          label: 'OECD Live',
+          icon: '🏛️',
+          color: '#28a745',
+          description: 'Live data from OECD Statistics'
+        };
+      // Fallback statuses
+      case 'fallback-cached':
+        return {
+          label: 'Cached Data',
+          icon: '💾',
+          color: '#17a2b8',
+          description: 'Using cached data from previous API calls'
+        };
+      case 'fallback-historical':
+        return {
+          label: 'Historical Data',
+          icon: '📊',
+          color: '#ffc107',
+          description: 'Using historical data generator as fallback'
+        };
+      case 'fallback-synthetic':
+        return {
+          label: 'Synthetic Data',
+          icon: '🔧',
+          color: '#fd7e14',
+          description: 'Using synthetic data for demonstration'
+        };
+      // Degraded states
+      case 'degraded-partial':
+        return {
+          label: 'Partial Data',
+          icon: '⚠️',
+          color: '#ffc107',
+          description: 'Some data sources unavailable, using available sources'
+        };
+      case 'circuit-breaker-open':
+        return {
+          label: 'Service Unavailable',
+          icon: '🚫',
+          color: '#dc3545',
+          description: 'API temporarily unavailable, circuit breaker active'
+        };
+      // Legacy compatibility
       case 'recent':
         return {
           label: 'Live Data',
@@ -73,7 +159,7 @@ export default function DataStatusPill({
   };
 
   const config = getStatusConfig(status);
-  
+
   const formatLastUpdated = (date: Date) => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -88,28 +174,53 @@ export default function DataStatusPill({
     return date.toLocaleDateString();
   };
 
+  // Enhanced tooltip with provider information
+  const getTooltipText = () => {
+    let tooltip = config.description;
+
+    if (provider && showDetails) {
+      const providerDisplayName = DataSourceConfigManager.getProviderDisplayName(provider);
+      tooltip += ` (${providerDisplayName})`;
+    }
+
+    if (lastUpdated) {
+      tooltip += ` - Last updated: ${formatLastUpdated(lastUpdated)}`;
+    }
+
+    return tooltip;
+  };
+
+  // Determine if this is a live API status
+  const isLiveStatus = DataSourceConfigManager.isLiveApiStatus(status as EnhancedDataSourceStatus);
+  const isFallbackStatus = DataSourceConfigManager.isFallbackStatus(status as EnhancedDataSourceStatus);
+
   const pillClasses = [
     styles.pill,
     styles[size],
-    styles[status],
+    styles[status] || (isLiveStatus ? styles.live : isFallbackStatus ? styles.fallback : styles.default),
     className
   ].filter(Boolean).join(' ');
 
   return (
-    <div 
+    <div
       className={pillClasses}
-      style={{ 
+      style={{
         '--status-color': config.color,
         backgroundColor: `${config.color}15`,
         borderColor: `${config.color}40`
       } as React.CSSProperties}
-      title={`${config.description}${lastUpdated ? ` - Last updated: ${formatLastUpdated(lastUpdated)}` : ''}`}
+      title={getTooltipText()}
     >
       <span className={styles.icon}>{config.icon}</span>
       <span className={styles.label}>{config.label}</span>
-      {lastUpdated && status === 'recent' && (
+      {lastUpdated && (isLiveStatus || status === 'recent') && (
         <span className={styles.timestamp}>
           {formatLastUpdated(lastUpdated)}
+        </span>
+      )}
+      {provider && showDetails && size !== 'small' && (
+        <span className={styles.provider}>
+          {DataSourceConfigManager.getProviderDisplayName(provider)}
         </span>
       )}
     </div>

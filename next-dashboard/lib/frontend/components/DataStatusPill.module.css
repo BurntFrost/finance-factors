@@ -107,6 +107,78 @@
   margin-left: 0.125rem;
 }
 
+/* Provider styles */
+.provider {
+  font-size: 0.7em;
+  opacity: 0.7;
+  font-weight: 400;
+  margin-left: 0.25rem;
+  padding-left: 0.25rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced status styles */
+.live {
+  color: #155724;
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.fallback {
+  color: #856404;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.degraded {
+  color: #721c24;
+  background-color: rgba(220, 53, 69, 0.1);
+  border-color: rgba(220, 53, 69, 0.3);
+}
+
+.error {
+  color: #721c24;
+  background-color: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+/* Specific provider status styles */
+.live-fred,
+.live-bls,
+.live-census,
+.live-alpha-vantage,
+.live-world-bank,
+.live-oecd {
+  color: #155724;
+  background-color: rgba(40, 167, 69, 0.1);
+  border-color: rgba(40, 167, 69, 0.3);
+}
+
+.fallback-cached {
+  color: #0c5460;
+  background-color: rgba(23, 162, 184, 0.1);
+  border-color: rgba(23, 162, 184, 0.3);
+}
+
+.fallback-historical,
+.fallback-synthetic {
+  color: #856404;
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: rgba(255, 193, 7, 0.3);
+}
+
+.degraded-partial {
+  color: #856404;
+  background-color: rgba(255, 193, 7, 0.15);
+  border-color: rgba(255, 193, 7, 0.4);
+}
+
+.circuit-breaker-open {
+  color: #721c24;
+  background-color: rgba(220, 53, 69, 0.15);
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
 /* Animations */
 @keyframes pulse {
   0%, 100% {
@@ -121,19 +193,43 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .recent {
+  .provider {
+    border-left-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .recent,
+  .live,
+  .live-fred,
+  .live-bls,
+  .live-census,
+  .live-alpha-vantage,
+  .live-world-bank,
+  .live-oecd {
     color: #d4edda;
     background-color: rgba(40, 167, 69, 0.15);
     border-color: rgba(40, 167, 69, 0.4);
   }
 
-  .historical {
+  .historical,
+  .fallback,
+  .fallback-historical,
+  .fallback-synthetic,
+  .degraded-partial {
     color: #fff3cd;
     background-color: rgba(255, 193, 7, 0.15);
     border-color: rgba(255, 193, 7, 0.4);
   }
 
-  .stale {
+  .fallback-cached {
+    color: #d1ecf1;
+    background-color: rgba(23, 162, 184, 0.15);
+    border-color: rgba(23, 162, 184, 0.4);
+  }
+
+  .stale,
+  .degraded,
+  .error,
+  .circuit-breaker-open {
     color: #f8d7da;
     background-color: rgba(220, 53, 69, 0.15);
     border-color: rgba(220, 53, 69, 0.4);
@@ -163,8 +259,9 @@
     padding: 0.25rem 0.5rem;
   }
 
-  .timestamp {
-    display: none; /* Hide timestamp on mobile to save space */
+  .timestamp,
+  .provider {
+    display: none; /* Hide timestamp and provider on mobile to save space */
   }
 }
 
