@@ -3,7 +3,7 @@
 import React from 'react';
 import styles from './DataStatusPill.module.css';
 
-export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading';
+export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd';
 
 interface DataStatusPillProps {
   status: DataStatus;
@@ -33,6 +33,20 @@ export default function DataStatusPill({
           icon: '📊',
           color: '#ffc107',
           description: 'Real historical financial data for analysis'
+        };
+      case 'world-bank':
+        return {
+          label: 'World Bank Data',
+          icon: '🌍',
+          color: '#17a2b8',
+          description: 'Global economic data from World Bank Open Data'
+        };
+      case 'oecd':
+        return {
+          label: 'OECD Data',
+          icon: '🏛️',
+          color: '#6f42c1',
+          description: 'High-quality economic data from OECD Statistics'
         };
       case 'stale':
         return {

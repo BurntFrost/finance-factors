@@ -69,21 +69,81 @@ export function isPrismaEnabled(): boolean {
 }
 
 /**
+ * Check if World Bank API functionality is enabled
+ *
+ * When disabled, World Bank API endpoints will be bypassed and fallback to:
+ * - Historical data generators
+ * - Other available data sources
+ * - No-op operations for World Bank specific features
+ */
+export function isWorldBankApiEnabled(): boolean {
+  // Default to true for backward compatibility
+  const enabled = process.env.ENABLE_WORLD_BANK_API !== 'false';
+  return enabled;
+}
+
+/**
+ * Check if OECD API functionality is enabled
+ *
+ * When disabled, OECD API endpoints will be bypassed and fallback to:
+ * - Historical data generators
+ * - Other available data sources
+ * - No-op operations for OECD specific features
+ */
+export function isOECDApiEnabled(): boolean {
+  // Default to true for backward compatibility
+  const enabled = process.env.ENABLE_OECD_API !== 'false';
+  return enabled;
+}
+
+/**
+ * Check if traditional government APIs are enabled (FRED, BLS, Census, Alpha Vantage)
+ *
+ * When disabled, these APIs will be bypassed and fallback to:
+ * - Historical data generators
+ * - World Bank and OECD APIs if enabled
+ * - No-op operations for traditional API specific features
+ */
+export function isTraditionalApisEnabled(): boolean {
+  // Default to true for backward compatibility
+  const enabled = process.env.ENABLE_TRADITIONAL_APIS !== 'false';
+  return enabled;
+}
+
+/**
  * Get feature toggle status for debugging and monitoring
  */
 export function getFeatureToggleStatus() {
   return {
     redis: {
       enabled: isRedisEnabled(),
-      reason: isRedisEnabled() 
-        ? 'Redis functionality is enabled' 
+      reason: isRedisEnabled()
+        ? 'Redis functionality is enabled'
         : 'Redis functionality is disabled via ENABLE_REDIS environment variable',
     },
     prisma: {
       enabled: isPrismaEnabled(),
-      reason: isPrismaEnabled() 
-        ? 'Prisma functionality is enabled' 
+      reason: isPrismaEnabled()
+        ? 'Prisma functionality is enabled'
         : 'Prisma functionality is disabled via ENABLE_PRISMA environment variable',
+    },
+    worldBankApi: {
+      enabled: isWorldBankApiEnabled(),
+      reason: isWorldBankApiEnabled()
+        ? 'World Bank API functionality is enabled'
+        : 'World Bank API functionality is disabled via ENABLE_WORLD_BANK_API environment variable',
+    },
+    oecdApi: {
+      enabled: isOECDApiEnabled(),
+      reason: isOECDApiEnabled()
+        ? 'OECD API functionality is enabled'
+        : 'OECD API functionality is disabled via ENABLE_OECD_API environment variable',
+    },
+    traditionalApis: {
+      enabled: isTraditionalApisEnabled(),
+      reason: isTraditionalApisEnabled()
+        ? 'Traditional APIs (FRED, BLS, Census, Alpha Vantage) are enabled'
+        : 'Traditional APIs are disabled via ENABLE_TRADITIONAL_APIS environment variable',
     },
     timestamp: new Date().toISOString(),
   };

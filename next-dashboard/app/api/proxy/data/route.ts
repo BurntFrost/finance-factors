@@ -22,8 +22,15 @@ import { fredProxyService } from '../../services/fred-proxy';
 import { blsProxyService } from '../../services/bls-proxy';
 import { censusProxyService } from '../../services/census-proxy';
 import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
+import { worldBankProxyService } from '../../services/world-bank-proxy';
+import { oecdProxyService } from '../../services/oecd-proxy';
 import { cache } from '@/backend/lib/advanced-cache';
 import { compressionManager } from '@/backend/lib/compression';
+import {
+  isWorldBankApiEnabled,
+  isOECDApiEnabled,
+  isTraditionalApisEnabled
+} from '@/backend/lib/feature-toggles';
 
 
 /**
@@ -121,9 +128,19 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     let response: ProxyApiResponse<StandardDataPoint[]>;
 
-    // Route to appropriate service based on provider
+    // Route to appropriate service based on provider and feature toggles
     switch (endpointConfig.provider) {
       case 'FRED':
+        if (!isTraditionalApisEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'FRED API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
         response = await fredProxyService.fetchSeries(dataType, {
           startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
           endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
@@ -132,6 +149,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'BLS':
+        if (!isTraditionalApisEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'BLS API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
         response = await blsProxyService.fetchSeries(dataType, {
           startYear: timeRange?.start ? timeRange.start.getFullYear() : undefined,
           endYear: timeRange?.end ? timeRange.end.getFullYear() : undefined,
@@ -139,6 +166,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'CENSUS':
+        if (!isTraditionalApisEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'Census API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
         response = await censusProxyService.fetchSeries(dataType, {
           startYear: timeRange?.start ? timeRange.start.getFullYear() : undefined,
           endYear: timeRange?.end ? timeRange.end.getFullYear() : undefined,
@@ -147,10 +184,58 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         break;
 
       case 'ALPHA_VANTAGE':
+        if (!isTraditionalApisEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'Alpha Vantage API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
         response = await alphaVantageProxyService.fetchSeries(dataType, {
           startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
           endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
           useCache,
+        });
+        break;
+
+      case 'WORLD_BANK':
+        if (!isWorldBankApiEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'World Bank API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
+        response = await worldBankProxyService.fetchSeries(dataType, {
+          startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
+          endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
+          useCache,
+          countryCode: endpointConfig.countryCode,
+        });
+        break;
+
+      case 'OECD':
+        if (!isOECDApiEnabled()) {
+          const disabledError: ProxyError = {
+            type: 'configuration',
+            message: 'OECD API is disabled via configuration',
+            statusCode: 503,
+            retryable: false,
+          };
+          response = createErrorResponse(disabledError, 'API Proxy');
+          break;
+        }
+        response = await oecdProxyService.fetchSeries(dataType, {
+          startDate: timeRange?.start ? timeRange.start.toISOString().split('T')[0] : undefined,
+          endDate: timeRange?.end ? timeRange.end.toISOString().split('T')[0] : undefined,
+          useCache,
+          countryCode: endpointConfig.countryCode,
         });
         break;
 

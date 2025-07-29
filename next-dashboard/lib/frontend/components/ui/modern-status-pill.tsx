@@ -4,7 +4,7 @@ import * as React from "react"
 import { Badge } from "./badge"
 import { cn, formatDisplayDate, isRecentDate } from "@/lib/utils"
 
-export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading'
+export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd'
 
 interface ModernStatusPillProps {
   status: DataStatus
@@ -34,6 +34,16 @@ const statusConfig = {
     label: "Loading",
     icon: "⏳",
     variant: "loading" as const,
+  },
+  "world-bank": {
+    label: "World Bank",
+    icon: "🌍",
+    variant: "historical" as const, // Use historical styling for World Bank data
+  },
+  "oecd": {
+    label: "OECD",
+    icon: "🏛️",
+    variant: "historical" as const, // Use historical styling for OECD data
   },
 }
 

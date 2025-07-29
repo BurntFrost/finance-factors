@@ -20,7 +20,7 @@ export const DATA_SOURCES: Record<string, DataSourceConfig> = {
   liveApi: {
     type: 'live-api',
     name: 'Live Government APIs',
-    description: 'Real-time data from government APIs (FRED, BLS, Census)',
+    description: 'Real-time data from government APIs (FRED, BLS, Census, World Bank, OECD)',
     icon: '🔴',
     apiConfig: {
       endpoints: {
@@ -28,6 +28,8 @@ export const DATA_SOURCES: Record<string, DataSourceConfig> = {
         bls: PROXY_API_ENDPOINTS.BLS.BASE_URL,
         census: PROXY_API_ENDPOINTS.CENSUS.BASE_URL,
         alphaVantage: PROXY_API_ENDPOINTS.ALPHA_VANTAGE.BASE_URL,
+        worldBank: 'https://api.worldbank.org/v2',
+        oecd: 'https://sdmx.oecd.org/public/rest/data',
       },
       rateLimit: RATE_LIMITS.INTERNAL,
       timeout: 30000,

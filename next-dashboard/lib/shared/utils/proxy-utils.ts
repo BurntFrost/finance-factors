@@ -316,16 +316,16 @@ export function transformBlsData(dataPoints: BlsDataPoint[]): StandardDataPoint[
       // Convert BLS period format to date
       const year = parseInt(point.year);
       const period = point.period;
-      
+
       let month = 1;
       if (period.startsWith('M')) {
         month = parseInt(period.substring(1));
       } else if (period === 'M13') {
         month = 12; // Annual average, use December
       }
-      
+
       const date = new Date(year, month - 1, 1);
-      
+
       return {
         date: date.toISOString().split('T')[0],
         value: parseFloat(point.value),
@@ -333,6 +333,96 @@ export function transformBlsData(dataPoints: BlsDataPoint[]): StandardDataPoint[
       };
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+/**
+ * Transform World Bank data to standard format
+ */
+export function transformWorldBankData(dataPoints: any[]): StandardDataPoint[] {
+  return dataPoints
+    .filter(point => point.value !== null && point.value !== undefined)
+    .map(point => ({
+      date: `${point.date}-12-31`, // World Bank data is typically annual, use end of year
+      value: typeof point.value === 'string' ? parseFloat(point.value) : point.value,
+      label: point.date,
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
+
+/**
+ * Transform OECD SDMX data to standard format
+ */
+export function transformOECDData(data: any): StandardDataPoint[] {
+  try {
+    // OECD SDMX JSON format can be complex, handle different structures
+    if (data.data && data.data.dataSets && Array.isArray(data.data.dataSets)) {
+      const dataSet = data.data.dataSets[0];
+      if (dataSet && dataSet.series) {
+        const seriesKey = Object.keys(dataSet.series)[0];
+        const series = dataSet.series[seriesKey];
+
+        if (series && series.observations) {
+          const observations = series.observations;
+          const points: StandardDataPoint[] = [];
+
+          // Get time dimension from structure
+          const timeDimension = data.data.structure?.dimensions?.observation?.find(
+            (dim: any) => dim.id === 'TIME_PERIOD'
+          );
+
+          if (timeDimension && timeDimension.values) {
+            Object.keys(observations).forEach((key, index) => {
+              const observation = observations[key];
+              const timeValue = timeDimension.values[parseInt(key)];
+
+              if (timeValue && observation && observation[0] !== null) {
+                const value = parseFloat(observation[0]);
+                if (!isNaN(value)) {
+                  points.push({
+                    date: parseOECDDate(timeValue.id),
+                    value: value,
+                    label: timeValue.id,
+                  });
+                }
+              }
+            });
+          }
+
+          return points.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+      }
+    }
+
+    return [];
+  } catch (error) {
+    console.error('Error transforming OECD data:', error);
+    return [];
+  }
+}
+
+/**
+ * Parse OECD date format to ISO date
+ */
+function parseOECDDate(oecdDate: string): string {
+  try {
+    // Handle different OECD date formats
+    if (oecdDate.includes('-')) {
+      // Monthly format: 2023-01
+      const [year, month] = oecdDate.split('-');
+      return `${year}-${month.padStart(2, '0')}-01`;
+    } else if (oecdDate.includes('Q')) {
+      // Quarterly format: 2023-Q1
+      const [year, quarter] = oecdDate.split('-Q');
+      const month = (parseInt(quarter) - 1) * 3 + 1;
+      return `${year}-${month.toString().padStart(2, '0')}-01`;
+    } else {
+      // Annual format: 2023
+      return `${oecdDate}-12-31`;
+    }
+  } catch (error) {
+    console.error('Error parsing OECD date:', oecdDate, error);
+    return `${oecdDate}-12-31`; // Fallback
+  }
 }
 
 /**

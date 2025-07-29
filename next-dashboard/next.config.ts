@@ -16,6 +16,10 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_DEFAULT_DATA_SOURCE: process.env.NEXT_PUBLIC_DEFAULT_DATA_SOURCE || 'live-api',
     NEXT_PUBLIC_ENABLE_CACHING: process.env.NEXT_PUBLIC_ENABLE_CACHING || 'true',
     NEXT_PUBLIC_DEBUG_API: process.env.NEXT_PUBLIC_DEBUG_API || 'false',
+    // Data source configuration flags
+    NEXT_PUBLIC_ENABLE_WORLD_BANK_API: process.env.ENABLE_WORLD_BANK_API || 'true',
+    NEXT_PUBLIC_ENABLE_OECD_API: process.env.ENABLE_OECD_API || 'true',
+    NEXT_PUBLIC_ENABLE_TRADITIONAL_APIS: process.env.ENABLE_TRADITIONAL_APIS || 'true',
   },
 
   // Performance optimizations

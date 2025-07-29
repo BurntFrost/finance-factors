@@ -125,12 +125,85 @@ export interface StandardDataPoint {
   label?: string;
 }
 
+// World Bank API specific types
+export interface WorldBankDataPoint {
+  indicator: {
+    id: string;
+    value: string;
+  };
+  country: {
+    id: string;
+    value: string;
+  };
+  countryiso3code: string;
+  date: string;
+  value: number | null;
+  unit: string;
+  obs_status: string;
+  decimal: number;
+}
+
+export interface WorldBankApiResponse {
+  page: number;
+  pages: number;
+  per_page: number;
+  total: number;
+  sourceid: string;
+  lastupdated: string;
+}
+
+// OECD API specific types (SDMX format)
+export interface OECDDataPoint {
+  TIME_PERIOD: string;
+  OBS_VALUE: number | string;
+  UNIT_MEASURE?: string;
+  OBS_STATUS?: string;
+  CONF_STATUS?: string;
+}
+
+export interface OECDSeries {
+  name: string;
+  observations: Record<string, OECDDataPoint>;
+}
+
+export interface OECDDataSet {
+  series: Record<string, OECDSeries>;
+  structure: {
+    dimensions: {
+      observation: Array<{
+        id: string;
+        name: string;
+        values: Array<{
+          id: string;
+          name: string;
+        }>;
+      }>;
+    };
+  };
+}
+
+export interface OECDApiResponse {
+  data: {
+    dataSets: OECDDataSet[];
+  };
+  meta: {
+    id: string;
+    prepared: string;
+    sender: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
 // API endpoint configuration
 export interface ApiEndpointConfig {
-  provider: 'FRED' | 'BLS' | 'CENSUS' | 'ALPHA_VANTAGE';
+  provider: 'FRED' | 'BLS' | 'CENSUS' | 'ALPHA_VANTAGE' | 'WORLD_BANK' | 'OECD';
   seriesId?: string;
   endpoint: string;
   params?: Record<string, string>;
+  countryCode?: string; // For World Bank and OECD APIs
+  indicatorId?: string; // For World Bank and OECD APIs
 }
 
 // Rate limiting configuration
@@ -355,6 +428,110 @@ export const PROXY_API_ENDPOINTS: Record<string, ApiEndpointConfig> = {
       function: 'TIME_SERIES_MONTHLY',
       symbol: 'SPY', // S&P 500 ETF as investment proxy
       outputsize: 'compact',
+    },
+  },
+
+  // World Bank API endpoints
+  'world-bank-gdp-us': {
+    provider: 'WORLD_BANK',
+    countryCode: 'US',
+    indicatorId: 'NY.GDP.MKTP.CD', // GDP (current US$)
+    endpoint: '/country/US/indicator/NY.GDP.MKTP.CD',
+    params: {
+      format: 'json',
+      date: '2000:2024',
+      per_page: '100',
+    },
+  },
+  'world-bank-inflation-us': {
+    provider: 'WORLD_BANK',
+    countryCode: 'US',
+    indicatorId: 'FP.CPI.TOTL.ZG', // Inflation, consumer prices (annual %)
+    endpoint: '/country/US/indicator/FP.CPI.TOTL.ZG',
+    params: {
+      format: 'json',
+      date: '2000:2024',
+      per_page: '100',
+    },
+  },
+  'world-bank-unemployment-us': {
+    provider: 'WORLD_BANK',
+    countryCode: 'US',
+    indicatorId: 'SL.UEM.TOTL.ZS', // Unemployment, total (% of total labor force)
+    endpoint: '/country/US/indicator/SL.UEM.TOTL.ZS',
+    params: {
+      format: 'json',
+      date: '2000:2024',
+      per_page: '100',
+    },
+  },
+  'world-bank-trade-us': {
+    provider: 'WORLD_BANK',
+    countryCode: 'US',
+    indicatorId: 'NE.TRD.GNFS.ZS', // Trade (% of GDP)
+    endpoint: '/country/US/indicator/NE.TRD.GNFS.ZS',
+    params: {
+      format: 'json',
+      date: '2000:2024',
+      per_page: '100',
+    },
+  },
+  // Global indicators for comparison
+  'world-bank-gdp-global': {
+    provider: 'WORLD_BANK',
+    countryCode: 'WLD',
+    indicatorId: 'NY.GDP.MKTP.CD', // World GDP (current US$)
+    endpoint: '/country/WLD/indicator/NY.GDP.MKTP.CD',
+    params: {
+      format: 'json',
+      date: '2000:2024',
+      per_page: '100',
+    },
+  },
+
+  // OECD API endpoints
+  'oecd-gdp-us': {
+    provider: 'OECD',
+    countryCode: 'USA',
+    indicatorId: 'GDP',
+    endpoint: '/OECD.SDD.NAD,DSD_NAAG@DF_NAAG_I/USA.GDP.CPC.A',
+    params: {
+      format: 'jsondata',
+      startPeriod: '2000',
+      endPeriod: '2024',
+    },
+  },
+  'oecd-employment-us': {
+    provider: 'OECD',
+    countryCode: 'USA',
+    indicatorId: 'EMPLOYMENT',
+    endpoint: '/OECD.SDD.STES,DSD_STES@DF_STES/USA.EMPLOYMENT.STSA.M',
+    params: {
+      format: 'jsondata',
+      startPeriod: '2000-01',
+      endPeriod: '2024-12',
+    },
+  },
+  'oecd-productivity-us': {
+    provider: 'OECD',
+    countryCode: 'USA',
+    indicatorId: 'PRODUCTIVITY',
+    endpoint: '/OECD.SDD.PDB,DSD_PDB@DF_PDB/USA.T_GDPHRS.A',
+    params: {
+      format: 'jsondata',
+      startPeriod: '2000',
+      endPeriod: '2024',
+    },
+  },
+  'oecd-interest-rates-us': {
+    provider: 'OECD',
+    countryCode: 'USA',
+    indicatorId: 'INTEREST_RATES',
+    endpoint: '/OECD.SDD.MEI,DSD_MEI@DF_MEI/USA.IR3TIB01.ST.M',
+    params: {
+      format: 'jsondata',
+      startPeriod: '2000-01',
+      endPeriod: '2024-12',
     },
   },
 };

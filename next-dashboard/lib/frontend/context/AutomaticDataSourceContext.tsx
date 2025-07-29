@@ -161,6 +161,17 @@ function getProviderFromDataType(dataType: string): string {
     'sp500': 'ALPHA_VANTAGE',
     'nasdaq': 'ALPHA_VANTAGE',
     'population': 'CENSUS',
+    // World Bank data types
+    'world-bank-gdp-us': 'WORLD_BANK',
+    'world-bank-inflation-us': 'WORLD_BANK',
+    'world-bank-unemployment-us': 'WORLD_BANK',
+    'world-bank-trade-us': 'WORLD_BANK',
+    'world-bank-gdp-global': 'WORLD_BANK',
+    // OECD data types
+    'oecd-gdp-us': 'OECD',
+    'oecd-employment-us': 'OECD',
+    'oecd-productivity-us': 'OECD',
+    'oecd-interest-rates-us': 'OECD',
   };
 
   return providerMap[dataType] || 'UNKNOWN';
