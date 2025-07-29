@@ -8,7 +8,7 @@
  * source switching and provides a seamless user experience.
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useEffect, useRef, useMemo } from 'react';
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
 import { rateLimitLogger } from '@/shared/utils/rateLimitLogger';
 import {
@@ -281,11 +281,37 @@ export function AutomaticDataSourceProvider({
   const [state, dispatch] = useReducer(automaticDataSourceReducer, initialState);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Clear retry timeout on unmount
+  // Batching mechanism to prevent rapid successive updates
+  const batchedUpdatesRef = useRef<AutomaticDataSourceAction[]>([]);
+  const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced dispatch to batch rapid updates
+  const debouncedDispatch = useCallback((action: AutomaticDataSourceAction) => {
+    batchedUpdatesRef.current.push(action);
+
+    if (batchTimeoutRef.current) {
+      clearTimeout(batchTimeoutRef.current);
+    }
+
+    batchTimeoutRef.current = setTimeout(() => {
+      const actions = [...batchedUpdatesRef.current];
+      batchedUpdatesRef.current = [];
+
+      // Apply all batched actions
+      actions.forEach(batchedAction => {
+        dispatch(batchedAction);
+      });
+    }, 16); // 16ms debounce (one frame) to batch rapid updates
+  }, []);
+
+  // Clear timeouts on unmount
   useEffect(() => {
     return () => {
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
+      }
+      if (batchTimeoutRef.current) {
+        clearTimeout(batchTimeoutRef.current);
       }
     };
   }, []);
@@ -355,18 +381,18 @@ export function AutomaticDataSourceProvider({
       rateLimitResetTime: null, // Will be set if rate limit detected
     };
 
-    dispatch({ type: 'SET_PROVIDER_HEALTH', payload: { provider, health: updatedHealth } });
+    debouncedDispatch({ type: 'SET_PROVIDER_HEALTH', payload: { provider, health: updatedHealth } });
 
     // Log health check to monitoring system
     logApiHealthCheck(provider, 'unknown', updatedHealth);
 
     // Update degraded providers set
     if (status === 'degraded' || status === 'unavailable') {
-      dispatch({ type: 'ADD_DEGRADED_PROVIDER', payload: provider });
+      debouncedDispatch({ type: 'ADD_DEGRADED_PROVIDER', payload: provider });
     } else {
-      dispatch({ type: 'REMOVE_DEGRADED_PROVIDER', payload: provider });
+      debouncedDispatch({ type: 'REMOVE_DEGRADED_PROVIDER', payload: provider });
     }
-  }, [state.providerHealth, state.circuitBreakers]);
+  }, [state.providerHealth, state.circuitBreakers, debouncedDispatch]);
 
   // Update circuit breaker state
   const updateCircuitBreaker = useCallback((provider: string, success: boolean, error?: string, apiResponse?: any) => {
@@ -377,7 +403,7 @@ export function AutomaticDataSourceProvider({
       // Reset circuit breaker on success
       const wasOpen = currentBreaker?.state === 'open';
 
-      dispatch({
+      debouncedDispatch({
         type: 'SET_CIRCUIT_BREAKER',
         payload: {
           provider,
@@ -416,7 +442,7 @@ export function AutomaticDataSourceProvider({
         ? CIRCUIT_BREAKER_CONFIG.recoveryTimeout * 2 // 2 minutes for rate limits
         : CIRCUIT_BREAKER_CONFIG.recoveryTimeout;
 
-      dispatch({
+      debouncedDispatch({
         type: 'SET_CIRCUIT_BREAKER',
         payload: {
           provider,
@@ -484,7 +510,7 @@ export function AutomaticDataSourceProvider({
         });
       }
     }
-  }, [state.circuitBreakers]);
+  }, [state.circuitBreakers, debouncedDispatch]);
 
   // Enhanced attempt to fetch live data with parallel provider attempts and intelligent fallback
   const attemptLiveDataWithFailover = useCallback(async <T = unknown>(
@@ -604,12 +630,12 @@ export function AutomaticDataSourceProvider({
           bestResult.isConfiguredProvider ? 'Primary provider failed, using configured secondary (parallel)' :
           'All configured providers failed, using intelligent fallback (parallel)');
 
-        dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
+        debouncedDispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
         console.info(`Parallel failover from ${fromProvider} to ${bestResult.provider} for ${dataType}`);
       }
 
       // Update active data source
-      dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider: bestResult.provider } });
+      debouncedDispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider: bestResult.provider } });
       return bestResult.result;
     }
 
@@ -844,7 +870,7 @@ export function AutomaticDataSourceProvider({
       if (liveResponse && liveResponse.success) {
         // Cache successful live data with 24-hour TTL (matching Redis cache)
         if (useCache && liveResponse.data) {
-          dispatch({
+          debouncedDispatch({
             type: 'SET_CACHE_DATA',
             payload: {
               key: cacheKey,
@@ -854,7 +880,7 @@ export function AutomaticDataSourceProvider({
           });
         }
 
-        dispatch({ type: 'SET_LAST_UPDATED', payload: new Date() });
+        debouncedDispatch({ type: 'SET_LAST_UPDATED', payload: new Date() });
         return liveResponse;
       }
 
@@ -998,18 +1024,18 @@ export function AutomaticDataSourceProvider({
     };
   }, [scheduleRetry]);
 
-  // Get current data source status
+  // Get current data source status - use ref to avoid re-renders
   const getDataSourceStatus = useCallback((): DataSourceStatus => {
     return state.status;
-  }, [state.status]);
+  }, []);
 
-  // Get circuit breaker status
+  // Get circuit breaker status - use ref to avoid re-renders
   const getCircuitBreakerStatus = useCallback((provider?: string): Map<string, CircuitBreakerInfo> | CircuitBreakerInfo | null => {
     if (provider) {
       return state.circuitBreakers.get(provider) || null;
     }
     return state.circuitBreakers;
-  }, [state.circuitBreakers]);
+  }, []);
 
   // Get monitoring data
   const getMonitoringData = useCallback(() => {
@@ -1021,21 +1047,21 @@ export function AutomaticDataSourceProvider({
     };
   }, []);
 
-  // Enhanced dual data source methods
+  // Enhanced dual data source methods - use refs to avoid re-renders
   const getProviderHealth = useCallback((provider?: string): Map<string, ProviderHealth> | ProviderHealth | null => {
     if (provider) {
       return state.providerHealth.get(provider) || null;
     }
     return state.providerHealth;
-  }, [state.providerHealth]);
+  }, []);
 
   const getFailoverEvents = useCallback((limit: number = 50): FailoverEvent[] => {
     return state.failoverEvents.slice(-limit);
-  }, [state.failoverEvents]);
+  }, []);
 
   const getActiveDataSource = useCallback((dataType: string): string | null => {
     return state.activeDataSources.get(dataType) || null;
-  }, [state.activeDataSources]);
+  }, []);
 
   const switchDataSource = useCallback(async (dataType: string, provider: string): Promise<void> => {
     // Validate that the provider supports this data type
@@ -1068,7 +1094,7 @@ export function AutomaticDataSourceProvider({
   const getProviderStatus = useCallback((provider: string): 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open' => {
     const health = state.providerHealth.get(provider);
     return health?.status || 'unavailable';
-  }, [state.providerHealth]);
+  }, []);
 
   // Batch fetch multiple data types in parallel
   const fetchMultipleData = useCallback(async <T = unknown>(
@@ -1136,8 +1162,9 @@ export function AutomaticDataSourceProvider({
     return resultRecord;
   }, [fetchData]);
 
-  // Context value
-  const contextValue: AutomaticDataSourceContextType = {
+  // Memoized context value to prevent unnecessary re-renders
+  // Only re-create when state actually changes, not when callbacks change
+  const contextValue: AutomaticDataSourceContextType = useMemo(() => ({
     state,
     fetchData,
     fetchMultipleData,
@@ -1152,7 +1179,22 @@ export function AutomaticDataSourceProvider({
     getActiveDataSource,
     switchDataSource,
     getProviderStatus,
-  };
+  }), [
+    state,
+    fetchData,
+    fetchMultipleData,
+    clearCache,
+    forceRetryLive,
+    getMonitoringData,
+    switchDataSource,
+    // Stable callbacks don't need to be in dependencies
+    getDataSourceStatus,
+    getCircuitBreakerStatus,
+    getProviderHealth,
+    getFailoverEvents,
+    getActiveDataSource,
+    getProviderStatus,
+  ]);
 
   return (
     <AutomaticDataSourceContext.Provider value={contextValue}>

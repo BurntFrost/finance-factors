@@ -456,7 +456,8 @@ class DualDataSourceMonitor {
    * Log event to console with appropriate formatting
    */
   private logToConsole(event: MonitoringEvent): void {
-    const logData = {
+    // Safely serialize the log data to prevent circular references and handle complex objects
+    const logData = this.safeSerializeLogData({
       id: event.id,
       type: event.type,
       dataType: event.dataType,
@@ -464,26 +465,98 @@ class DualDataSourceMonitor {
       message: event.message,
       duration: event.duration,
       success: event.success,
-    };
+      timestamp: event.timestamp.toISOString(),
+      metadata: event.metadata,
+    });
 
     const emoji = this.getEventEmoji(event);
     const prefix = `${emoji} [${event.severity.toUpperCase()}]`;
 
-    switch (event.severity) {
-      case EventSeverity.CRITICAL:
-        console.error(`${prefix} CRITICAL:`, logData);
-        break;
-      case EventSeverity.ERROR:
-        console.error(`${prefix} ERROR:`, logData);
-        break;
-      case EventSeverity.WARNING:
-        console.warn(`${prefix} WARNING:`, logData);
-        break;
-      case EventSeverity.INFO:
-        if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_MONITORING === 'true') {
-          console.info(`${prefix} INFO:`, logData);
+    try {
+      switch (event.severity) {
+        case EventSeverity.CRITICAL:
+          console.error(`${prefix} CRITICAL:`, logData);
+          break;
+        case EventSeverity.ERROR:
+          console.error(`${prefix} ERROR:`, logData);
+          break;
+        case EventSeverity.WARNING:
+          console.warn(`${prefix} WARNING:`, logData);
+          break;
+        case EventSeverity.INFO:
+          if (process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_DEBUG_MONITORING === 'true') {
+            console.info(`${prefix} INFO:`, logData);
+          }
+          break;
+      }
+    } catch (consoleError) {
+      // Fallback logging if console methods fail
+      console.log(`${prefix} [CONSOLE_ERROR] Failed to log event:`, {
+        eventId: event.id,
+        eventType: event.type,
+        severity: event.severity,
+        message: event.message,
+        consoleError: consoleError instanceof Error ? consoleError.message : String(consoleError),
+      });
+    }
+  }
+
+  /**
+   * Safely serialize log data to prevent circular references and handle complex objects
+   */
+  private safeSerializeLogData(data: Record<string, unknown>): Record<string, unknown> {
+    const seen = new WeakSet();
+
+    const serialize = (obj: unknown): unknown => {
+      if (obj === null || typeof obj !== 'object') {
+        return obj;
+      }
+
+      if (seen.has(obj as object)) {
+        return '[Circular Reference]';
+      }
+
+      seen.add(obj as object);
+
+      if (obj instanceof Date) {
+        return obj.toISOString();
+      }
+
+      if (obj instanceof Error) {
+        return {
+          name: obj.name,
+          message: obj.message,
+          stack: obj.stack,
+        };
+      }
+
+      if (Array.isArray(obj)) {
+        return obj.map(serialize);
+      }
+
+      if (typeof obj === 'object') {
+        const serialized: Record<string, unknown> = {};
+        for (const [key, value] of Object.entries(obj)) {
+          try {
+            serialized[key] = serialize(value);
+          } catch (error) {
+            serialized[key] = `[Serialization Error: ${error instanceof Error ? error.message : String(error)}]`;
+          }
         }
-        break;
+        return serialized;
+      }
+
+      return obj;
+    };
+
+    try {
+      return serialize(data) as Record<string, unknown>;
+    } catch (error) {
+      return {
+        error: 'Failed to serialize log data',
+        originalKeys: Object.keys(data),
+        serializationError: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 

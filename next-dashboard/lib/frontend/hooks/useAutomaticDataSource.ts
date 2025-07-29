@@ -184,7 +184,8 @@ export function useAutomaticDataSource<T = unknown>({
     }
   }, [error, isLoading, retryOnError, fetchDataInternal]);
 
-  return {
+  // Memoize the result to prevent unnecessary re-renders
+  return useMemo(() => ({
     data,
     isLoading: isLoading, // Only use local loading state for individual refreshes
     error,
@@ -194,7 +195,17 @@ export function useAutomaticDataSource<T = unknown>({
     refresh,
     forceRetryLive: handleForceRetryLive,
     clearCache: handleClearCache,
-  };
+  }), [
+    data,
+    isLoading,
+    error,
+    state.status,
+    state.lastUpdated,
+    state.lastLiveAttempt,
+    refresh,
+    handleForceRetryLive,
+    handleClearCache,
+  ]);
 }
 
 // Hook for parallel fetching of multiple data types
