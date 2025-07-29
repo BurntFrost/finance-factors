@@ -75,6 +75,16 @@ export const RATE_LIMITS = {
     requestsPerHour: 300,   // 5 * 60
     requestsPerDay: 7200,   // 5 * 60 * 24
   },
+  WORLD_BANK: {
+    requestsPerMinute: 100, // World Bank allows 100 requests per minute
+    requestsPerHour: 6000,  // 100 * 60
+    requestsPerDay: 144000, // 100 * 60 * 24 (but daily limit is 10,000)
+  },
+  OECD: {
+    requestsPerMinute: 60,  // OECD allows 60 requests per minute
+    requestsPerHour: 3600,  // 60 * 60
+    requestsPerDay: 86400,  // 60 * 60 * 24 (but daily limit is 5,000)
+  },
   INTERNAL: {
     requestsPerMinute: 1000, // Internal API limits
     requestsPerHour: 60000,  // 1000 * 60
@@ -103,6 +113,16 @@ export const REDIS_RATE_LIMIT_CONFIGS = {
     windowMs: 60 * 1000, // 1 minute
     maxRequests: 5,
     algorithm: 'fixed' as const,
+  },
+  WORLD_BANK: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 100,
+    algorithm: 'sliding' as const,
+  },
+  OECD: {
+    windowMs: 60 * 1000, // 1 minute
+    maxRequests: 60,
+    algorithm: 'sliding' as const,
   },
   DEFAULT: {
     windowMs: 60 * 1000, // 1 minute
