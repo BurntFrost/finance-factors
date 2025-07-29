@@ -2,7 +2,7 @@
 
 import React, { Suspense, lazy, useRef, useState, useCallback, useEffect } from 'react';
 import { ChartData, VisualizationType } from '@/shared/types/dashboard';
-import { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import { getAxisConfig } from '@/shared/config/chartConfiguration';
 import { getInteractiveChartOptions } from '@/shared/config/interactiveChartConfiguration';

@@ -536,7 +536,7 @@ export function AutomaticDataSourceProvider({
     }
 
     return null; // Both providers failed
-  }, [state.circuitBreakers, state.pendingRequests, attemptLiveDataFromProvider]);
+  }, [state.circuitBreakers, state.pendingRequests]);
 
   // Attempt to fetch live data from a specific provider with circuit breaker protection
   const attemptLiveDataFromProvider = useCallback(async <T = unknown>(

@@ -34,7 +34,7 @@ interface StatusConfig {
   borderColor: string;
 }
 
-const STATUS_CONFIGS: Record<DataSourceStatus, StatusConfig> = {
+const STATUS_CONFIGS: Record<string, StatusConfig> = {
   live: {
     icon: '🟢',
     label: 'Live API Data',
@@ -69,6 +69,26 @@ const STATUS_CONFIGS: Record<DataSourceStatus, StatusConfig> = {
   },
 };
 
+// Helper function to map enhanced statuses to basic configurations
+function getStatusConfig(status: DataSourceStatus): StatusConfig {
+  // Map enhanced statuses to basic configurations
+  if (status.startsWith('live-') || status === 'live') {
+    return STATUS_CONFIGS.live;
+  }
+  if (status.startsWith('fallback-') || status === 'historical-fallback') {
+    return STATUS_CONFIGS['historical-fallback'];
+  }
+  if (status === 'loading') {
+    return STATUS_CONFIGS.loading;
+  }
+  if (status === 'error' || status === 'circuit-breaker-open') {
+    return STATUS_CONFIGS.error;
+  }
+
+  // Default to error for unknown statuses
+  return STATUS_CONFIGS.error;
+}
+
 export default function DataSourceIndicator({
   status,
   lastUpdated,
@@ -84,7 +104,7 @@ export default function DataSourceIndicator({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
 
-  const config = STATUS_CONFIGS[status];
+  const config = getStatusConfig(status);
 
   const handleRetry = useCallback(async () => {
     if (!onRetry || isRetrying) return;
@@ -195,7 +215,7 @@ export default function DataSourceIndicator({
                     <strong>Data:</strong> {chartConfig.description}
                   </div>
                   <div className={styles.dataSource}>
-                    <strong>Source:</strong> {status === 'live' ? chartConfig.dataSource.primary : chartConfig.dataSource.fallback}
+                    <strong>Source:</strong> {(status === 'live' || status.startsWith('live-')) ? chartConfig.dataSource.primary : chartConfig.dataSource.fallback}
                   </div>
                   {timePeriod && (
                     <div className={styles.timePeriod}>
@@ -255,7 +275,7 @@ export function CompactDataSourceIndicator({
   className?: string;
 }) {
   const [isRetrying, setIsRetrying] = useState(false);
-  const config = STATUS_CONFIGS[status];
+  const config = getStatusConfig(status);
 
   const handleRetry = useCallback(async () => {
     if (!onRetry || isRetrying) return;
@@ -271,7 +291,7 @@ export function CompactDataSourceIndicator({
   }, [onRetry, isRetrying]);
 
   // Don't show for live data
-  if (status === 'live') {
+  if (status === 'live' || status.startsWith('live-')) {
     return null;
   }
 
@@ -293,7 +313,7 @@ export function CompactDataSourceIndicator({
         )}
       </span>
       
-      {status === 'historical-fallback' && onRetry && (
+      {(status === 'historical-fallback' || status.startsWith('fallback-')) && onRetry && (
         <button
           className={styles.compactRetry}
           onClick={handleRetry}

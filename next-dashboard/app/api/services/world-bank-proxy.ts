@@ -78,16 +78,17 @@ export class WorldBankProxyService {
 
       // Generate cache key
       const cacheKey = generateLegacyCacheKey('world-bank', dataType, {
-        countryCode: endpointConfig.countryCode || countryCode,
-        indicatorId: endpointConfig.indicatorId,
-        startDate: options.startDate,
-        endDate: options.endDate,
+        countryCode: endpointConfig.countryCode || countryCode || '',
+        indicatorId: endpointConfig.indicatorId || '',
+        startDate: options.startDate || '',
+        endDate: options.endDate || '',
       });
 
       // Check cache first
       if (useCache) {
         const cachedData = await getCachedResponse<StandardDataPoint[]>(cacheKey);
         if (cachedData) {
+          logApiRequest('WORLD_BANK', dataType, true, Date.now() - startTime);
           return createSuccessResponse(
             cachedData,
             'World Bank API (Cached)',
@@ -99,20 +100,18 @@ export class WorldBankProxyService {
 
       // Build API URL
       const apiUrl = this.buildApiUrl(endpointConfig, options);
-      
-      // Log the API request
-      logApiRequest('World Bank', apiUrl);
 
       // Make the API request
       const response = await makeHttpRequest(apiUrl);
       
       if (!response.ok) {
         const error: ProxyError = {
-          type: 'api_error',
+          type: 'api',
           message: `World Bank API error: ${response.status} ${response.statusText}`,
           statusCode: response.status,
           retryable: response.status >= 500,
         };
+        logApiRequest('WORLD_BANK', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'World Bank API');
       }
 
@@ -121,11 +120,12 @@ export class WorldBankProxyService {
       // World Bank API returns an array with metadata and data
       if (!Array.isArray(data) || data.length < 2) {
         const error: ProxyError = {
-          type: 'data_error',
+          type: 'api',
           message: 'Invalid World Bank API response format',
           statusCode: 500,
           retryable: false,
         };
+        logApiRequest('WORLD_BANK', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'World Bank API');
       }
 
@@ -133,11 +133,12 @@ export class WorldBankProxyService {
       
       if (!Array.isArray(dataPoints)) {
         const error: ProxyError = {
-          type: 'data_error',
+          type: 'api',
           message: 'No data points found in World Bank API response',
           statusCode: 404,
           retryable: false,
         };
+        logApiRequest('WORLD_BANK', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'World Bank API');
       }
 
@@ -146,11 +147,12 @@ export class WorldBankProxyService {
       
       if (transformedData.length === 0) {
         const error: ProxyError = {
-          type: 'data_error',
+          type: 'api',
           message: 'No valid data points found after transformation',
           statusCode: 404,
           retryable: false,
         };
+        logApiRequest('WORLD_BANK', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'World Bank API');
       }
 
@@ -159,23 +161,28 @@ export class WorldBankProxyService {
         await setCachedResponse(cacheKey, transformedData, 24 * 60 * 60 * 1000, 'World Bank API');
       }
 
+      const duration = Date.now() - startTime;
+      logApiRequest('WORLD_BANK', dataType, true, duration);
+
       return createSuccessResponse(
         transformedData,
         'World Bank API',
-        { 
+        {
           isFallback: false,
           totalRecords: transformedData.length,
-          source: 'World Bank Open Data',
-          indicator: endpointConfig.indicatorId,
-          country: endpointConfig.countryCode || countryCode,
         },
-        Date.now() - startTime
+        duration
       );
 
     } catch (error) {
+      const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown World Bank API error';
+
+      logApiRequest('WORLD_BANK', dataType, false, duration, errorMessage);
+
       const proxyError: ProxyError = {
-        type: 'network_error',
-        message: error instanceof Error ? error.message : 'Unknown World Bank API error',
+        type: 'network',
+        message: errorMessage,
         statusCode: 500,
         retryable: true,
       };

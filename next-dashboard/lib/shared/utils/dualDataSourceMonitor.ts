@@ -666,7 +666,15 @@ class DualDataSourceMonitor {
     events: MonitoringEvent[];
     performanceMetrics: DataSourcePerformanceMetrics[];
     alertConfigs: AlertConfig[];
-    summary: ReturnType<typeof this.getSummary>;
+    summary: {
+      totalEvents: number;
+      eventsByType: Record<MonitoringEventType, number>;
+      eventsBySeverity: Record<EventSeverity, number>;
+      failoverCount: number;
+      healthCheckFailures: number;
+      averageResponseTime: number;
+      topProvidersByErrors: Array<{ provider: string; errorCount: number }>;
+    };
   } {
     return {
       events: this.events,

@@ -247,41 +247,59 @@ class DualDataSourceTester {
 
     switch (scenario) {
       case TestScenario.PRIMARY_FAILURE:
-        this.simulateProviderFailure(primaryProvider, true);
+        if (primaryProvider) {
+          this.simulateProviderFailure(primaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.SECONDARY_FAILURE:
-        this.simulateProviderFailure(secondaryProvider, true);
+        if (secondaryProvider) {
+          this.simulateProviderFailure(secondaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.BOTH_PROVIDERS_FAIL:
-        this.simulateProviderFailure(primaryProvider, true);
-        this.simulateProviderFailure(secondaryProvider, true);
+        if (primaryProvider) {
+          this.simulateProviderFailure(primaryProvider, true);
+        }
+        if (secondaryProvider) {
+          this.simulateProviderFailure(secondaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.RATE_LIMIT_PRIMARY:
-        this.simulateRateLimit(primaryProvider, true);
+        if (primaryProvider) {
+          this.simulateRateLimit(primaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.RATE_LIMIT_SECONDARY:
-        this.simulateRateLimit(secondaryProvider, true);
+        if (secondaryProvider) {
+          this.simulateRateLimit(secondaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.NETWORK_TIMEOUT:
-        this.simulateNetworkTimeout(primaryProvider, true);
+        if (primaryProvider) {
+          this.simulateNetworkTimeout(primaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.CIRCUIT_BREAKER_TRIP:
         // Simulate multiple failures to trip circuit breaker
-        this.simulateProviderFailure(primaryProvider, true);
+        if (primaryProvider) {
+          this.simulateProviderFailure(primaryProvider, true);
+        }
         break;
-        
+
       case TestScenario.RECOVERY_TEST:
         // Start with failure, then recover
-        this.simulateProviderFailure(primaryProvider, true);
-        setTimeout(() => {
-          this.simulateProviderFailure(primaryProvider, false);
-        }, 2000);
+        if (primaryProvider) {
+          this.simulateProviderFailure(primaryProvider, true);
+          setTimeout(() => {
+            this.simulateProviderFailure(primaryProvider, false);
+          }, 2000);
+        }
         break;
     }
   }
@@ -303,12 +321,12 @@ class DualDataSourceTester {
   /**
    * Simulate data fetch with scenario conditions
    */
-  private async simulateDataFetch(dataType: string, scenario: TestScenario): Promise<ApiResponse<any>> {
+  private async simulateDataFetch(dataType: string, _scenario: TestScenario): Promise<ApiResponse<any>> {
     const primaryProvider = DataSourceConfigManager.getPrimaryProvider(dataType);
     const secondaryProvider = DataSourceConfigManager.getSecondaryProvider(dataType);
 
     // Check if primary provider should fail
-    if (this.failureSimulations.get(primaryProvider)) {
+    if (primaryProvider && this.failureSimulations.get(primaryProvider)) {
       // Try secondary provider
       if (secondaryProvider && !this.failureSimulations.get(secondaryProvider)) {
         return {
@@ -316,7 +334,7 @@ class DualDataSourceTester {
           success: true,
           timestamp: new Date(),
           source: secondaryProvider,
-          metadata: { isFailover: true },
+          metadata: { reason: 'Primary provider failed, using secondary' },
         };
       } else {
         // Both failed, use fallback
@@ -332,10 +350,10 @@ class DualDataSourceTester {
 
     // Primary provider succeeds
     return {
-      data: { mock: true, provider: primaryProvider },
+      data: { mock: true, provider: primaryProvider || 'unknown' },
       success: true,
       timestamp: new Date(),
-      source: primaryProvider,
+      source: primaryProvider || 'unknown',
     };
   }
 

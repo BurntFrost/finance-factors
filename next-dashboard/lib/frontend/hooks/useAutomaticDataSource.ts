@@ -31,6 +31,21 @@ export interface UseAutomaticDataSourceResult<T = unknown> {
   clearCache: () => void;
 }
 
+// Helper function to map enhanced status to basic status
+function mapEnhancedStatusToBasic(enhancedStatus: string): 'live' | 'historical-fallback' | 'loading' | 'error' {
+  if (enhancedStatus.startsWith('live-') || enhancedStatus === 'live') {
+    return 'live';
+  }
+  if (enhancedStatus.startsWith('fallback-') || enhancedStatus === 'historical-fallback') {
+    return 'historical-fallback';
+  }
+  if (enhancedStatus === 'loading') {
+    return 'loading';
+  }
+  // Default to error for unknown or error statuses
+  return 'error';
+}
+
 export function useAutomaticDataSource<T = unknown>({
   dataType,
   autoFetch = true,
@@ -173,7 +188,7 @@ export function useAutomaticDataSource<T = unknown>({
     data,
     isLoading: isLoading, // Only use local loading state for individual refreshes
     error,
-    status: state.status,
+    status: mapEnhancedStatusToBasic(state.status),
     lastUpdated: state.lastUpdated,
     lastLiveAttempt: state.lastLiveAttempt,
     refresh,

@@ -2,7 +2,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { SummaryCardData, VisualizationType } from '@/shared/types/dashboard';
-import { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { FinancialCard } from './ui/financial-card';

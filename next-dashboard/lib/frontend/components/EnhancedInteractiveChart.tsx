@@ -3,7 +3,7 @@
 import React, { Suspense, lazy, useRef, useState, useCallback } from 'react';
 import type { Chart } from 'chart.js';
 import { ChartData, VisualizationType } from '@/shared/types/dashboard';
-import { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import {
   getInteractiveChartOptions,

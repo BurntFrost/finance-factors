@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
 import { TableData, TableColumn, VisualizationType } from '@/shared/types/dashboard';
-import { getDataStatus } from './DataStatusPill';
+import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { TableCard } from './ui/table-card';

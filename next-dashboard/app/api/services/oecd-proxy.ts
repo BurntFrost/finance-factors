@@ -67,16 +67,17 @@ export class OECDProxyService {
 
       // Generate cache key
       const cacheKey = generateLegacyCacheKey('oecd', dataType, {
-        countryCode: endpointConfig.countryCode || countryCode,
-        indicatorId: endpointConfig.indicatorId,
-        startDate: options.startDate,
-        endDate: options.endDate,
+        countryCode: endpointConfig.countryCode || countryCode || '',
+        indicatorId: endpointConfig.indicatorId || '',
+        startDate: options.startDate || '',
+        endDate: options.endDate || '',
       });
 
       // Check cache first
       if (useCache) {
         const cachedData = await getCachedResponse<StandardDataPoint[]>(cacheKey);
         if (cachedData) {
+          logApiRequest('OECD', dataType, true, Date.now() - startTime);
           return createSuccessResponse(
             cachedData,
             'OECD API (Cached)',
@@ -88,20 +89,18 @@ export class OECDProxyService {
 
       // Build API URL
       const apiUrl = this.buildApiUrl(endpointConfig, options);
-      
-      // Log the API request
-      logApiRequest('OECD', apiUrl);
 
       // Make the API request
       const response = await makeHttpRequest(apiUrl);
       
       if (!response.ok) {
         const error: ProxyError = {
-          type: 'api_error',
+          type: 'api',
           message: `OECD API error: ${response.status} ${response.statusText}`,
           statusCode: response.status,
           retryable: response.status >= 500,
         };
+        logApiRequest('OECD', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'OECD API');
       }
 
@@ -112,11 +111,12 @@ export class OECDProxyService {
       
       if (transformedData.length === 0) {
         const error: ProxyError = {
-          type: 'data_error',
+          type: 'api',
           message: 'No valid data points found after transformation',
           statusCode: 404,
           retryable: false,
         };
+        logApiRequest('OECD', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'OECD API');
       }
 
@@ -125,23 +125,28 @@ export class OECDProxyService {
         await setCachedResponse(cacheKey, transformedData, 24 * 60 * 60 * 1000, 'OECD API');
       }
 
+      const duration = Date.now() - startTime;
+      logApiRequest('OECD', dataType, true, duration);
+
       return createSuccessResponse(
         transformedData,
         'OECD API',
-        { 
+        {
           isFallback: false,
           totalRecords: transformedData.length,
-          source: 'OECD Statistics',
-          indicator: endpointConfig.indicatorId,
-          country: endpointConfig.countryCode || countryCode,
         },
-        Date.now() - startTime
+        duration
       );
 
     } catch (error) {
+      const duration = Date.now() - startTime;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown OECD API error';
+
+      logApiRequest('OECD', dataType, false, duration, errorMessage);
+
       const proxyError: ProxyError = {
-        type: 'network_error',
-        message: error instanceof Error ? error.message : 'Unknown OECD API error',
+        type: 'network',
+        message: errorMessage,
         statusCode: 500,
         retryable: true,
       };

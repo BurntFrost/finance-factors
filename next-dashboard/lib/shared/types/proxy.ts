@@ -220,7 +220,7 @@ export interface CacheConfig {
 }
 
 // Error types
-export type ProxyErrorType = 'api' | 'network' | 'rate_limit' | 'validation' | 'unknown';
+export type ProxyErrorType = 'api' | 'network' | 'rate_limit' | 'validation' | 'configuration' | 'unknown';
 
 export interface ProxyError {
   type: ProxyErrorType;
