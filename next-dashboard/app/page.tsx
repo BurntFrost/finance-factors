@@ -11,6 +11,7 @@ const DashboardTabBar = lazy(() => import('@/frontend/components/DashboardTabBar
 const DarkModeToggle = lazy(() => import('@/frontend/components/DarkModeToggle'));
 const ClientOnlyRealTimeFeatures = lazy(() => import('@/frontend/components/ClientOnlyRealTimeFeatures'));
 const DashboardCustomizationPanel = lazy(() => import('@/frontend/components/DashboardCustomizationPanel'));
+const ParallelDashboard = lazy(() => import('@/frontend/components/ParallelDashboard'));
 
 // Import types separately to avoid bundling components
 import type { ElementType } from '@/frontend/components/AddElementDropdown';
@@ -51,6 +52,7 @@ export default function Home() {
   const [showCustomizationPanel, setShowCustomizationPanel] = useState(false);
   const [enableDragDrop, setEnableDragDrop] = useState(false); // Temporarily disabled
   const [enableRealTime, setEnableRealTime] = useState(false); // Temporarily disabled
+  const [useParallelFetching, setUseParallelFetching] = useState(true); // Enable parallel fetching by default
 
   // Handler to remove hardcoded charts
   const handleRemoveHardcodedChart = (chartId: string) => {
@@ -136,11 +138,30 @@ export default function Home() {
               showRealTimeIndicator={true}
             />
           </Suspense>
+          <div className={styles.performanceToggle}>
+            <label>
+              <input
+                type="checkbox"
+                checked={useParallelFetching}
+                onChange={(e) => setUseParallelFetching(e.target.checked)}
+              />
+              Parallel Fetching
+            </label>
+          </div>
         </div>
       </div>
 
-      {/* Enhanced Dashboard Layout with Drag & Drop */}
-      {enableDragDrop ? (
+      {/* Enhanced Dashboard Layout with Parallel Fetching or Drag & Drop */}
+      {useParallelFetching ? (
+        <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
+          <ParallelDashboard
+            enableRealTime={enableRealTime}
+            refreshInterval={enableRealTime ? 15 * 60 * 1000 : undefined} // 15 minutes if real-time enabled
+            staggerDelay={100} // 100ms between parallel requests
+            showLoadingProgress={true}
+          />
+        </Suspense>
+      ) : enableDragDrop ? (
         <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
           <DragDropDashboard
           elements={[

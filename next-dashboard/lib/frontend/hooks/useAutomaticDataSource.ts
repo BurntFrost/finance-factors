@@ -7,7 +7,7 @@
  * Eliminates the need for manual data source switching.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAutomaticDataSource as useAutomaticDataSourceContext } from '@/frontend/context/AutomaticDataSourceContext';
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
 import { ChartData, TableData, SummaryCardData } from '@/shared/types/dashboard';
@@ -194,6 +194,49 @@ export function useAutomaticDataSource<T = unknown>({
     refresh,
     forceRetryLive: handleForceRetryLive,
     clearCache: handleClearCache,
+  };
+}
+
+// Hook for parallel fetching of multiple data types
+export function useParallelAutomaticDataSources<T = ChartData>(
+  dataTypes: string[],
+  options?: Omit<UseAutomaticDataSourceOptions, 'dataType'>
+) {
+  const results = useMemo(() => {
+    const resultsObj: Record<string, UseAutomaticDataSourceResult<T>> = {};
+
+    // Create individual hooks for each data type
+    dataTypes.forEach(dataType => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      resultsObj[dataType] = useAutomaticDataSource<T>({
+        ...options,
+        dataType,
+      });
+    });
+
+    return resultsObj;
+  }, [dataTypes, options]);
+
+  // Compute aggregate states
+  const isAnyLoading = Object.values(results).some(result => result.isLoading);
+  const hasAnyError = Object.values(results).some(result => result.error !== null);
+  const lastUpdatedAny = Object.values(results)
+    .map(result => result.lastUpdated)
+    .filter(date => date !== null)
+    .sort((a, b) => (b?.getTime() || 0) - (a?.getTime() || 0))[0] || null;
+
+  // Function to refresh all data sources in parallel
+  const refreshAll = useCallback(async () => {
+    const refreshPromises = Object.values(results).map(result => result.refresh());
+    await Promise.allSettled(refreshPromises);
+  }, [results]);
+
+  return {
+    ...results,
+    isAnyLoading,
+    hasAnyError,
+    refreshAll,
+    lastUpdatedAny,
   };
 }
 

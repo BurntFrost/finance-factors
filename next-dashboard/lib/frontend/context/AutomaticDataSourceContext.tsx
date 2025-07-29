@@ -61,6 +61,7 @@ export interface AutomaticDataSourceState {
 export interface AutomaticDataSourceContextType {
   state: AutomaticDataSourceState;
   fetchData: <T = unknown>(options: DataFetchOptions) => Promise<ApiResponse<T>>;
+  fetchMultipleData: <T = unknown>(requests: Array<{ dataType: string; options?: Omit<DataFetchOptions, 'dataType'> }>) => Promise<Record<string, ApiResponse<T>>>;
   clearCache: () => void;
   forceRetryLive: () => Promise<void>;
   getDataSourceStatus: () => DataSourceStatus;
@@ -485,64 +486,137 @@ export function AutomaticDataSourceProvider({
     }
   }, [state.circuitBreakers]);
 
-  // Enhanced attempt to fetch live data with comprehensive provider fallback
+  // Enhanced attempt to fetch live data with parallel provider attempts and intelligent fallback
   const attemptLiveDataWithFailover = useCallback(async <T = unknown>(
     options: DataFetchOptions
   ): Promise<ApiResponse<T> | null> => {
     const { dataType } = options;
     const providersToTry = DataSourceConfigManager.getProvidersToTryForDataType(dataType);
     const startTime = Date.now();
-    let lastError: string | null = null;
 
-    console.info(`Attempting to fetch ${dataType} from providers in order: ${providersToTry.join(', ')}`);
+    console.info(`Attempting to fetch ${dataType} from providers in parallel: ${providersToTry.join(', ')}`);
 
-    // Try each provider in order until one succeeds
-    for (let i = 0; i < providersToTry.length; i++) {
-      const provider = providersToTry[i];
-      const isConfiguredProvider = i < 2; // First two are primary/secondary
+    // Create parallel requests for all providers
+    const providerPromises = providersToTry.map(async (provider, index) => {
+      const isConfiguredProvider = index < 2; // First two are primary/secondary
 
-      console.info(`Trying provider ${provider} for ${dataType} (${i + 1}/${providersToTry.length})`);
+      console.info(`Starting parallel request to ${provider} for ${dataType} (${index + 1}/${providersToTry.length})`);
 
-      const result = await attemptLiveDataFromProvider<T>(options, provider);
-
-      if (result && result.success) {
-        // Log successful failover if not using primary provider
-        if (i > 0) {
-          const duration = Date.now() - startTime;
-          const fromProvider = providersToTry[0]; // Primary provider
-
-          const failoverEvent: FailoverEvent = {
-            timestamp: new Date(),
-            dataType,
-            fromProvider,
-            toProvider: provider,
-            reason: isConfiguredProvider ? 'configured_secondary' : 'intelligent_fallback',
-            duration,
-            success: true,
-          };
-
-          // Log to monitoring system
-          logFailoverEvent(failoverEvent);
-          logDataSourceSwitch(dataType, fromProvider, provider,
-            isConfiguredProvider ? 'Primary provider failed, using configured secondary' :
-            'All configured providers failed, using intelligent fallback');
-
-          dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
-
-          console.info(`Successfully failed over from ${fromProvider} to ${provider} for ${dataType}`);
-        }
-
-        // Update active data source
-        dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider } });
-        return result;
-      } else if (result?.error) {
-        lastError = result.error;
-        console.warn(`Provider ${provider} failed for ${dataType}: ${result.error}`);
+      try {
+        const result = await attemptLiveDataFromProvider<T>(options, provider);
+        return {
+          provider,
+          result,
+          index,
+          isConfiguredProvider,
+          responseTime: Date.now() - startTime,
+        };
+      } catch (error) {
+        console.warn(`Parallel request to ${provider} failed for ${dataType}:`, error);
+        return {
+          provider,
+          result: null,
+          index,
+          isConfiguredProvider,
+          responseTime: Date.now() - startTime,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
       }
+    });
+
+    // Use Promise.allSettled to wait for all requests to complete
+    const results = await Promise.allSettled(providerPromises);
+
+    // Process results and find the best successful response
+    const successfulResults: Array<{
+      provider: string;
+      result: ApiResponse<T>;
+      index: number;
+      isConfiguredProvider: boolean;
+      responseTime: number;
+    }> = [];
+
+    const failedResults: Array<{
+      provider: string;
+      error: string;
+      index: number;
+      responseTime: number;
+    }> = [];
+
+    results.forEach((promiseResult, index) => {
+      if (promiseResult.status === 'fulfilled') {
+        const { provider, result, isConfiguredProvider, responseTime, error } = promiseResult.value;
+
+        if (result && result.success) {
+          successfulResults.push({
+            provider,
+            result,
+            index,
+            isConfiguredProvider,
+            responseTime,
+          });
+        } else {
+          failedResults.push({
+            provider,
+            error: error || result?.error || 'Unknown error',
+            index,
+            responseTime,
+          });
+        }
+      } else {
+        const provider = providersToTry[index];
+        failedResults.push({
+          provider,
+          error: promiseResult.reason?.message || 'Promise rejected',
+          index,
+          responseTime: Date.now() - startTime,
+        });
+      }
+    });
+
+    // If we have successful results, choose the best one (prioritize by provider order)
+    if (successfulResults.length > 0) {
+      // Sort by original provider priority (index)
+      successfulResults.sort((a, b) => a.index - b.index);
+      const bestResult = successfulResults[0];
+
+      // Log successful parallel fetch
+      console.info(`Parallel fetch succeeded for ${dataType} using ${bestResult.provider} (${bestResult.responseTime}ms)`);
+
+      // Log failover if not using primary provider
+      if (bestResult.index > 0) {
+        const duration = bestResult.responseTime;
+        const fromProvider = providersToTry[0]; // Primary provider
+
+        const failoverEvent: FailoverEvent = {
+          timestamp: new Date(),
+          dataType,
+          fromProvider,
+          toProvider: bestResult.provider,
+          reason: bestResult.isConfiguredProvider ? 'configured_secondary' : 'intelligent_fallback',
+          duration,
+          success: true,
+        };
+
+        // Log to monitoring system
+        logFailoverEvent(failoverEvent);
+        logDataSourceSwitch(dataType, fromProvider, bestResult.provider,
+          bestResult.isConfiguredProvider ? 'Primary provider failed, using configured secondary (parallel)' :
+          'All configured providers failed, using intelligent fallback (parallel)');
+
+        dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
+        console.info(`Parallel failover from ${fromProvider} to ${bestResult.provider} for ${dataType}`);
+      }
+
+      // Update active data source
+      dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider: bestResult.provider } });
+      return bestResult.result;
     }
 
-    console.warn(`All ${providersToTry.length} providers failed for ${dataType}. Last error: ${lastError}`);
-    return null; // All providers failed
+    // All providers failed
+    const allErrors = failedResults.map(f => `${f.provider}: ${f.error}`).join('; ');
+    console.warn(`All ${providersToTry.length} providers failed for ${dataType} in parallel. Errors: ${allErrors}`);
+    return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // attemptLiveDataFromProvider is stable within component scope
 
@@ -996,10 +1070,77 @@ export function AutomaticDataSourceProvider({
     return health?.status || 'unavailable';
   }, [state.providerHealth]);
 
+  // Batch fetch multiple data types in parallel
+  const fetchMultipleData = useCallback(async <T = unknown>(
+    requests: Array<{ dataType: string; options?: Omit<DataFetchOptions, 'dataType'> }>
+  ): Promise<Record<string, ApiResponse<T>>> => {
+    const startTime = Date.now();
+    console.info(`🚀 Starting batch parallel fetch for ${requests.length} data types:`,
+      requests.map(r => r.dataType).join(', '));
+
+    // Create parallel fetch promises
+    const fetchPromises = requests.map(async (request) => {
+      const { dataType, options = {} } = request;
+
+      try {
+        const fetchOptions: DataFetchOptions = {
+          dataType,
+          useCache: true,
+          ...options,
+        };
+
+        const response = await fetchData<T>(fetchOptions);
+        return { dataType, response };
+      } catch (error) {
+        console.error(`Batch fetch error for ${dataType}:`, error);
+        return {
+          dataType,
+          response: {
+            data: null as T,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date(),
+            source: 'Batch Fetch Error',
+          } as ApiResponse<T>,
+        };
+      }
+    });
+
+    // Execute all requests in parallel using Promise.allSettled
+    const results = await Promise.allSettled(fetchPromises);
+
+    // Process results into a record
+    const resultRecord: Record<string, ApiResponse<T>> = {};
+    const successCount = results.filter(r => r.status === 'fulfilled' && r.value.response.success).length;
+
+    results.forEach((result, index) => {
+      const dataType = requests[index].dataType;
+
+      if (result.status === 'fulfilled') {
+        resultRecord[dataType] = result.value.response;
+      } else {
+        // Handle promise rejection
+        resultRecord[dataType] = {
+          data: null as T,
+          success: false,
+          error: result.reason?.message || 'Promise rejected',
+          timestamp: new Date(),
+          source: 'Batch Fetch Promise Rejection',
+        };
+      }
+    });
+
+    const duration = Date.now() - startTime;
+    console.info(`✨ Batch parallel fetch completed: ${successCount}/${requests.length} successful (${duration}ms)`);
+
+    return resultRecord;
+  }, [fetchData]);
+
   // Context value
   const contextValue: AutomaticDataSourceContextType = {
     state,
     fetchData,
+    fetchMultipleData,
     clearCache,
     forceRetryLive,
     getDataSourceStatus,

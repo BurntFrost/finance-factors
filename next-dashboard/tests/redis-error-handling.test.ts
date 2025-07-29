@@ -5,10 +5,10 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import { redisErrorLogger, RedisErrorType, RedisOperationType, RedisErrorSeverity } from '../app/lib/redis-error-logger';
-import { redisFallbackService } from '../app/lib/redis-fallback-service';
-import { redisHealthMonitor } from '../app/lib/redis-health-monitor';
-import { userExperienceService } from '../app/lib/user-experience-service';
+import { redisErrorLogger, RedisErrorType, RedisOperationType, RedisErrorSeverity } from '../lib/backend/lib/redis-error-logger';
+import { redisFallbackService } from '../lib/backend/lib/redis-fallback-service';
+import { redisHealthMonitor } from '../lib/backend/lib/redis-health-monitor';
+import { userExperienceService } from '../lib/backend/lib/user-experience-service';
 
 // Mock Redis client
 const mockRedisClient = {
@@ -23,7 +23,7 @@ const mockRedisClient = {
 };
 
 // Mock Redis module
-jest.mock('../app/lib/redis', () => ({
+jest.mock('../lib/backend/lib/redis', () => ({
   executeRedisCommand: jest.fn(),
   isRedisAvailable: jest.fn(),
   getRedisClient: jest.fn(() => Promise.resolve(mockRedisClient)),
@@ -136,8 +136,8 @@ describe('Redis Fallback Service', () => {
   });
 
   it('should execute fallback operation when Redis fails', async () => {
-    const redisOperation = jest.fn().mockRejectedValue(new Error('Redis failed'));
-    const fallbackOperation = jest.fn().mockResolvedValue('fallback_result');
+    const redisOperation = jest.fn<() => Promise<string>>().mockRejectedValue(new Error('Redis failed'));
+    const fallbackOperation = jest.fn<() => Promise<string>>().mockResolvedValue('fallback_result');
 
     const result = await redisFallbackService.executeWithFallback(
       redisOperation,
@@ -154,11 +154,11 @@ describe('Redis Fallback Service', () => {
     // First activate fallback
     redisFallbackService.activateFallback('Test activation');
     
-    const redisOperation = jest.fn().mockResolvedValue('redis_result');
-    const fallbackOperation = jest.fn().mockResolvedValue('fallback_result');
+    const redisOperation = jest.fn<() => Promise<string>>().mockResolvedValue('redis_result');
+    const fallbackOperation = jest.fn<() => Promise<string>>().mockResolvedValue('fallback_result');
 
     // Mock Redis as available
-    const { isRedisAvailable } = require('../app/lib/redis');
+    const { isRedisAvailable } = require('../lib/backend/lib/redis');
     isRedisAvailable.mockResolvedValue(true);
 
     const result = await redisFallbackService.executeWithFallback(
@@ -179,7 +179,7 @@ describe('Redis Health Monitor', () => {
   });
 
   it('should perform health check and return status', async () => {
-    const { isRedisAvailable } = require('../app/lib/redis');
+    const { isRedisAvailable } = require('../lib/backend/lib/redis');
     isRedisAvailable.mockResolvedValue(true);
 
     const healthResult = await redisHealthMonitor.performHealthCheck();
@@ -191,7 +191,7 @@ describe('Redis Health Monitor', () => {
   });
 
   it('should detect unhealthy status on connection failure', async () => {
-    const { isRedisAvailable } = require('../app/lib/redis');
+    const { isRedisAvailable } = require('../lib/backend/lib/redis');
     isRedisAvailable.mockRejectedValue(new Error('Connection failed'));
 
     const healthResult = await redisHealthMonitor.performHealthCheck();
@@ -204,7 +204,7 @@ describe('Redis Health Monitor', () => {
   });
 
   it('should track health history', async () => {
-    const { isRedisAvailable } = require('../app/lib/redis');
+    const { isRedisAvailable } = require('../lib/backend/lib/redis');
     isRedisAvailable.mockResolvedValue(true);
 
     await redisHealthMonitor.performHealthCheck();
@@ -237,7 +237,7 @@ describe('User Experience Service', () => {
       'direct'
     );
 
-    const performanceIndicator = indicators.find(i => 
+    const performanceIndicator = indicators.find((i: any) =>
       i.message.includes('slower than usual')
     );
     expect(performanceIndicator).toBeDefined();
@@ -291,7 +291,7 @@ describe('Integration Tests', () => {
   });
 
   it('should handle complete Redis failure gracefully', async () => {
-    const { executeRedisCommand, isRedisAvailable } = require('../app/lib/redis');
+    const { executeRedisCommand, isRedisAvailable } = require('../lib/backend/lib/redis');
     
     // Mock Redis as completely unavailable
     executeRedisCommand.mockRejectedValue(new Error('ECONNREFUSED'));
@@ -320,7 +320,7 @@ describe('Integration Tests', () => {
   });
 
   it('should recover from fallback mode when Redis becomes available', async () => {
-    const { isRedisAvailable } = require('../app/lib/redis');
+    const { isRedisAvailable } = require('../lib/backend/lib/redis');
     
     // First, activate fallback
     redisFallbackService.activateFallback('Test recovery');
