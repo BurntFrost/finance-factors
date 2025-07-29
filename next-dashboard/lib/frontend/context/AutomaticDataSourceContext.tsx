@@ -488,54 +488,64 @@ export function AutomaticDataSourceProvider({
     }
   }, [state.circuitBreakers]);
 
-  // Enhanced attempt to fetch live data with dual provider support
+  // Enhanced attempt to fetch live data with comprehensive provider fallback
   const attemptLiveDataWithFailover = useCallback(async <T = unknown>(
     options: DataFetchOptions
   ): Promise<ApiResponse<T> | null> => {
     const { dataType } = options;
-    const primaryProvider = getProviderFromDataType(dataType);
-    const secondaryProvider = getSecondaryProviderFromDataType(dataType);
-
-    // Try primary provider first
+    const providersToTry = DataSourceConfigManager.getProvidersToTryForDataType(dataType);
     const startTime = Date.now();
-    const primaryResult = await attemptLiveDataFromProvider<T>(options, primaryProvider);
-    if (primaryResult && primaryResult.success) {
-      // Update active data source
-      dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider: primaryProvider } });
-      return primaryResult;
-    }
+    let lastError: string | null = null;
 
-    // If primary failed and secondary is available, try secondary
-    if (secondaryProvider && secondaryProvider !== primaryProvider) {
-      console.info(`Primary provider ${primaryProvider} failed for ${dataType}, trying secondary provider ${secondaryProvider}`);
+    console.info(`Attempting to fetch ${dataType} from providers in order: ${providersToTry.join(', ')}`);
 
-      const secondaryResult = await attemptLiveDataFromProvider<T>(options, secondaryProvider);
-      if (secondaryResult && secondaryResult.success) {
-        const duration = Date.now() - startTime;
+    // Try each provider in order until one succeeds
+    for (let i = 0; i < providersToTry.length; i++) {
+      const provider = providersToTry[i];
+      const isConfiguredProvider = i < 2; // First two are primary/secondary
 
-        // Log failover event
-        const failoverEvent: FailoverEvent = {
-          timestamp: new Date(),
-          dataType,
-          fromProvider: primaryProvider,
-          toProvider: secondaryProvider,
-          reason: 'error',
-          duration,
-          success: true,
-        };
+      console.info(`Trying provider ${provider} for ${dataType} (${i + 1}/${providersToTry.length})`);
 
-        // Log to monitoring system
-        logFailoverEvent(failoverEvent);
-        logDataSourceSwitch(dataType, primaryProvider, secondaryProvider, 'Primary provider failed');
+      const result = await attemptLiveDataFromProvider<T>(options, provider);
 
-        dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
-        dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider: secondaryProvider } });
+      if (result && result.success) {
+        // Log successful failover if not using primary provider
+        if (i > 0) {
+          const duration = Date.now() - startTime;
+          const fromProvider = providersToTry[0]; // Primary provider
 
-        return secondaryResult;
+          const failoverEvent: FailoverEvent = {
+            timestamp: new Date(),
+            dataType,
+            fromProvider,
+            toProvider: provider,
+            reason: isConfiguredProvider ? 'configured_secondary' : 'intelligent_fallback',
+            duration,
+            success: true,
+          };
+
+          // Log to monitoring system
+          logFailoverEvent(failoverEvent);
+          logDataSourceSwitch(dataType, fromProvider, provider,
+            isConfiguredProvider ? 'Primary provider failed, using configured secondary' :
+            'All configured providers failed, using intelligent fallback');
+
+          dispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
+
+          console.info(`Successfully failed over from ${fromProvider} to ${provider} for ${dataType}`);
+        }
+
+        // Update active data source
+        dispatch({ type: 'SET_ACTIVE_DATA_SOURCE', payload: { dataType, provider } });
+        return result;
+      } else if (result?.error) {
+        lastError = result.error;
+        console.warn(`Provider ${provider} failed for ${dataType}: ${result.error}`);
       }
     }
 
-    return null; // Both providers failed
+    console.warn(`All ${providersToTry.length} providers failed for ${dataType}. Last error: ${lastError}`);
+    return null; // All providers failed
   }, []);
 
   // Attempt to fetch live data from a specific provider with circuit breaker protection

@@ -67,6 +67,8 @@ const ApiHealthStatus: React.FC<ApiHealthStatusProps> = ({
     BLS: 'Bureau of Labor Statistics - Employment, wages, inflation',
     CENSUS: 'U.S. Census Bureau - Demographics, housing, income',
     ALPHA_VANTAGE: 'Alpha Vantage - Additional economic indicators',
+    WORLD_BANK: 'World Bank Open Data - Global economic and development indicators',
+    OECD: 'OECD Statistics - International economic and social data',
   };
 
   const configuredCount = Object.values(healthStatus).filter(s => s.configured).length;

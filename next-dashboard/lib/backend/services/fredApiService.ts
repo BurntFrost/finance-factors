@@ -6,6 +6,7 @@
  */
 
 import { ApiResponse } from '@/shared/types/dataSource';
+import { retryWithBackoff, FRED_RETRY_CONFIG } from '@/shared/utils/retryUtils';
 
 export interface FredObservation {
   realtime_start: string;
@@ -205,10 +206,10 @@ class FredApiService {
   }
 
   /**
-   * Make HTTP request with error handling
+   * Make HTTP request with error handling and retry logic
    */
   private async makeRequest(url: string): Promise<unknown> {
-    try {
+    const operation = async (): Promise<unknown> => {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -217,6 +218,10 @@ class FredApiService {
       });
 
       if (!response.ok) {
+        // Check for rate limiting
+        if (response.status === 429) {
+          throw new Error(`FRED API rate limit exceeded: ${response.status} ${response.statusText}`);
+        }
         throw new Error(`FRED API error: ${response.status} ${response.statusText}`);
       }
 
@@ -228,6 +233,24 @@ class FredApiService {
       }
 
       return data;
+    };
+
+    try {
+      const result = await retryWithBackoff(operation, FRED_RETRY_CONFIG);
+
+      if (!result.success) {
+        // Handle CORS and network errors with more informative messages
+        if (result.error instanceof TypeError && result.error.message.includes('Failed to fetch')) {
+          throw new Error(
+            'CORS Error: Cannot access FRED API directly from browser. ' +
+            'This is expected for GitHub Pages deployment. ' +
+            'Switch to "Sample Data" mode or set up a proper server with API proxies.'
+          );
+        }
+        throw result.error;
+      }
+
+      return result.data;
     } catch (error) {
       // Handle CORS and network errors with more informative messages
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {

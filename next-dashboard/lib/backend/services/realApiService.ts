@@ -295,6 +295,14 @@ class RealApiService {
         configured: alphaVantageApiService.isConfigured(),
         available: false,
       },
+      WORLD_BANK: {
+        configured: true, // World Bank API doesn't require API key
+        available: false,
+      },
+      OECD: {
+        configured: true, // OECD API doesn't require API key
+        available: false,
+      },
     };
 
     // Test API availability (simple health checks)
@@ -303,12 +311,16 @@ class RealApiService {
       this.testBlsHealth(),
       this.testCensusHealth(),
       this.testAlphaVantageHealth(),
+      this.testWorldBankHealth(),
+      this.testOecdHealth(),
     ]);
 
     status.FRED.available = healthChecks[0].status === 'fulfilled';
     status.BLS.available = healthChecks[1].status === 'fulfilled';
     status.CENSUS.available = healthChecks[2].status === 'fulfilled';
     status.ALPHA_VANTAGE.available = healthChecks[3].status === 'fulfilled';
+    status.WORLD_BANK.available = healthChecks[4].status === 'fulfilled';
+    status.OECD.available = healthChecks[5].status === 'fulfilled';
 
     return status;
   }
@@ -384,6 +396,52 @@ class RealApiService {
       if (!alphaVantageApiService.isConfigured()) return false;
       const response = await alphaVantageApiService.fetchEconomicIndicator('REAL_GDP');
       return response.success;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Test World Bank API health
+   */
+  private async testWorldBankHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return true; // World Bank API is always available (no API key required)
+    }
+
+    try {
+      // Simple test request to World Bank API
+      const response = await fetch('https://api.worldbank.org/v2/country/US/indicator/NY.GDP.MKTP.CD?format=json&per_page=1', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Test OECD API health
+   */
+  private async testOecdHealth(): Promise<boolean> {
+    // In production, skip direct API health checks to avoid CORS issues
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+      return true; // OECD API is always available (no API key required)
+    }
+
+    try {
+      // Simple test request to OECD API
+      const response = await fetch('https://sdmx.oecd.org/public/rest/data/OECD.SDD.NAD,DSD_NAMAIN1@DF_TABLE1,1.0/USA.B1_GE.HCPC?startPeriod=2020&endPeriod=2020', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.sdmx.data+json;version=1.0.0',
+        },
+      });
+      return response.ok;
     } catch {
       return false;
     }

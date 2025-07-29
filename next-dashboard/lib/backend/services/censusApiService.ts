@@ -6,6 +6,7 @@
  */
 
 import { ApiResponse } from '@/shared/types/dataSource';
+import { retryWithBackoff, CENSUS_RETRY_CONFIG } from '@/shared/utils/retryUtils';
 
 export interface CensusDataPoint {
   [key: string]: string | null;
@@ -217,28 +218,42 @@ class CensusApiService {
   }
 
   /**
-   * Make HTTP request to Census API
+   * Make HTTP request to Census API with retry logic
    */
   private async makeRequest(url: string): Promise<unknown> {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
-    });
+    const operation = async (): Promise<unknown> => {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`Census API error: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        // Check for rate limiting
+        if (response.status === 429) {
+          throw new Error(`Census API rate limit exceeded: ${response.status} ${response.statusText}`);
+        }
+        throw new Error(`Census API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Census API returns arrays, check for error messages
+      if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string' && data[0].includes('error')) {
+        throw new Error(`Census API error: ${data[0]}`);
+      }
+
+      return data;
+    };
+
+    const result = await retryWithBackoff(operation, CENSUS_RETRY_CONFIG);
+
+    if (!result.success) {
+      throw result.error;
     }
 
-    const data = await response.json();
-
-    // Census API returns arrays, check for error messages
-    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string' && data[0].includes('error')) {
-      throw new Error(`Census API error: ${data[0]}`);
-    }
-
-    return data;
+    return result.data;
   }
 
   /**

@@ -558,6 +558,35 @@ export class DataSourceConfigManager {
   }
 
   /**
+   * Get all available live providers that could potentially serve any data type
+   * This is used for intelligent fallback - try all live APIs before historical data
+   */
+  static getAllLiveProviders(): string[] {
+    return Object.keys(PROVIDER_CONFIGS);
+  }
+
+  /**
+   * Get providers to try for a data type in order of preference
+   * Returns: [primary, secondary, ...other live providers]
+   */
+  static getProvidersToTryForDataType(dataType: string): string[] {
+    const configuredProviders = this.getProvidersForDataType(dataType);
+    const allLiveProviders = this.getAllLiveProviders();
+
+    // Start with configured providers (primary, secondary)
+    const providersToTry = [...configuredProviders];
+
+    // Add other live providers that aren't already configured for this data type
+    const otherProviders = allLiveProviders.filter(provider =>
+      !configuredProviders.includes(provider)
+    );
+
+    providersToTry.push(...otherProviders);
+
+    return providersToTry;
+  }
+
+  /**
    * Get all data types that use a specific provider
    */
   static getDataTypesForProvider(provider: string): string[] {
