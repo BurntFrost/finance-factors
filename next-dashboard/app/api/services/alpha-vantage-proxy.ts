@@ -13,15 +13,13 @@ import {
 } from '@/shared/types/proxy';
 import {
   checkRateLimit,
-  getCachedResponse,
-  setCachedResponse,
-  generateLegacyCacheKey,
   getOptionalEnvVar,
   makeHttpRequest,
   createErrorResponse,
   createSuccessResponse,
   logApiRequest,
 } from '@/shared/utils/proxy-utils';
+import { apiCacheService } from '@/backend/lib/api-cache-service';
 
 /**
  * Alpha Vantage API Response Interfaces
@@ -121,19 +119,31 @@ export class AlphaVantageProxyService {
         return createErrorResponse(error, 'Alpha Vantage API Proxy');
       }
 
-      // Generate cache key
-      const cacheKey = generateLegacyCacheKey('ALPHA_VANTAGE', dataType, {
-        startDate: options.startDate || '',
-        endDate: options.endDate || '',
-        useCache: useCache.toString()
-      });
+      // Generate cache key with enhanced service
+      const cacheParams = {
+        dataType,
+        startDate: options.startDate,
+        endDate: options.endDate,
+        ...endpointConfig.params,
+      };
+      const cacheKey = apiCacheService.generateCacheKey('ALPHA_VANTAGE', dataType, cacheParams);
 
       // Check cache if enabled (important for Alpha Vantage due to rate limits)
       if (useCache) {
-        const cachedResponse = await getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
-        if (cachedResponse) {
+        const cached = await apiCacheService.getCachedApiData<StandardDataPoint[]>(cacheKey);
+        if (cached) {
           logApiRequest('ALPHA_VANTAGE', dataType, true, Date.now() - startTime, 'Cache hit');
-          return cachedResponse;
+          return createSuccessResponse(
+            cached,
+            'Alpha Vantage API (Cached)',
+            {
+              totalRecords: cached.length,
+              rateLimit: {
+                remaining: 4, // Conservative estimate (5 requests per minute)
+                resetTime: new Date(Date.now() + 60000),
+              },
+            }
+          );
         }
       }
 
@@ -189,7 +199,15 @@ export class AlphaVantageProxyService {
       // Transform data based on function type
       const transformedData = this.transformAlphaVantageData(data, functionName);
 
-      const successResponse = createSuccessResponse(
+      // Cache the response with enhanced service (shorter TTL for financial data)
+      if (useCache) {
+        await apiCacheService.setCachedApiData(cacheKey, transformedData);
+      }
+
+      const duration = Date.now() - startTime;
+      logApiRequest('ALPHA_VANTAGE', dataType, true, duration);
+
+      return createSuccessResponse(
         transformedData,
         'Alpha Vantage API Proxy',
         {
@@ -198,20 +216,14 @@ export class AlphaVantageProxyService {
             remaining: 4, // Conservative estimate (5 requests per minute)
             resetTime: new Date(Date.now() + 60000),
           },
-        }
+        },
+        duration
       );
 
-      // Cache the response with default 24-hour TTL
-      if (useCache) {
-        await setCachedResponse(cacheKey, successResponse, undefined, 'Alpha Vantage API'); // Uses default 24-hour TTL
-      }
-
-      logApiRequest('ALPHA_VANTAGE', dataType, true, Date.now() - startTime);
-      return successResponse;
-
     } catch (error) {
+      const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+
       // Handle specific error types
       if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
         const corsError: ProxyError = {
@@ -220,8 +232,8 @@ export class AlphaVantageProxyService {
           statusCode: 502,
           retryable: true,
         };
-        logApiRequest('ALPHA_VANTAGE', dataType, false, Date.now() - startTime, corsError.message);
-        return createErrorResponse(corsError, 'Alpha Vantage API Proxy');
+        logApiRequest('ALPHA_VANTAGE', dataType, false, duration, corsError.message);
+        return createErrorResponse(corsError, 'Alpha Vantage API Proxy', duration);
       }
 
       const serverError: ProxyError = {
@@ -230,8 +242,8 @@ export class AlphaVantageProxyService {
         statusCode: 500,
         retryable: true,
       };
-      logApiRequest('ALPHA_VANTAGE', dataType, false, Date.now() - startTime, serverError.message);
-      return createErrorResponse(serverError, 'Alpha Vantage API Proxy');
+      logApiRequest('ALPHA_VANTAGE', dataType, false, duration, serverError.message);
+      return createErrorResponse(serverError, 'Alpha Vantage API Proxy', duration);
     }
   }
 

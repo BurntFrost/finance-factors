@@ -16,7 +16,9 @@ import {
   createSuccessResponse,
   checkRateLimit,
   makeHttpRequest,
+  logApiRequest,
 } from '@/shared/utils/proxy-utils';
+import { apiCacheService } from '@/backend/lib/api-cache-service';
 
 export interface BlsDataPoint {
   year: string;
@@ -77,6 +79,7 @@ class BlsProxyService {
     } = {}
   ): Promise<ProxyApiResponse<StandardDataPoint[]>> {
     const { startYear, endYear } = options;
+    const startTime = Date.now();
 
     try {
       // Check rate limit
@@ -87,6 +90,7 @@ class BlsProxyService {
           statusCode: 429,
           retryable: true,
         };
+        logApiRequest('BLS', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'BLS API Proxy');
       }
 
@@ -99,6 +103,7 @@ class BlsProxyService {
           statusCode: 400,
           retryable: false,
         };
+        logApiRequest('BLS', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'BLS API Proxy');
       }
 
@@ -109,6 +114,7 @@ class BlsProxyService {
           statusCode: 400,
           retryable: false,
         };
+        logApiRequest('BLS', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'BLS API Proxy');
       }
 
@@ -132,6 +138,35 @@ class BlsProxyService {
         requestBody.registrationkey = this.apiKey;
       }
 
+      // Generate cache key and check cache
+      const cacheParams = {
+        seriesId: endpointConfig.seriesId,
+        startYear,
+        endYear,
+        calculations: true,
+        annualaverage: true,
+      };
+      const cacheKey = apiCacheService.generateCacheKey('BLS', dataType, cacheParams);
+
+      // Check cache if enabled
+      if (options.useCache !== false) {
+        const cached = await apiCacheService.getCachedApiData<StandardDataPoint[]>(cacheKey);
+        if (cached) {
+          logApiRequest('BLS', dataType, true, Date.now() - startTime);
+          return createSuccessResponse(
+            cached,
+            'BLS API (Cached)',
+            {
+              totalRecords: cached.length,
+              rateLimit: {
+                remaining: this.apiKey ? 500 : 25, // Daily limits
+                resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Reset daily
+              },
+            }
+          );
+        }
+      }
+
       // Make request
       const url = `${this.baseUrl}/timeseries/data/`;
       const response = await makeHttpRequest(url, {
@@ -153,11 +188,20 @@ class BlsProxyService {
           statusCode: 400,
           retryable: false,
         };
+        logApiRequest('BLS', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'BLS API Proxy');
       }
 
       // Transform data to standard format
       const transformedData = this.transformBlsData(data.Results.series);
+
+      // Cache the response
+      if (options.useCache !== false) {
+        await apiCacheService.setCachedApiData(cacheKey, transformedData);
+      }
+
+      const duration = Date.now() - startTime;
+      logApiRequest('BLS', dataType, true, duration);
 
       return createSuccessResponse(
         transformedData,
@@ -168,12 +212,16 @@ class BlsProxyService {
             remaining: this.apiKey ? 500 : 25, // Daily limits
             resetTime: new Date(Date.now() + 24 * 60 * 60 * 1000), // Reset daily
           },
-        }
+        },
+        duration
       );
 
     } catch (error) {
+      const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+
+      logApiRequest('BLS', dataType, false, duration, errorMessage);
+
       // Handle specific error types
       if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
         const corsError: ProxyError = {
@@ -182,7 +230,7 @@ class BlsProxyService {
           statusCode: 502,
           retryable: true,
         };
-        return createErrorResponse(corsError, 'BLS API Proxy');
+        return createErrorResponse(corsError, 'BLS API Proxy', duration);
       }
 
       const serverError: ProxyError = {
@@ -191,7 +239,7 @@ class BlsProxyService {
         statusCode: 500,
         retryable: true,
       };
-      return createErrorResponse(serverError, 'BLS API Proxy');
+      return createErrorResponse(serverError, 'BLS API Proxy', duration);
     }
   }
 

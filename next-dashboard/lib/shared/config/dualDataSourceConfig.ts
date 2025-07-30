@@ -6,10 +6,10 @@
  */
 
 // Enhanced data source status types with provider-specific information
-export type EnhancedDataSourceStatus = 
+export type EnhancedDataSourceStatus =
   // Live API sources
   | 'live-fred'
-  | 'live-bls' 
+  | 'live-bls'
   | 'live-census'
   | 'live-alpha-vantage'
   | 'live-world-bank'
@@ -21,6 +21,7 @@ export type EnhancedDataSourceStatus =
   // Degraded states
   | 'degraded-partial'
   | 'circuit-breaker-open'
+  | 'rate-limited'
   // System states
   | 'loading'
   | 'error'
@@ -95,7 +96,7 @@ export interface ProviderHealth {
   consecutiveFailures: number;
   averageResponseTime: number;
   successRate: number; // percentage over last 100 requests
-  circuitBreakerState: 'closed' | 'open' | 'half-open';
+  circuitBreakerState: 'closed' | 'open' | 'half-open' | 'rate-limited';
   nextRetryTime: Date | null;
   rateLimitResetTime: Date | null;
 }

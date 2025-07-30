@@ -13,15 +13,13 @@ import {
 } from '@/shared/types/proxy';
 import {
   checkRateLimit,
-  getCachedResponse,
-  setCachedResponse,
-  generateLegacyCacheKey,
   getOptionalEnvVar,
   makeHttpRequest,
   createErrorResponse,
   createSuccessResponse,
   logApiRequest,
 } from '@/shared/utils/proxy-utils';
+import { apiCacheService } from '@/backend/lib/api-cache-service';
 
 /**
  * Census API Response Interface
@@ -80,18 +78,30 @@ export class CensusProxyService {
         return createErrorResponse(error, 'Census API Proxy');
       }
 
-      // Generate cache key
-      const cacheKey = generateLegacyCacheKey('CENSUS', dataType, {
-        startYear: startYear?.toString() || '2015',
-        endYear: endYear?.toString() || '2023'
-      });
+      // Generate cache key with enhanced service
+      const cacheParams = {
+        dataType,
+        startYear: startYear || 2015,
+        endYear: endYear || 2023,
+      };
+      const cacheKey = apiCacheService.generateCacheKey('CENSUS', dataType, cacheParams);
 
       // Check cache if enabled
       if (useCache) {
-        const cachedResponse = await getCachedResponse<ProxyApiResponse<StandardDataPoint[]>>(cacheKey);
-        if (cachedResponse) {
+        const cached = await apiCacheService.getCachedApiData<StandardDataPoint[]>(cacheKey);
+        if (cached) {
           logApiRequest('CENSUS', dataType, true, Date.now() - startTime, 'Cache hit');
-          return cachedResponse;
+          return createSuccessResponse(
+            cached,
+            'Census API (Cached)',
+            {
+              totalRecords: cached.length,
+              rateLimit: {
+                remaining: 450, // Conservative estimate based on Census rate limits
+                resetTime: new Date(Date.now() + 60000),
+              },
+            }
+          );
         }
       }
 
@@ -117,7 +127,15 @@ export class CensusProxyService {
       // Transform data to standard format
       const transformedData = this.transformCensusData(data, variable);
 
-      const response = createSuccessResponse(
+      // Cache the response with enhanced service
+      if (useCache) {
+        await apiCacheService.setCachedApiData(cacheKey, transformedData);
+      }
+
+      const duration = Date.now() - startTime;
+      logApiRequest('CENSUS', dataType, true, duration);
+
+      return createSuccessResponse(
         transformedData,
         'Census API Proxy',
         {
@@ -126,20 +144,14 @@ export class CensusProxyService {
             remaining: 450, // Conservative estimate based on Census rate limits
             resetTime: new Date(Date.now() + 60000),
           },
-        }
+        },
+        duration
       );
 
-      // Cache the response with default 24-hour TTL
-      if (useCache) {
-        await setCachedResponse(cacheKey, response, undefined, 'Census API'); // Uses default 24-hour TTL
-      }
-
-      logApiRequest('CENSUS', dataType, true, Date.now() - startTime);
-      return response;
-
     } catch (error) {
+      const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+
       // Handle specific error types
       if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
         const corsError: ProxyError = {
@@ -148,8 +160,8 @@ export class CensusProxyService {
           statusCode: 502,
           retryable: true,
         };
-        logApiRequest('CENSUS', dataType, false, Date.now() - startTime, corsError.message);
-        return createErrorResponse(corsError, 'Census API Proxy');
+        logApiRequest('CENSUS', dataType, false, duration, corsError.message);
+        return createErrorResponse(corsError, 'Census API Proxy', duration);
       }
 
       const serverError: ProxyError = {

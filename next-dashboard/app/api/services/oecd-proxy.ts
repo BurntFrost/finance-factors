@@ -13,14 +13,12 @@ import {
   PROXY_API_ENDPOINTS,
 } from '../../../lib/shared/types/proxy';
 import {
-  getCachedResponse,
-  setCachedResponse,
-  generateLegacyCacheKey,
   makeHttpRequest,
   createErrorResponse,
   createSuccessResponse,
   logApiRequest,
 } from '../../../lib/shared/utils/proxy-utils';
+import { apiCacheService } from '../../../lib/backend/lib/api-cache-service';
 
 /**
  * OECD API Proxy Service Class
@@ -63,23 +61,25 @@ export class OECDProxyService {
       // OECD API has generous rate limits, so we skip rate limiting for now
       // In production, you might want to add rate limiting here
 
-      // Generate cache key
-      const cacheKey = generateLegacyCacheKey('oecd', dataType, {
+      // Generate cache key with enhanced service
+      const cacheParams = {
+        dataType,
         countryCode: endpointConfig.countryCode || countryCode || '',
         indicatorId: endpointConfig.indicatorId || '',
-        startDate: options.startDate || '',
-        endDate: options.endDate || '',
-      });
+        startDate: options.startDate,
+        endDate: options.endDate,
+      };
+      const cacheKey = apiCacheService.generateCacheKey('OECD', dataType, cacheParams);
 
       // Check cache first
       if (useCache) {
-        const cachedData = await getCachedResponse<StandardDataPoint[]>(cacheKey);
-        if (cachedData) {
+        const cached = await apiCacheService.getCachedApiData<StandardDataPoint[]>(cacheKey);
+        if (cached) {
           logApiRequest('OECD', dataType, true, Date.now() - startTime);
           return createSuccessResponse(
-            cachedData,
+            cached,
             'OECD API (Cached)',
-            { isFallback: false },
+            { isFallback: false, totalRecords: cached.length },
             Date.now() - startTime
           );
         }
@@ -118,9 +118,9 @@ export class OECDProxyService {
         return createErrorResponse(error, 'OECD API');
       }
 
-      // Cache the transformed data
+      // Cache the transformed data with enhanced service
       if (useCache) {
-        await setCachedResponse(cacheKey, transformedData, 24 * 60 * 60 * 1000, 'OECD API');
+        await apiCacheService.setCachedApiData(cacheKey, transformedData);
       }
 
       const duration = Date.now() - startTime;

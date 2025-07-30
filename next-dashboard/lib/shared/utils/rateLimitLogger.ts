@@ -18,6 +18,7 @@ export interface RateLimitEvent {
     circuitBreakerState?: string;
     fallbackReason?: string;
     retryCount?: number;
+    consecutiveRateLimits?: number;
   };
 }
 

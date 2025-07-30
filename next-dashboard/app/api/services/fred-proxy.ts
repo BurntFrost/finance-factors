@@ -14,9 +14,6 @@ import {
 } from '@/shared/types/proxy';
 import {
   checkRateLimit,
-  getCachedResponse,
-  setCachedResponse,
-  generateLegacyCacheKey,
   transformFredData,
   getRequiredEnvVar,
   makeHttpRequest,
@@ -24,6 +21,7 @@ import {
   createSuccessResponse,
   logApiRequest,
 } from '@/shared/utils/proxy-utils';
+import { apiCacheService } from '@/backend/lib/api-cache-service';
 
 /**
  * FRED API Proxy Service Class
@@ -100,12 +98,18 @@ export class FredProxyService {
         params.append('observation_end', options.endDate);
       }
 
-      // Generate cache key
-      const cacheKey = generateLegacyCacheKey('FRED', seriesId, Object.fromEntries(params));
+      // Generate cache key with enhanced service
+      const cacheParams = {
+        seriesId,
+        startDate: options.startDate,
+        endDate: options.endDate,
+        ...Object.fromEntries(params),
+      };
+      const cacheKey = apiCacheService.generateCacheKey('FRED', dataType, cacheParams);
 
       // Check cache if enabled
       if (options.useCache !== false) {
-        const cached = await getCachedResponse<StandardDataPoint[]>(cacheKey);
+        const cached = await apiCacheService.getCachedApiData<StandardDataPoint[]>(cacheKey);
         if (cached) {
           logApiRequest('FRED', dataType, true, Date.now() - startTime);
           return createSuccessResponse(
@@ -164,9 +168,9 @@ export class FredProxyService {
         return createErrorResponse(error, 'FRED API Proxy');
       }
 
-      // Cache the response
+      // Cache the response with enhanced service
       if (options.useCache !== false) {
-        await setCachedResponse(cacheKey, transformedData, undefined, 'FRED API');
+        await apiCacheService.setCachedApiData(cacheKey, transformedData);
       }
 
       const duration = Date.now() - startTime;
