@@ -105,6 +105,13 @@ export default function DataStatusPill({
           color: '#dc3545',
           description: 'API temporarily unavailable, circuit breaker active'
         };
+      case 'rate-limited':
+        return {
+          label: 'Rate Limited',
+          icon: '⏱️',
+          color: '#fd7e14',
+          description: 'API rate limit exceeded, retrying with backoff'
+        };
       // Legacy compatibility
       case 'recent':
         return {

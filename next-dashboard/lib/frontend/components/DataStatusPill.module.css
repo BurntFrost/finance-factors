@@ -179,6 +179,12 @@
   border-color: rgba(220, 53, 69, 0.4);
 }
 
+.rate-limited {
+  color: #8a4a00;
+  background-color: rgba(253, 126, 20, 0.15);
+  border-color: rgba(253, 126, 20, 0.4);
+}
+
 /* Animations */
 @keyframes pulse {
   0%, 100% {
@@ -233,6 +239,12 @@
     color: #f8d7da;
     background-color: rgba(220, 53, 69, 0.15);
     border-color: rgba(220, 53, 69, 0.4);
+  }
+
+  .rate-limited {
+    color: #ffeaa7;
+    background-color: rgba(253, 126, 20, 0.15);
+    border-color: rgba(253, 126, 20, 0.4);
   }
 
   .loading {

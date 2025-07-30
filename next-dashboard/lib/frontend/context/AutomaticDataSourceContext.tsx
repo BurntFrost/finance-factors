@@ -31,14 +31,16 @@ import {
 // Data source status types (enhanced with provider-specific statuses)
 export type DataSourceStatus = EnhancedDataSourceStatus;
 
-// Circuit breaker states
-export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
+// Circuit breaker states - enhanced to handle rate limiting
+export type CircuitBreakerState = 'closed' | 'open' | 'half-open' | 'rate-limited';
 
 export interface CircuitBreakerInfo {
   state: CircuitBreakerState;
   failureCount: number;
   lastFailureTime: Date | null;
   nextRetryTime: Date | null;
+  rateLimitRetryTime?: Date | null; // Separate retry time for rate limits
+  consecutiveRateLimits?: number; // Track consecutive rate limit errors
 }
 
 export interface AutomaticDataSourceState {
@@ -213,6 +215,8 @@ function isRateLimitError(error: string, apiResponse?: any): boolean {
   return messageCheck || metadataCheck;
 }
 
+
+
 function getProviderFromDataType(dataType: string): string {
   // Use the new configuration system to get the primary provider
   const primaryProvider = DataSourceConfigManager.getPrimaryProvider(dataType);
@@ -235,6 +239,12 @@ function shouldAllowRequest(circuitBreaker: CircuitBreakerInfo | undefined): boo
         return true; // Allow one request to test if service is recovered
       }
       return false;
+    case 'rate-limited':
+      // For rate-limited providers, check the rate limit retry time
+      if (circuitBreaker.rateLimitRetryTime && now >= circuitBreaker.rateLimitRetryTime) {
+        return true; // Rate limit period has passed, allow retry
+      }
+      return false; // Still in rate limit period
     case 'half-open':
       return true; // Allow limited requests in half-open state
     default:
@@ -412,6 +422,8 @@ export function AutomaticDataSourceProvider({
             failureCount: 0,
             lastFailureTime: null,
             nextRetryTime: null,
+            rateLimitRetryTime: null,
+            consecutiveRateLimits: 0,
           },
         },
       });
@@ -433,36 +445,52 @@ export function AutomaticDataSourceProvider({
     } else {
       const failureCount = (currentBreaker?.failureCount || 0) + 1;
       const isRateLimit = error && isRateLimitError(error, apiResponse);
+      const consecutiveRateLimits = isRateLimit
+        ? ((currentBreaker?.consecutiveRateLimits || 0) + 1)
+        : 0;
 
-      // Open circuit breaker if threshold reached or rate limit error
-      const shouldOpen = failureCount >= CIRCUIT_BREAKER_CONFIG.failureThreshold || isRateLimit;
+      let newState: CircuitBreakerState;
+      let recoveryTimeout: number;
+      let shouldOpen: boolean;
 
-      // For rate limit errors, use a longer recovery timeout
-      const recoveryTimeout = isRateLimit
-        ? CIRCUIT_BREAKER_CONFIG.recoveryTimeout * 2 // 2 minutes for rate limits
-        : CIRCUIT_BREAKER_CONFIG.recoveryTimeout;
+      if (isRateLimit) {
+        // For rate limit errors, use 'rate-limited' state instead of 'open'
+        // This allows other providers to still be tried
+        newState = 'rate-limited';
+        shouldOpen = true; // Set shouldOpen for logging purposes
+        // Use exponential backoff for rate limits, but cap at reasonable maximum
+        const backoffMultiplier = Math.min(consecutiveRateLimits, 4); // Cap at 4x
+        recoveryTimeout = CIRCUIT_BREAKER_CONFIG.recoveryTimeout * backoffMultiplier;
+      } else {
+        // For other failures, use traditional circuit breaker logic
+        shouldOpen = failureCount >= CIRCUIT_BREAKER_CONFIG.failureThreshold;
+        newState = shouldOpen ? 'open' : 'closed';
+        recoveryTimeout = CIRCUIT_BREAKER_CONFIG.recoveryTimeout;
+      }
 
       debouncedDispatch({
         type: 'SET_CIRCUIT_BREAKER',
         payload: {
           provider,
           info: {
-            state: shouldOpen ? 'open' : 'closed',
+            state: newState,
             failureCount,
             lastFailureTime: now,
             nextRetryTime: shouldOpen ? new Date(now.getTime() + recoveryTimeout) : null,
+            rateLimitRetryTime: isRateLimit ? new Date(now.getTime() + recoveryTimeout) : null,
+            consecutiveRateLimits,
           },
         },
       });
 
       // Log circuit breaker events
       if (isRateLimit) {
-        console.warn(`Circuit breaker opened for ${provider} due to rate limit. Recovery in ${recoveryTimeout / 1000} seconds.`);
+        console.warn(`🚫 Provider ${provider} rate-limited (${consecutiveRateLimits} consecutive). State: ${newState}. Recovery in ${recoveryTimeout / 1000}s.`);
 
         // Log to monitoring system
         logRateLimitEvent(provider, 'unknown', new Date(now.getTime() + recoveryTimeout));
-        if (shouldOpen) {
-          logCircuitBreakerEvent(provider, 'open', 'Rate limit exceeded');
+        if (newState === 'rate-limited') {
+          logCircuitBreakerEvent(provider, 'rate-limited', `Rate limit exceeded (${consecutiveRateLimits} consecutive)`);
         }
 
         rateLimitLogger.logEvent({
@@ -472,9 +500,10 @@ export function AutomaticDataSourceProvider({
           success: false,
           error: error || 'Rate limit exceeded',
           metadata: {
-            circuitBreakerState: shouldOpen ? 'open' : 'closed',
+            circuitBreakerState: newState,
             retryCount: failureCount,
-            resetTime: shouldOpen ? new Date(now.getTime() + recoveryTimeout) : undefined,
+            consecutiveRateLimits,
+            resetTime: new Date(now.getTime() + recoveryTimeout),
           },
         });
 
@@ -600,6 +629,13 @@ export function AutomaticDataSourceProvider({
       }
     });
 
+    // Log detailed results for debugging
+    console.info(`Parallel fetch results for ${dataType}:`, {
+      successful: successfulResults.map(r => ({ provider: r.provider, responseTime: r.responseTime })),
+      failed: failedResults.map(r => ({ provider: r.provider, error: r.error })),
+      totalProviders: providersToTry.length
+    });
+
     // If we have successful results, choose the best one (prioritize by provider order)
     if (successfulResults.length > 0) {
       // Sort by original provider priority (index)
@@ -607,7 +643,7 @@ export function AutomaticDataSourceProvider({
       const bestResult = successfulResults[0];
 
       // Log successful parallel fetch
-      console.info(`Parallel fetch succeeded for ${dataType} using ${bestResult.provider} (${bestResult.responseTime}ms)`);
+      console.info(`✅ Parallel fetch succeeded for ${dataType} using ${bestResult.provider} (${bestResult.responseTime}ms) - ${successfulResults.length}/${providersToTry.length} providers succeeded`);
 
       // Log failover if not using primary provider
       if (bestResult.index > 0) {
@@ -639,9 +675,24 @@ export function AutomaticDataSourceProvider({
       return bestResult.result;
     }
 
-    // All providers failed
+    // All providers failed - provide detailed error information
+    const rateLimitedProviders = failedResults.filter(f =>
+      f.error.toLowerCase().includes('rate limit') ||
+      f.error.toLowerCase().includes('rate-limited')
+    );
+    const otherFailedProviders = failedResults.filter(f =>
+      !f.error.toLowerCase().includes('rate limit') &&
+      !f.error.toLowerCase().includes('rate-limited')
+    );
+
     const allErrors = failedResults.map(f => `${f.provider}: ${f.error}`).join('; ');
-    console.warn(`All ${providersToTry.length} providers failed for ${dataType} in parallel. Errors: ${allErrors}`);
+
+    if (rateLimitedProviders.length > 0) {
+      console.warn(`❌ All ${providersToTry.length} providers failed for ${dataType}. ${rateLimitedProviders.length} rate-limited, ${otherFailedProviders.length} other failures. Errors: ${allErrors}`);
+    } else {
+      console.warn(`❌ All ${providersToTry.length} providers failed for ${dataType} in parallel. Errors: ${allErrors}`);
+    }
+
     return null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // attemptLiveDataFromProvider is stable within component scope
@@ -663,8 +714,13 @@ export function AutomaticDataSourceProvider({
     // Check circuit breaker
     const circuitBreaker = state.circuitBreakers.get(provider);
     if (!shouldAllowRequest(circuitBreaker)) {
-      const nextRetry = circuitBreaker?.nextRetryTime;
-      console.log(`Circuit breaker open for ${provider}, next retry: ${nextRetry?.toISOString()}`);
+      if (circuitBreaker?.state === 'rate-limited') {
+        const rateLimitRetryTime = circuitBreaker.rateLimitRetryTime;
+        console.log(`Provider ${provider} is rate-limited, next retry: ${rateLimitRetryTime?.toISOString()}`);
+      } else {
+        const nextRetry = circuitBreaker?.nextRetryTime;
+        console.log(`Circuit breaker open for ${provider}, next retry: ${nextRetry?.toISOString()}`);
+      }
       return null;
     }
 
