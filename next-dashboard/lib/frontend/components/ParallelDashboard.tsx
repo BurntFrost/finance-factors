@@ -139,42 +139,7 @@ export default function ParallelDashboard({
                     </div>
                   }
                 >
-                  <div className={styles.chartWrapper}>
-                    {/* Chart Header with Status */}
-                    <div className={styles.chartHeader}>
-                      <h3 className={styles.chartTitle}>{chart.title}</h3>
-                      <div className={styles.chartStatus}>
-                        {chartError ? (
-                          <span className={styles.errorIndicator} title={chartError}>
-                            ❌ Error
-                          </span>
-                        ) : chartData ? (
-                          <span className={styles.successIndicator}>
-                            ✅ Loaded
-                          </span>
-                        ) : (
-                          <span className={styles.loadingIndicator}>
-                            ⏳ Loading...
-                          </span>
-                        )}
-                        <button
-                          onClick={() => refreshSingle(chart.dataType)}
-                          className={styles.refreshSingleButton}
-                          title="Refresh this chart"
-                        >
-                          🔄
-                        </button>
-                        <button
-                          onClick={() => handleRemoveChart(chart.id)}
-                          className={styles.removeButton}
-                          title="Remove chart"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Chart Content */}
+                  {/* Chart Content - AutomaticChart provides its own header */}
                     {chartError ? (
                       <div className={styles.errorState}>
                         <p>Failed to load data</p>
@@ -226,7 +191,6 @@ export default function ParallelDashboard({
                         </small>
                       </div>
                     )}
-                  </div>
                 </Suspense>
               </div>
             );
