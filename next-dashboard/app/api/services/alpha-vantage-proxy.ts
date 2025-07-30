@@ -20,6 +20,8 @@ import {
   logApiRequest,
 } from '@/shared/utils/proxy-utils';
 import { apiCacheService } from '@/backend/lib/api-cache-service';
+import { enhancedCircuitBreaker } from '@/backend/lib/enhanced-circuit-breaker';
+import { rateLimitTracker } from '@/backend/lib/rate-limit-tracker';
 
 /**
  * Alpha Vantage API Response Interfaces
@@ -107,14 +109,27 @@ export class AlphaVantageProxyService {
         return createErrorResponse(error, 'Alpha Vantage API Proxy');
       }
 
-      // Check rate limits (Alpha Vantage has strict limits)
-      if (!(await checkRateLimit('ALPHA_VANTAGE'))) {
+      // Check enhanced circuit breaker (includes rate limit checking)
+      const shouldAllow = await enhancedCircuitBreaker.shouldAllowRequest('ALPHA_VANTAGE', dataType);
+      if (!shouldAllow) {
+        const circuitState = await enhancedCircuitBreaker.getCircuitBreakerState('ALPHA_VANTAGE', dataType);
+
+        let errorMessage = 'Alpha Vantage API circuit breaker is open';
+        if (circuitState.state === 'rate-limited') {
+          errorMessage = 'Alpha Vantage API rate limit exceeded';
+          if (circuitState.rateLimitStatus?.cooldownExpiresAt) {
+            const timeUntilReset = Math.ceil((circuitState.rateLimitStatus.cooldownExpiresAt.getTime() - Date.now()) / 1000);
+            errorMessage += ` - cooldown expires in ${timeUntilReset}s`;
+          }
+        }
+
         const error: ProxyError = {
-          type: 'rate_limit',
-          message: 'Alpha Vantage API rate limit exceeded',
-          statusCode: 429,
+          type: circuitState.state === 'rate-limited' ? 'rate_limit' : 'circuit_breaker',
+          message: errorMessage,
+          statusCode: circuitState.state === 'rate-limited' ? 429 : 503,
           retryable: true,
         };
+
         logApiRequest('ALPHA_VANTAGE', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'Alpha Vantage API Proxy');
       }
@@ -193,6 +208,10 @@ export class AlphaVantageProxyService {
           retryable: true,
         };
         logApiRequest('ALPHA_VANTAGE', dataType, false, Date.now() - startTime, error.message);
+
+        // Record rate limit event
+        await enhancedCircuitBreaker.recordFailure('ALPHA_VANTAGE', dataType, error.message, true);
+
         return createErrorResponse(error, 'Alpha Vantage API Proxy');
       }
 
@@ -206,6 +225,9 @@ export class AlphaVantageProxyService {
 
       const duration = Date.now() - startTime;
       logApiRequest('ALPHA_VANTAGE', dataType, true, duration);
+
+      // Record successful request in circuit breaker
+      await enhancedCircuitBreaker.recordSuccess('ALPHA_VANTAGE', dataType);
 
       return createSuccessResponse(
         transformedData,
@@ -224,6 +246,11 @@ export class AlphaVantageProxyService {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
 
+      // Check for rate limit indicators
+      const isRateLimit = errorMessage.includes('rate limit') ||
+                         errorMessage.includes('too many requests') ||
+                         errorMessage.includes('429');
+
       // Handle specific error types
       if (errorMessage.includes('CORS') || errorMessage.includes('Failed to fetch')) {
         const corsError: ProxyError = {
@@ -233,16 +260,23 @@ export class AlphaVantageProxyService {
           retryable: true,
         };
         logApiRequest('ALPHA_VANTAGE', dataType, false, duration, corsError.message);
+
+        // Record failure in circuit breaker
+        await enhancedCircuitBreaker.recordFailure('ALPHA_VANTAGE', dataType, corsError.message, false);
+
         return createErrorResponse(corsError, 'Alpha Vantage API Proxy', duration);
       }
 
       const serverError: ProxyError = {
-        type: 'unknown',
+        type: isRateLimit ? 'rate_limit' : 'unknown',
         message: `Alpha Vantage API proxy error: ${errorMessage}`,
-        statusCode: 500,
+        statusCode: isRateLimit ? 429 : 500,
         retryable: true,
       };
       logApiRequest('ALPHA_VANTAGE', dataType, false, duration, serverError.message);
+
+      // Record failure in circuit breaker
+      await enhancedCircuitBreaker.recordFailure('ALPHA_VANTAGE', dataType, errorMessage, isRateLimit);
       return createErrorResponse(serverError, 'Alpha Vantage API Proxy', duration);
     }
   }

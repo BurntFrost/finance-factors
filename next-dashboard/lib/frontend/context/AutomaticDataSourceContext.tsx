@@ -27,6 +27,7 @@ import {
   logCircuitBreakerEvent,
   logRateLimitEvent,
 } from '@/shared/utils/dualDataSourceMonitor';
+import { circuitBreakerService } from '../services/circuit-breaker-service';
 
 // Data source status types (enhanced with provider-specific statuses)
 export type DataSourceStatus = EnhancedDataSourceStatus;
@@ -711,16 +712,25 @@ export function AutomaticDataSourceProvider({
       return null;
     }
 
-    // Check circuit breaker
-    const circuitBreaker = state.circuitBreakers.get(provider);
-    if (!shouldAllowRequest(circuitBreaker)) {
-      if (circuitBreaker?.state === 'rate-limited') {
-        const rateLimitRetryTime = circuitBreaker.rateLimitRetryTime;
-        console.log(`Provider ${provider} is rate-limited, next retry: ${rateLimitRetryTime?.toISOString()}`);
-      } else {
-        const nextRetry = circuitBreaker?.nextRetryTime;
-        console.log(`Circuit breaker open for ${provider}, next retry: ${nextRetry?.toISOString()}`);
-      }
+    // Check enhanced circuit breaker through API
+    const circuitBreakerCheck = await circuitBreakerService.shouldAllowRequest(provider, dataType);
+    if (!circuitBreakerCheck.isAllowed) {
+      console.log(`Provider ${provider} blocked by circuit breaker: ${circuitBreakerCheck.reason}`);
+
+      // Log circuit breaker block event
+      rateLimitLogger.logEvent({
+        provider,
+        dataType,
+        eventType: 'circuit_breaker_block',
+        success: false,
+        error: circuitBreakerCheck.reason,
+        metadata: {
+          circuitBreakerState: circuitBreakerCheck.state,
+          nextRetryTime: circuitBreakerCheck.nextRetryTime?.toISOString(),
+          cooldownExpiresAt: circuitBreakerCheck.cooldownExpiresAt?.toISOString(),
+        },
+      });
+
       return null;
     }
 

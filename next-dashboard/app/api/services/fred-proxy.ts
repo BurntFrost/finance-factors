@@ -22,6 +22,8 @@ import {
   logApiRequest,
 } from '@/shared/utils/proxy-utils';
 import { apiCacheService } from '@/backend/lib/api-cache-service';
+import { enhancedCircuitBreaker } from '@/backend/lib/enhanced-circuit-breaker';
+import { rateLimitTracker } from '@/backend/lib/rate-limit-tracker';
 
 /**
  * FRED API Proxy Service Class
@@ -47,7 +49,7 @@ export class FredProxyService {
     } = {}
   ): Promise<ProxyApiResponse<StandardDataPoint[]>> {
     const startTime = Date.now();
-    
+
     try {
       // Get endpoint configuration
       const endpointConfig = PROXY_API_ENDPOINTS[dataType];
@@ -72,14 +74,27 @@ export class FredProxyService {
         return createErrorResponse(error, 'FRED API Proxy');
       }
 
-      // Check rate limits
-      if (!(await checkRateLimit('FRED'))) {
+      // Check enhanced circuit breaker (includes rate limit checking)
+      const shouldAllow = await enhancedCircuitBreaker.shouldAllowRequest('FRED', dataType);
+      if (!shouldAllow) {
+        const circuitState = await enhancedCircuitBreaker.getCircuitBreakerState('FRED', dataType);
+
+        let errorMessage = 'FRED API circuit breaker is open';
+        if (circuitState.state === 'rate-limited') {
+          errorMessage = 'FRED API rate limit exceeded';
+          if (circuitState.rateLimitStatus?.cooldownExpiresAt) {
+            const timeUntilReset = Math.ceil((circuitState.rateLimitStatus.cooldownExpiresAt.getTime() - Date.now()) / 1000);
+            errorMessage += ` - cooldown expires in ${timeUntilReset}s`;
+          }
+        }
+
         const error: ProxyError = {
-          type: 'rate_limit',
-          message: 'FRED API rate limit exceeded',
-          statusCode: 429,
+          type: circuitState.state === 'rate-limited' ? 'rate_limit' : 'circuit_breaker',
+          message: errorMessage,
+          statusCode: circuitState.state === 'rate-limited' ? 429 : 503,
           retryable: true,
         };
+
         logApiRequest('FRED', dataType, false, Date.now() - startTime, error.message);
         return createErrorResponse(error, 'FRED API Proxy');
       }
@@ -176,6 +191,9 @@ export class FredProxyService {
       const duration = Date.now() - startTime;
       logApiRequest('FRED', dataType, true, duration);
 
+      // Record successful request in circuit breaker
+      await enhancedCircuitBreaker.recordSuccess('FRED', dataType);
+
       return createSuccessResponse(
         transformedData,
         'FRED API',
@@ -192,15 +210,24 @@ export class FredProxyService {
     } catch (error) {
       const duration = Date.now() - startTime;
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      
+
       logApiRequest('FRED', dataType, false, duration, errorMessage);
 
-      // Determine error type based on error message
+      // Determine error type and check for rate limiting
       let errorType: ProxyError['type'] = 'unknown';
       let statusCode = 500;
       let retryable = true;
+      let isRateLimit = false;
 
-      if (errorMessage.includes('timeout') || errorMessage.includes('ECONNRESET')) {
+      // Check for rate limit indicators
+      if (errorMessage.includes('rate limit') ||
+          errorMessage.includes('too many requests') ||
+          errorMessage.includes('429') ||
+          statusCode === 429) {
+        errorType = 'rate_limit';
+        statusCode = 429;
+        isRateLimit = true;
+      } else if (errorMessage.includes('timeout') || errorMessage.includes('ECONNRESET')) {
         errorType = 'network';
         statusCode = 504;
       } else if (errorMessage.includes('ENOTFOUND') || errorMessage.includes('ECONNREFUSED')) {
@@ -211,6 +238,9 @@ export class FredProxyService {
         statusCode = 400;
         retryable = false;
       }
+
+      // Record failure in circuit breaker
+      await enhancedCircuitBreaker.recordFailure('FRED', dataType, errorMessage, isRateLimit);
 
       const proxyError: ProxyError = {
         type: errorType,
@@ -228,13 +258,23 @@ export class FredProxyService {
    */
   async getSeriesInfo(seriesId: string): Promise<ProxyApiResponse<Record<string, unknown>>> {
     const startTime = Date.now();
-    
+    const dataType = 'series-info'; // Generic data type for series info requests
+
     try {
-      if (!checkRateLimit('FRED')) {
+      // Check enhanced circuit breaker
+      const shouldAllow = await enhancedCircuitBreaker.shouldAllowRequest('FRED', dataType);
+      if (!shouldAllow) {
+        const circuitState = await enhancedCircuitBreaker.getCircuitBreakerState('FRED', dataType);
+
+        let errorMessage = 'FRED API circuit breaker is open';
+        if (circuitState.state === 'rate-limited') {
+          errorMessage = 'FRED API rate limit exceeded';
+        }
+
         const error: ProxyError = {
-          type: 'rate_limit',
-          message: 'FRED API rate limit exceeded',
-          statusCode: 429,
+          type: circuitState.state === 'rate-limited' ? 'rate_limit' : 'circuit_breaker',
+          message: errorMessage,
+          statusCode: circuitState.state === 'rate-limited' ? 429 : 503,
           retryable: true,
         };
         return createErrorResponse(error, 'FRED API Proxy');
@@ -261,8 +301,11 @@ export class FredProxyService {
       }
 
       const seriesInfo = data.seriess?.[0] || null;
-      
+
       logApiRequest('FRED', `info-${seriesId}`, true, Date.now() - startTime);
+
+      // Record successful request in circuit breaker
+      await enhancedCircuitBreaker.recordSuccess('FRED', dataType);
 
       return createSuccessResponse(seriesInfo, 'FRED API');
 
@@ -270,10 +313,17 @@ export class FredProxyService {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       logApiRequest('FRED', `info-${seriesId}`, false, Date.now() - startTime, errorMessage);
 
+      // Check for rate limit and record failure
+      const isRateLimit = errorMessage.includes('rate limit') ||
+                         errorMessage.includes('too many requests') ||
+                         errorMessage.includes('429');
+
+      await enhancedCircuitBreaker.recordFailure('FRED', dataType, errorMessage, isRateLimit);
+
       const proxyError: ProxyError = {
-        type: 'unknown',
+        type: isRateLimit ? 'rate_limit' : 'unknown',
         message: `FRED API request failed: ${errorMessage}`,
-        statusCode: 500,
+        statusCode: isRateLimit ? 429 : 500,
         retryable: true,
       };
 
