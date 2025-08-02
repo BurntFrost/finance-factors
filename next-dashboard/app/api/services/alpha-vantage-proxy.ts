@@ -12,7 +12,6 @@ import {
   PROXY_API_ENDPOINTS,
 } from '@/shared/types/proxy';
 import {
-  checkRateLimit,
   getOptionalEnvVar,
   makeHttpRequest,
   createErrorResponse,
@@ -21,7 +20,6 @@ import {
 } from '@/shared/utils/proxy-utils';
 import { apiCacheService } from '@/backend/lib/api-cache-service';
 import { enhancedCircuitBreaker } from '@/backend/lib/enhanced-circuit-breaker';
-import { rateLimitTracker } from '@/backend/lib/rate-limit-tracker';
 
 /**
  * Alpha Vantage API Response Interfaces
@@ -124,7 +122,7 @@ export class AlphaVantageProxyService {
         }
 
         const error: ProxyError = {
-          type: circuitState.state === 'rate-limited' ? 'rate_limit' : 'circuit_breaker',
+          type: circuitState.state === 'rate-limited' ? 'rate_limit' : 'api',
           message: errorMessage,
           statusCode: circuitState.state === 'rate-limited' ? 429 : 503,
           retryable: true,

@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
  * 
  * Returns simplified health check for monitoring systems
  */
-export async function HEAD(request: NextRequest) {
+export async function HEAD(_request: NextRequest) {
   try {
     const health = apiCacheMonitor.getCacheHealthStatus();
     

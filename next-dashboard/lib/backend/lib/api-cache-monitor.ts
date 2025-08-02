@@ -98,7 +98,6 @@ export class ApiCacheMonitor {
     const timestamp = operation.timestamp.toISOString();
     const provider = operation.provider;
     const dataType = operation.dataType;
-    const op = operation.operation.toUpperCase();
     const duration = operation.duration;
 
     switch (operation.operation) {

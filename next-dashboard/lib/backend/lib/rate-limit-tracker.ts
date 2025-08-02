@@ -81,7 +81,6 @@ export class RateLimitTracker {
    */
   async recordRateLimitEvent(event: RateLimitEvent): Promise<void> {
     const key = this.generateRateLimitKey(event.provider, event.dataType);
-    const statusKey = this.generateStatusKey(event.provider, event.dataType);
 
     if (isRedisEnabled()) {
       await executeRedisCommand(
@@ -236,7 +235,7 @@ export class RateLimitTracker {
     limit: number = 100
   ): Promise<RateLimitEvent[]> {
     if (isRedisEnabled()) {
-      return await executeRedisCommand(
+      const result = await executeRedisCommand(
         async (client) => {
           const events: RateLimitEvent[] = [];
           const now = Date.now();
@@ -289,8 +288,9 @@ export class RateLimitTracker {
           // Sort by timestamp descending
           return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
         },
-        []
+        [] as RateLimitEvent[]
       );
+      return result ?? [];
     } else {
       // Fallback to in-memory events
       return this.getRecentRateLimitEventsInMemory(provider, dataType, limit);
