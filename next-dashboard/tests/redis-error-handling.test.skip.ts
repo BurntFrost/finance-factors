@@ -198,8 +198,10 @@ describe('Redis Health Monitor', () => {
 
     expect(healthResult.status).toBe('critical');
     expect(healthResult.connectionStatus).toBe('disconnected');
-    expect(healthResult.recommendations).toContain(
-      expect.stringContaining('Redis server availability')
+    expect(healthResult.recommendations).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Redis server availability')
+      ])
     );
   });
 

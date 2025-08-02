@@ -88,12 +88,10 @@ describe('ApiCacheService', () => {
 
     it('should cache and retrieve data successfully', async () => {
       const cacheKey = 'test-cache-key';
-      
+
       // Mock successful Redis operations
-      mockExecuteRedisCommand
-        .mockResolvedValueOnce(null) // Cache miss
-        .mockResolvedValueOnce(true) // Cache set success
-        .mockResolvedValueOnce(JSON.stringify(mockData)); // Cache hit
+      const responses = [null, true, JSON.stringify(mockData)];
+      mockExecuteRedisCommand.mockImplementation(async () => responses.shift());
 
       // First call should be cache miss
       const result1 = await cacheService.getCachedApiData(cacheKey);
@@ -144,9 +142,9 @@ describe('ApiCacheService', () => {
 
     it('should return cached data when available', async () => {
       const cacheKey = 'test-cache-key';
-      
+
       // Mock cache hit
-      mockExecuteRedisCommand.mockResolvedValueOnce(JSON.stringify(mockData));
+      mockExecuteRedisCommand.mockImplementationOnce(async () => JSON.stringify(mockData));
 
       const result = await cacheService.executeWithCache(cacheKey, mockApiCall);
 
@@ -157,11 +155,10 @@ describe('ApiCacheService', () => {
 
     it('should call API and cache result when cache miss', async () => {
       const cacheKey = 'test-cache-key';
-      
+
       // Mock cache miss and successful cache set
-      mockExecuteRedisCommand
-        .mockResolvedValueOnce(null) // Cache miss
-        .mockResolvedValueOnce(true); // Cache set success
+      const responses = [null, true];
+      mockExecuteRedisCommand.mockImplementation(async () => responses.shift());
 
       mockApiCall.mockResolvedValueOnce(mockData);
 
@@ -227,7 +224,7 @@ describe('ApiCacheService', () => {
       // Mock Redis operations for pattern invalidation
       mockExecuteRedisCommand
         .mockResolvedValueOnce(mockKeys) // keys() returns matching keys
-        .mockResolvedValueOnce(undefined); // del() removes keys
+        .mockResolvedValueOnce(2); // del() removes keys and returns count
 
       const deletedCount = await cacheService.invalidateByPattern(pattern);
 

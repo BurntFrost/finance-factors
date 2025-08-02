@@ -161,9 +161,30 @@ export class RedisFallbackService {
     fallbackOperation: () => Promise<T>,
     operationName: string
   ): Promise<T> {
-    // If fallback is already active, skip Redis and use fallback
-    if (this.shouldActivateFallback()) {
+    // If fallback is active, optionally attempt recovery
+    if (this.fallbackStatus.isActive) {
+      if (this.config.enableAutoRecovery) {
+        try {
+          const { isRedisAvailable } = await import('./redis');
+          if (await isRedisAvailable()) {
+            const result = await redisOperation();
+            this.deactivateFallback('Redis recovered');
+            return result;
+          }
+        } catch (_error) {
+          // Ignore recovery errors and proceed with fallback
+        }
+      }
+
       // Only log in development mode to avoid noise in production logs
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Using fallback for ${operationName} (fallback mode active)`);
+      }
+      return await this.executeFallbackWithMetadata(fallbackOperation, operationName);
+    }
+
+    // Check if fallback should be activated based on metrics
+    if (this.shouldActivateFallback()) {
       if (process.env.NODE_ENV === 'development') {
         console.debug(`Using fallback for ${operationName} (fallback mode active)`);
       }
