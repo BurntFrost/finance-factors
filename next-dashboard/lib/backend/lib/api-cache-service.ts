@@ -8,7 +8,6 @@
 import { executeRedisCommand } from './redis';
 import { RedisOperationType } from './redis-error-logger';
 import { isRedisEnabled } from './feature-toggles';
-import { StandardDataPoint, ProxyApiResponse } from '../../shared/types/proxy';
 import { apiCacheMonitor } from './api-cache-monitor';
 import crypto from 'crypto';
 
@@ -246,9 +245,7 @@ export class ApiCacheService {
     this.logCacheMiss(cacheKey, Date.now() - startTime);
     
     try {
-      const apiStartTime = Date.now();
       const apiData = await apiCall();
-      const apiDuration = Date.now() - apiStartTime;
 
       // Store in cache
       await this.setCachedApiData(cacheKey, apiData, customTTL);

@@ -6,7 +6,6 @@
  */
 
 import { enhancedCircuitBreaker } from './enhanced-circuit-breaker';
-import { rateLimitTracker, RateLimitEvent } from './rate-limit-tracker';
 import { executeRedisCommand } from './redis';
 import { generateCacheKey, CACHE_PREFIXES } from './redis-cache';
 import { isRedisEnabled } from './feature-toggles';

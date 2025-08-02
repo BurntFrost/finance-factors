@@ -168,7 +168,7 @@ export class RedisFallbackService {
           const { isRedisAvailable } = await import('./redis');
           if (await isRedisAvailable()) {
             const result = await redisOperation();
-            this.deactivateFallback('Redis recovered');
+            this.deactivateFallback();
             return result;
           }
         } catch (_error) {

@@ -224,35 +224,6 @@ function getProviderFromDataType(dataType: string): string {
   return primaryProvider || 'UNKNOWN';
 }
 
-
-
-function shouldAllowRequest(circuitBreaker: CircuitBreakerInfo | undefined): boolean {
-  if (!circuitBreaker) return true;
-
-  const now = new Date();
-
-  switch (circuitBreaker.state) {
-    case 'closed':
-      return true;
-    case 'open':
-      // Check if recovery timeout has passed
-      if (circuitBreaker.nextRetryTime && now >= circuitBreaker.nextRetryTime) {
-        return true; // Allow one request to test if service is recovered
-      }
-      return false;
-    case 'rate-limited':
-      // For rate-limited providers, check the rate limit retry time
-      if (circuitBreaker.rateLimitRetryTime && now >= circuitBreaker.rateLimitRetryTime) {
-        return true; // Rate limit period has passed, allow retry
-      }
-      return false; // Still in rate limit period
-    case 'half-open':
-      return true; // Allow limited requests in half-open state
-    default:
-      return true;
-  }
-}
-
 // function shouldImmediatelyFallback(error: string, apiResponse?: any): boolean {
 //   // Immediately fall back for rate limit errors
 //   if (isRateLimitError(error, apiResponse)) {
@@ -721,13 +692,11 @@ export function AutomaticDataSourceProvider({
       rateLimitLogger.logEvent({
         provider,
         dataType,
-        eventType: 'circuit_breaker_block',
+        eventType: 'circuit_breaker_open',
         success: false,
         error: circuitBreakerCheck.reason,
         metadata: {
           circuitBreakerState: circuitBreakerCheck.state,
-          nextRetryTime: circuitBreakerCheck.nextRetryTime?.toISOString(),
-          cooldownExpiresAt: circuitBreakerCheck.cooldownExpiresAt?.toISOString(),
         },
       });
 
@@ -824,7 +793,7 @@ export function AutomaticDataSourceProvider({
       // Remove from pending requests
       dispatch({ type: 'REMOVE_PENDING_REQUEST', payload: requestKey });
     }
-  }, [updateCircuitBreaker, updateProviderHealth, state.circuitBreakers, state.pendingRequests]); // Include state dependencies
+  }, [updateCircuitBreaker, updateProviderHealth, state.pendingRequests]); // Include state dependencies
 
   // Fetch historical data as fallback
   const fetchHistoricalData = useCallback(async <T = unknown>(
