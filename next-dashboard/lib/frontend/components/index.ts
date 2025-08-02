@@ -13,8 +13,8 @@ export * from './ResizableChartContainer';
 export * from './DataTable';
 export * from './SummaryCard';
 export * from './ChartSkeleton';
-export * from './IsolationTestComponent';
-export * from './DataComparisonTool';
+// Removed unused test component: IsolationTestComponent
+// Removed unused component: DataComparisonTool
 export * from './DashboardCustomizationPanel';
 
 // Additional components

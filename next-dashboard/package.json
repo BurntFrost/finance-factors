@@ -19,9 +19,7 @@
     "vercel:env": "vercel env ls",
     "vercel:logs": "vercel logs",
     "test:apis": "node scripts/test-apis.js",
-    "test:proxy": "node test-proxy.js",
-    "test:house-prices": "node test-house-prices.js",
-    "test:deployment": "node test-deployment-ready.js",
+
     "test:health": "node scripts/test-health-checks.js",
     "test:health:verbose": "node scripts/test-health-checks.js --verbose",
     "test:health:production": "TEST_BASE_URL=https://finance-factors.vercel.app node scripts/test-health-checks.js",

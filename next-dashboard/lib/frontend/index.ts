@@ -17,8 +17,8 @@ export * from './components/ResizableChartContainer';
 export * from './components/DataTable';
 export * from './components/SummaryCard';
 export * from './components/ChartSkeleton';
-export * from './components/IsolationTestComponent';
-export * from './components/DataComparisonTool';
+// Removed unused test component: IsolationTestComponent
+// Removed unused component: DataComparisonTool
 export * from './components/DashboardCustomizationPanel';
 
 // UI Components
