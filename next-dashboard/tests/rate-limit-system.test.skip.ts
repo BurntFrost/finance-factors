@@ -22,6 +22,11 @@ jest.mock('../lib/backend/lib/feature-toggles', () => ({
   isRedisEnabled: jest.fn().mockReturnValue(false), // Use in-memory for tests
 }));
 
+// Mock fetch for frontend service interactions
+const mockFetch = jest.fn();
+// @ts-ignore
+global.fetch = mockFetch;
+
 describe('Rate Limit System Integration Tests', () => {
   const testProvider = 'FRED';
   const testDataType = 'treasury-2y';

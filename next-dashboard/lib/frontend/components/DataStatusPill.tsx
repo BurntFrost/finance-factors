@@ -217,6 +217,7 @@ export default function DataStatusPill({
         borderColor: `${config.color}40`
       } as React.CSSProperties}
       title={getTooltipText()}
+      data-testid="data-status-pill"
     >
       <span className={styles.icon}>{config.icon}</span>
       <span className={styles.label}>{config.label}</span>

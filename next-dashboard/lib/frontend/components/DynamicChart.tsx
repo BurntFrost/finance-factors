@@ -105,6 +105,13 @@ export default function DynamicChart({
     }
   }, [onChartReady]);
 
+  // Ensure the chart instance is provided once the component is ready
+  useEffect(() => {
+    if (chartRef.current && isChartReady) {
+      handleChartReady(chartRef.current);
+    }
+  }, [isChartReady, handleChartReady]);
+
   // Wait for Chart.js to be properly registered
   useEffect(() => {
     const checkChartRegistration = async () => {

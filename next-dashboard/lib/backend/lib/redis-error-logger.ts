@@ -383,7 +383,7 @@ export class RedisErrorLogger {
    * Check if Redis is experiencing high error rate
    */
   public isHighErrorRate(threshold: number = 0.5): boolean {
-    return this.metrics.errorRate > threshold && this.metrics.totalOperations > 10;
+    return this.metrics.errorRate > threshold && this.metrics.totalOperations >= 10;
   }
 
   /**

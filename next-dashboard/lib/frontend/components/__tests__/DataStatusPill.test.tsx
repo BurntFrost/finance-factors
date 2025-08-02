@@ -51,10 +51,10 @@ describe('DataStatusPill', () => {
 
   it('applies correct size classes', () => {
     const { rerender } = render(<DataStatusPill status="historical" size="small" />);
-    expect(screen.getByRole('generic')).toHaveClass('small');
+    expect(screen.getByTestId('data-status-pill')).toHaveClass('small');
 
     rerender(<DataStatusPill status="historical" size="large" />);
-    expect(screen.getByRole('generic')).toHaveClass('large');
+    expect(screen.getByTestId('data-status-pill')).toHaveClass('large');
   });
 });
 
