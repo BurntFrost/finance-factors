@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import { DashboardElement } from '@/shared/types/dashboard';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import styles from './ResizableChartContainer.module.css';
@@ -113,9 +113,9 @@ export default function ResizableChartContainer({
       className={`${styles.resizableContainer} ${isResizing ? styles.resizing : ''}`}
       data-resize-direction={resizeDirection}
     >
-      <PanelGroup direction="horizontal" className={styles.panelGroup}>
+      <PanelGroup orientation="horizontal" className={styles.panelGroup}>
         <Panel
-          ref={panelRef}
+          panelRef={panelRef}
           className={styles.chartPanel}
           minSize={20}
           defaultSize={100}
@@ -224,12 +224,12 @@ export function ResizableDashboardGrid({
       </div>
 
       <PanelGroup
-        direction="vertical"
+        orientation="vertical"
         className={styles.mainPanelGroup}
       >
         {/* Top row */}
         <Panel defaultSize={50} minSize={20}>
-          <PanelGroup direction="horizontal">
+          <PanelGroup orientation="horizontal">
             {elements.slice(0, Math.ceil(elements.length / 2)).map((element, index) => (
               <React.Fragment key={element.id}>
                 <Panel defaultSize={50} minSize={20}>
@@ -253,7 +253,7 @@ export function ResizableDashboardGrid({
             <PanelResizeHandle className={styles.resizeHandle} />
             {/* Bottom row */}
             <Panel defaultSize={50} minSize={20}>
-              <PanelGroup direction="horizontal">
+              <PanelGroup orientation="horizontal">
                 {elements.slice(Math.ceil(elements.length / 2)).map((element, index) => (
                   <React.Fragment key={element.id}>
                     <Panel defaultSize={50} minSize={20}>

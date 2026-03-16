@@ -8,9 +8,11 @@
 import { PrismaClient } from '../../../app/generated/prisma';
 import { isPrismaEnabled } from './feature-toggles';
 
+type ExtendedPrismaClient = ReturnType<typeof createPrismaClient>;
+
 // Global variable to store the Prisma client instance
 declare global {
-  var __prisma: PrismaClient | undefined | null;
+  var __prisma: ExtendedPrismaClient | undefined | null;
 }
 
 // Prisma client configuration for optimal performance
@@ -34,64 +36,52 @@ const prismaClientConfig = {
  * Create Prisma client with performance optimizations
  */
 function createPrismaClient() {
-  const client = new PrismaClient(prismaClientConfig);
+  const baseClient = new PrismaClient(prismaClientConfig);
 
-  // Add connection monitoring middleware
-  client.$use(async (params, next) => {
-    const start = Date.now();
+  // Use $extends (replaces deprecated $use middleware) for query monitoring
+  const client = baseClient.$extends({
+    query: {
+      $allModels: {
+        async $allOperations({ model, operation, args, query }) {
+          const start = Date.now();
 
-    try {
-      const result = await next(params);
-      const duration = Date.now() - start;
+          try {
+            const result = await query(args);
+            const duration = Date.now() - start;
 
-      // Log performance in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(`Query ${params.model}.${params.action} took ${duration}ms`);
+            // Log performance in development
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`Query ${model}.${operation} took ${duration}ms`);
 
-        // Log slow queries (>1000ms)
-        if (duration > 1000) {
-          console.warn(`Slow query detected: ${params.model}.${params.action} (${duration}ms)`);
-        }
-      }
+              // Log slow queries (>1000ms)
+              if (duration > 1000) {
+                console.warn(`Slow query detected: ${model}.${operation} (${duration}ms)`);
+              }
+            }
 
-      return result;
-    } catch (error) {
-      const duration = Date.now() - start;
-      console.error(`Query ${params.model}.${params.action} failed after ${duration}ms:`, error);
-      throw error;
-    }
-  });
+            return result;
+          } catch (error) {
+            const duration = Date.now() - start;
+            const errorMessage = error instanceof Error ? error.message : String(error);
 
-  // Add error logging middleware with connection error handling
-  client.$use(async (params, next) => {
-    try {
-      return await next(params);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+            // Check for connection limit errors
+            if (errorMessage.includes('too many connections') ||
+                errorMessage.includes('connection limit') ||
+                errorMessage.includes('FATAL: too many connections')) {
+              console.error('Database connection limit reached:', {
+                model, operation, error: errorMessage,
+              });
+              const connectionError = new Error('Database connection limit exceeded');
+              (connectionError as any).code = 'CONNECTION_LIMIT_EXCEEDED';
+              throw connectionError;
+            }
 
-      // Check for connection limit errors
-      if (errorMessage.includes('too many connections') ||
-          errorMessage.includes('connection limit') ||
-          errorMessage.includes('FATAL: too many connections')) {
-        console.error('Database connection limit reached:', {
-          model: params.model,
-          action: params.action,
-          error: errorMessage,
-        });
-
-        // For connection limit errors, throw a specific error type
-        const connectionError = new Error('Database connection limit exceeded');
-        (connectionError as any).code = 'CONNECTION_LIMIT_EXCEEDED';
-        throw connectionError;
-      }
-
-      console.error('Prisma query error:', {
-        model: params.model,
-        action: params.action,
-        error: errorMessage,
-      });
-      throw error;
-    }
+            console.error(`Query ${model}.${operation} failed after ${duration}ms:`, error);
+            throw error;
+          }
+        },
+      },
+    },
   });
 
   return client;

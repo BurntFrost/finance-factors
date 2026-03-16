@@ -6,8 +6,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 interface LazyComponentLoaderProps {
   children: ReactNode;
   fallback?: ReactNode;
-  errorFallback?: ComponentType<{ error: Error; resetErrorBoundary: () => void }>;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  errorFallback?: ComponentType<{ error: unknown; resetErrorBoundary: () => void }>;
+  onError?: (error: unknown, errorInfo: ErrorInfo) => void;
 }
 
 // Default loading skeleton
@@ -25,12 +25,12 @@ const DefaultLoadingSkeleton = React.memo(function DefaultLoadingSkeleton() {
 });
 
 // Default error fallback
-const DefaultErrorFallback = React.memo(function DefaultErrorFallback({ 
-  error, 
-  resetErrorBoundary 
-}: { 
-  error: Error; 
-  resetErrorBoundary: () => void; 
+const DefaultErrorFallback = React.memo(function DefaultErrorFallback({
+  error,
+  resetErrorBoundary
+}: {
+  error: unknown;
+  resetErrorBoundary: () => void;
 }) {
   return (
     <div className="border border-red-200 rounded-lg p-6 bg-red-50">
@@ -38,7 +38,7 @@ const DefaultErrorFallback = React.memo(function DefaultErrorFallback({
         Something went wrong
       </h3>
       <p className="text-red-600 mb-4">
-        {error.message || 'An unexpected error occurred'}
+        {error instanceof Error ? error.message : 'An unexpected error occurred'}
       </p>
       <button
         onClick={resetErrorBoundary}
@@ -68,7 +68,7 @@ export const LazyComponentLoader = React.memo(function LazyComponentLoader({
 }: LazyComponentLoaderProps) {
   // Memoize error handler to prevent recreation
   const handleError = useMemo(() => {
-    return onError || ((error: Error, errorInfo: ErrorInfo) => {
+    return onError || ((error: unknown, errorInfo: ErrorInfo) => {
       console.error('LazyComponentLoader error:', error, errorInfo);
     });
   }, [onError]);
@@ -98,7 +98,7 @@ export function withLazyLoading<P extends object>(
   importFn: () => Promise<{ default: ComponentType<P> }>,
   options: {
     fallback?: ReactNode;
-    errorFallback?: ComponentType<{ error: Error; resetErrorBoundary: () => void }>;
+    errorFallback?: ComponentType<{ error: unknown; resetErrorBoundary: () => void }>;
     displayName?: string;
   } = {}
 ) {

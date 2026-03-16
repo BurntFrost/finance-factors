@@ -125,7 +125,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `${context.dataset.label}: ${formatters.index(context.parsed.y)}`,
+      label: (context) => `${context.dataset.label}: ${formatters.index(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'Case-Shiller U.S. National Home Price Index',
     },
     legend: {
@@ -160,7 +160,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `${context.dataset.label}: ${formatters.currencyDetailed(context.parsed.y)}/hour`,
+      label: (context) => `${context.dataset.label}: ${formatters.currencyDetailed(context.parsed.y ?? 0)}/hour`,
       afterLabel: (_context) => 'All employees, total nonfarm',
     },
     legend: {
@@ -195,7 +195,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `CPI: ${formatters.index(context.parsed.y)}`,
+      label: (context) => `CPI: ${formatters.index(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'All Urban Consumers (CPI-U)',
     },
     legend: {
@@ -230,7 +230,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `Core Inflation: ${formatters.rate(context.parsed.y)}`,
+      label: (context) => `Core Inflation: ${formatters.rate(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'Year-over-year change, excluding food & energy',
     },
     legend: {
@@ -265,7 +265,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `Fed Assets: $${formatters.decimal(context.parsed.y / 1000, 2)}T`,
+      label: (context) => `Fed Assets: $${formatters.decimal((context.parsed.y ?? 0) / 1000, 2)}T`,
       afterLabel: (_context) => 'Total assets of the Federal Reserve',
     },
     legend: {
@@ -300,7 +300,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `Fed Funds Rate: ${formatters.rate(context.parsed.y)}`,
+      label: (context) => `Fed Funds Rate: ${formatters.rate(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'Federal funds effective rate',
     },
     legend: {
@@ -335,7 +335,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `Unemployment: ${formatters.rate(context.parsed.y)}`,
+      label: (context) => `Unemployment: ${formatters.rate(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'Civilian unemployment rate, seasonally adjusted',
     },
     legend: {
@@ -370,7 +370,7 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
     },
     tooltip: {
       title: (context) => `${context[0].label}`,
-      label: (context) => `Cost Index: ${formatters.index(context.parsed.y)}`,
+      label: (context) => `Cost Index: ${formatters.index(context.parsed.y ?? 0)}`,
       afterLabel: (_context) => 'Consumer Price Index - All Urban Consumers',
     },
     legend: {
@@ -401,7 +401,7 @@ export function getAvailableDataTypes(): string[] {
 // Helper function to format tooltip based on data type
 export function formatTooltip(dataType: string, context: TooltipItem<keyof ChartTypeRegistry>): string {
   const config = getChartConfig(dataType);
-  if (!config) return `${context.dataset.label}: ${context.parsed.y}`;
+  if (!config) return `${context.dataset.label}: ${context.parsed.y ?? 0}`;
 
   return config.tooltip.label(context);
 }
