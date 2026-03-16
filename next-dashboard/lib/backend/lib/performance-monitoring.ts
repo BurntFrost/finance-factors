@@ -293,8 +293,11 @@ export class PerformanceMonitor extends EventEmitter {
       return 0;
     }, 30000);
 
-    // CPU usage collector (simplified)
+    // CPU usage collector (Node.js only; process.cpuUsage is not available in browser)
     this.addCollector('cpu.usage_percent', async () => {
+      if (typeof process === 'undefined' || typeof process.cpuUsage !== 'function') {
+        return 0;
+      }
       // This is a simplified CPU usage calculation
       // In production, you'd use a proper CPU monitoring library
       const start = process.cpuUsage();

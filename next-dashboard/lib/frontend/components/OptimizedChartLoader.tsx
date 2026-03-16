@@ -113,16 +113,7 @@ export default function OptimizedChartLoader({
   const chartOptions = useMemo(() => ({
     responsive: true,
     maintainAspectRatio: false,
-    animation: {
-      duration: 750,
-      easing: 'easeInOutQuart' as const,
-      onComplete: function() {
-        // Animation complete callback - ensure proper binding
-      },
-      onProgress: function() {
-        // Animation progress callback - ensure proper binding
-      }
-    },
+    // Omit animation to use Chart.defaults.animation and avoid "this._fn is not a function"
     interaction: {
       intersect: false,
       mode: 'index' as const,

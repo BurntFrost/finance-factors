@@ -66,10 +66,12 @@ async function registerChartJSGlobally(): Promise<void> {
     ChartJS.defaults.borderColor = 'rgba(0, 0, 0, 0.1)';
     ChartJS.defaults.responsive = true;
     ChartJS.defaults.maintainAspectRatio = false;
-    ChartJS.defaults.animation = {
-      duration: 750,
-      easing: 'easeInOutQuart',
-    };
+    // Mutate existing animation config instead of replacing it to avoid breaking
+    // Chart.js internal animation tick callback (_fn), which causes "this._fn is not a function"
+    if (typeof ChartJS.defaults.animation === 'object' && ChartJS.defaults.animation !== null) {
+      (ChartJS.defaults.animation as Record<string, unknown>).duration = 750;
+      (ChartJS.defaults.animation as Record<string, unknown>).easing = 'easeInOutQuart';
+    }
 
     // Verify time scale is available
     if (ChartJS.registry && ChartJS.registry.getScale('time')) {

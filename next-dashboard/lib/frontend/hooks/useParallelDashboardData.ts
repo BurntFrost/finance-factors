@@ -103,7 +103,7 @@ export function useParallelDashboardData<T = ChartData>(
         setDataSourceStatus(prev => ({ ...prev, [dataType]: sourceStatus }));
         console.log(`✅ Parallel fetch completed for ${dataType}:`, {
           source: response.source,
-          timestamp: response.timestamp,
+          timestamp: ts ?? new Date(),
           dataType: typeof response.data,
           hasLabels: !!(response.data as any)?.labels,
           hasDatasets: !!(response.data as any)?.datasets,

@@ -104,10 +104,8 @@ export function getInteractiveChartOptions(
   const interactiveOptions: InteractiveChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    animation: {
-      duration: 750,
-      easing: 'easeInOutQuart',
-    },
+    // Do not pass a partial animation object here; it can overwrite Chart.js internals
+    // and cause "this._fn is not a function". Use Chart.defaults.animation (set in ChartRegistration) instead.
     interaction: {
       mode: 'index',
       intersect: false,

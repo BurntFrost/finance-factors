@@ -22,7 +22,6 @@ import ChartSkeleton from './ChartSkeleton';
 import DataFetchErrorBoundary from './DataFetchErrorBoundary';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
 import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
-import { formatLastUpdatedTime } from '@/frontend/lib/utils';
 import styles from './AutomaticChart.module.css';
 
 function formatSummaryValue(value: number): string {
@@ -499,13 +498,10 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
         )}
       </div>
 
-      {/* Footer: data source and last updated (no refresh button) */}
+      {/* Footer: data source only (last updated shown by refresh button when present) */}
       {displayData && (
         <div className={styles.footer}>
           <div className={styles.dataInfo}>
-            <span className={styles.timestamp}>
-              Last updated: {formatLastUpdatedTime(lastUpdated)}
-            </span>
             <span className={styles.source}>
               {displayStatus === 'historical-fallback' ? 'Source: Sample data' : 'Source: Up-to-date data'}
             </span>

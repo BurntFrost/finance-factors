@@ -16,6 +16,13 @@ interface ProxyRequestData {
   useCache: boolean;
 }
 
+/** Parse value to valid Date or fallback to now (avoids Invalid Date from JSON/undefined). */
+function parseTimestamp(value: string | Date | null | undefined): Date {
+  if (value == null) return new Date();
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return Number.isNaN(d.getTime()) ? new Date() : d;
+}
+
 export interface ProxyApiResponse<T = unknown> {
   data: T | null;
   success: boolean;
@@ -129,19 +136,27 @@ class ProxyApiService {
 
       const proxyResponse: ProxyApiResponse<T> = await response.json();
 
+      // Parse timestamps safely (JSON can leave them string/undefined; avoid Invalid Date)
+      const timestamp = parseTimestamp(proxyResponse.timestamp);
+      const resetTime = proxyResponse.metadata?.rateLimit?.resetTime != null
+        ? parseTimestamp(proxyResponse.metadata.rateLimit.resetTime)
+        : new Date(Date.now() + 60000);
+
       // Convert proxy response to frontend ApiResponse format
       return {
         data: proxyResponse.data as T,
         success: proxyResponse.success,
         error: proxyResponse.error,
-        timestamp: new Date(proxyResponse.timestamp),
+        timestamp,
         source: proxyResponse.source,
         metadata: proxyResponse.metadata ? {
           totalRecords: proxyResponse.metadata.totalRecords,
-          rateLimit: proxyResponse.metadata.rateLimit ? {
-            remaining: proxyResponse.metadata.rateLimit.remaining,
-            resetTime: new Date(proxyResponse.metadata.rateLimit.resetTime),
-          } : undefined,
+          rateLimit: proxyResponse.metadata.rateLimit
+            ? {
+                remaining: proxyResponse.metadata.rateLimit.remaining,
+                resetTime,
+              }
+            : undefined,
         } : undefined,
       };
 
