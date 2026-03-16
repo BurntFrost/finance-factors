@@ -45,6 +45,7 @@ interface ChartSlotProps {
   chartData: ChartData | null;
   chartError: string | null;
   chartLastUpdated: Date | null;
+  dataSourceStatusFromParent: 'live' | 'historical-fallback' | null;
   enableRealTime: boolean;
   refreshInterval?: number;
   onRemove: (chartId: string) => void;
@@ -74,6 +75,7 @@ const ChartSlot = memo(function ChartSlot({
             indicatorPosition="top-right"
             refreshInterval={enableRealTime ? refreshInterval : undefined}
             fallbackData={chartData}
+            dataSourceStatusFromParent={dataSourceStatusFromParent ?? undefined}
             onRemove={() => onRemove(chart.id)}
             showVisualizationSwitcher={true}
             enableRealTime={enableRealTime}
@@ -112,6 +114,7 @@ export default function ParallelDashboard({
   // Use parallel data fetching hook
   const {
     data,
+    dataSourceStatus,
     isLoading,
     errors,
     lastUpdated,
@@ -191,6 +194,7 @@ export default function ParallelDashboard({
               chartData={data[chart.dataType] as ChartData | null}
               chartError={errors[chart.dataType]}
               chartLastUpdated={lastUpdated[chart.dataType]}
+              dataSourceStatusFromParent={dataSourceStatus[chart.dataType]}
               enableRealTime={enableRealTime}
               refreshInterval={refreshInterval}
               onRemove={handleRemoveChart}

@@ -18,8 +18,11 @@ export interface DashboardDataRequest {
   options?: Omit<DataFetchOptions, 'dataType'>;
 }
 
+export type DataSourceStatusFromApi = 'live' | 'historical-fallback';
+
 export interface ParallelDashboardResult<T = ChartData> {
   data: Record<string, T | null>;
+  dataSourceStatus: Record<string, DataSourceStatusFromApi | null>;
   isLoading: boolean;
   errors: Record<string, string | null>;
   lastUpdated: Record<string, Date | null>;
@@ -60,6 +63,9 @@ export function useParallelDashboardData<T = ChartData>(
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>(() =>
     requests.reduce((acc, req) => ({ ...acc, [req.dataType]: false }), {})
   );
+  const [dataSourceStatus, setDataSourceStatus] = useState<Record<string, DataSourceStatusFromApi | null>>(() =>
+    requests.reduce((acc, req) => ({ ...acc, [req.dataType]: null }), {})
+  );
 
   // Refs for cleanup and interval management
   const isMountedRef = useRef(true);
@@ -93,6 +99,8 @@ export function useParallelDashboardData<T = ChartData>(
         setData(prev => ({ ...prev, [dataType]: response.data }));
         const ts = parseSafeDate(response.timestamp);
         setLastUpdated(prev => ({ ...prev, [dataType]: ts ?? new Date() }));
+        const sourceStatus: DataSourceStatusFromApi = response.metadata?.isFallback === true ? 'historical-fallback' : 'live';
+        setDataSourceStatus(prev => ({ ...prev, [dataType]: sourceStatus }));
         console.log(`✅ Parallel fetch completed for ${dataType}:`, {
           source: response.source,
           timestamp: response.timestamp,
@@ -232,6 +240,7 @@ export function useParallelDashboardData<T = ChartData>(
 
   return {
     data,
+    dataSourceStatus,
     isLoading,
     errors,
     lastUpdated,

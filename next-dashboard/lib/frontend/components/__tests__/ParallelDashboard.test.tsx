@@ -46,6 +46,7 @@ const { useStandardDashboardData } = require('../../hooks/useParallelDashboardDa
 describe('ParallelDashboard Progress Bar Fix', () => {
   const mockHookReturn = {
     data: {},
+    dataSourceStatus: {} as Record<string, 'live' | 'historical-fallback' | null>,
     isLoading: false,
     errors: {},
     lastUpdated: {},

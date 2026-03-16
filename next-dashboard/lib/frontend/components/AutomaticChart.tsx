@@ -45,6 +45,8 @@ export interface AutomaticChartProps {
   indicatorPosition?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
   refreshInterval?: number;
   fallbackData?: ChartData;
+  /** When data is provided by parent (e.g. parallel fetch), use this for the indicator instead of inferring from hook. */
+  dataSourceStatusFromParent?: 'live' | 'historical-fallback';
   onDataChange?: (data: ChartData | null, status: string) => void;
   onRemove?: () => void;
   showVisualizationSwitcher?: boolean;
@@ -72,6 +74,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
   indicatorPosition = 'top-right',
   refreshInterval,
   fallbackData,
+  dataSourceStatusFromParent,
   onDataChange,
   onRemove,
   showVisualizationSwitcher = true,
@@ -124,13 +127,15 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
 
   // Determine which data to use - WebSocket data takes priority, then fetched data, then fallback data
   const rawDisplayData = enableRealTime && wsData ? wsData : (data || fallbackData);
-  // When we have display data but hook is still "loading" (e.g. fallbackData passed, autoFetch false), don't show spinner
+  // When we have display data but hook is still "loading" (e.g. fallbackData passed, autoFetch false), use parent's status if provided
   const displayStatus =
     enableRealTime && wsConnected
       ? 'live'
-      : status === 'loading' && rawDisplayData && !isLoading
-        ? (fallbackData ? 'historical-fallback' : 'live')
-        : status;
+      : dataSourceStatusFromParent != null && fallbackData
+        ? dataSourceStatusFromParent
+        : status === 'loading' && rawDisplayData && !isLoading
+          ? (fallbackData ? 'historical-fallback' : 'live')
+          : status;
   const _displayStatus = displayStatus;
   const _displayError = enableRealTime ? _wsError : error?.message;
 
@@ -287,13 +292,13 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
       title,
       data: displayData,
       config: {},
-      isRealData: enableRealTime ? wsConnected : (status !== 'historical-fallback'),
-      dataSource: enableRealTime && wsConnected ? 'WebSocket' : (status === 'historical-fallback' ? 'Historical Data' : 'API'),
+      isRealData: enableRealTime ? wsConnected : (displayStatus !== 'historical-fallback'),
+      dataSource: enableRealTime && wsConnected ? 'WebSocket' : (displayStatus === 'historical-fallback' ? 'Historical Data' : 'API'),
       createdAt: new Date(),
       updatedAt: displayLastUpdated || new Date(),
       lastUpdated: displayLastUpdated || undefined,
     };
-  }, [dataType, currentChartType, title, displayData, enableRealTime, wsConnected, status, wsLastUpdate, lastUpdated, fallbackData]);
+  }, [dataType, currentChartType, title, displayData, enableRealTime, wsConnected, displayStatus, wsLastUpdate, lastUpdated, fallbackData]);
 
   // Handle export completion
   const _handleExportComplete = React.useCallback((format: string) => {
