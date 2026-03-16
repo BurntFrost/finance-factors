@@ -70,6 +70,7 @@ export default SummaryCard;
 // Grid container for multiple summary cards
 interface SummaryCardGridProps {
   title: string;
+  subtitle?: string;
   cards: SummaryCardData[];
   dataType?: string;
   onRemove?: () => void;
@@ -79,6 +80,7 @@ interface SummaryCardGridProps {
 
 export const SummaryCardGrid = React.memo(function SummaryCardGrid({
   title,
+  subtitle,
   cards,
   dataType,
   onRemove,
@@ -108,20 +110,27 @@ export const SummaryCardGrid = React.memo(function SummaryCardGrid({
 
   return (
     <Card className="relative transition-all duration-200 hover:shadow-md h-full flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div className="flex items-center space-x-3">
-          <CardTitle className="text-lg font-semibold text-foreground">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-4">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <CardTitle className="text-lg font-semibold tracking-tight text-foreground leading-tight">
             {title}
           </CardTitle>
-          <ModernStatusPill
-            status={dataStatus}
-            lastUpdated={latestUpdate}
-            size="sm"
-            showTimestamp={false}
-          />
+          {subtitle && (
+            <p className="text-sm text-muted-foreground leading-snug mt-0.5" title={subtitle}>
+              {subtitle}
+            </p>
+          )}
+          <div className="flex items-center gap-2 mt-1">
+            <ModernStatusPill
+              status={dataStatus}
+              lastUpdated={latestUpdate}
+              size="sm"
+              showTimestamp={false}
+            />
+          </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           {dataType && onVisualizationChange && (
             <VisualizationTypeSwitcher
               dataType={dataType}

@@ -336,9 +336,10 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
       {/* Chart header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
-          <h3 className={styles.title}>{title}</h3>
+          <h2 className={styles.title}>{title}</h2>
           {CHART_PLAIN_DESCRIPTIONS[dataType] && (
             <p className={styles.plainSubtitle} title={CHART_PLAIN_DESCRIPTIONS[dataType]}>
+              <span className={styles.subtitleLabel}>What it means: </span>
               {CHART_PLAIN_DESCRIPTIONS[dataType]}
             </p>
           )}

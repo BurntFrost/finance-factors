@@ -8,6 +8,7 @@ import AutomaticChart from './AutomaticChart';
 import DataTable from './DataTable';
 import { SummaryCardGrid } from './SummaryCard';
 import { convertVisualizationData } from '@/shared/utils/dataConverter';
+import { CHART_PLAIN_DESCRIPTIONS } from '@/shared/constants/plainLanguageCopy';
 import { visualizationPreferences } from '@/shared/utils/localStorage';
 import { useDashboard } from '@/frontend/context/DashboardContext';
 import { useCrossfilter } from '@/frontend/context/CrossfilterContext';
@@ -234,6 +235,7 @@ const DynamicElementRenderer = React.memo(function DynamicElementRenderer({ elem
       return (
         <SummaryCardGrid
           title={element.title}
+          subtitle={element.dataType ? CHART_PLAIN_DESCRIPTIONS[element.dataType] : undefined}
           cards={element.data}
           dataType={element.dataType}
           onRemove={handleRemove}

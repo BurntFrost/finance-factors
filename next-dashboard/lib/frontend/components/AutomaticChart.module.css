@@ -15,8 +15,9 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 1rem 1.5rem 0.5rem;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  gap: 1rem;
 }
 
 .titleBlock {
@@ -26,17 +27,25 @@
 
 .title {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  letter-spacing: -0.01em;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.subtitleLabel {
+  font-weight: 500;
+  color: #6b7280;
 }
 
 .plainSubtitle {
-  margin: 0.25rem 0 0;
-  font-size: 0.8125rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
   font-weight: 400;
-  color: #6b7280;
-  line-height: 1.35;
+  color: #4b5563;
+  line-height: 1.4;
+  max-width: 42rem;
 }
 
 /* Data summary: key values at a glance; encourages hover for exact values */

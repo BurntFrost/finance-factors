@@ -6,6 +6,7 @@ import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
 import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import { TableCard } from './ui/table-card';
+import { CHART_PLAIN_DESCRIPTIONS } from '@/shared/constants/plainLanguageCopy';
 
 interface DataTableProps {
   title: string;
@@ -151,9 +152,12 @@ const DataTable = React.memo(function DataTable({
     </>
   );
 
+  const subtitle = dataType ? CHART_PLAIN_DESCRIPTIONS[dataType] : undefined;
+
   return (
     <TableCard
       title={title}
+      subtitle={subtitle}
       status={dataStatus}
       lastUpdated={data.lastUpdated}
       isEditable={isEditMode}

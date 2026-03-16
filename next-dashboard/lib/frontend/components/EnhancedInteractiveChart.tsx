@@ -15,6 +15,7 @@ import VisualizationTypeSwitcher from './VisualizationTypeSwitcher';
 import ExportMenu from './ExportMenu';
 import { ChartCard } from './ui/chart-card';
 import ChartSkeleton from './ChartSkeleton';
+import { CHART_PLAIN_DESCRIPTIONS } from '@/shared/constants/plainLanguageCopy';
 import styles from './EnhancedInteractiveChart.module.css';
 
 // Lazy load Chart.js components
@@ -201,9 +202,12 @@ export default function EnhancedInteractiveChart({
     console.log(`Export completed: ${format} for chart ${title}`);
   }, [title]);
 
+  const subtitle = !hideHeader && dataType ? CHART_PLAIN_DESCRIPTIONS[dataType] : undefined;
+
   return (
     <ChartCard
       title={hideHeader ? "" : title}
+      subtitle={subtitle}
       status={hideHeader ? undefined : dataStatus}
       lastUpdated={hideHeader ? undefined : data.lastUpdated}
       isEditable={isEditMode}

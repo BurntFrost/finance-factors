@@ -52,6 +52,14 @@ async function registerChartJSGlobally(): Promise<void> {
       console.warn('Failed to load chartjs-plugin-zoom:', error);
     }
 
+    // Register crosshair plugin for hover value display
+    try {
+      const { chartCrosshairPlugin } = await import('@/shared/config/chartCrosshairPlugin');
+      ChartJS.register(chartCrosshairPlugin);
+    } catch (error) {
+      console.warn('Failed to load chart crosshair plugin:', error);
+    }
+
     // Set global defaults
     ChartJS.defaults.font.family = 'var(--font-geist-sans), system-ui, sans-serif';
     ChartJS.defaults.color = '#374151';

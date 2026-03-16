@@ -60,6 +60,11 @@ export interface InteractiveChartOptions extends ChartOptions {
         footer?: (tooltipItems: TooltipItem<any>[]) => string | string[];
       };
     };
+    crosshair?: {
+      lineColor?: string;
+      lineWidth?: number;
+      lineDash?: number[];
+    };
     legend?: {
       display: boolean;
       position: 'top' | 'bottom' | 'left' | 'right';
@@ -210,6 +215,11 @@ export function getInteractiveChartOptions(
             return `${tooltipItem.dataset.label}: ${tooltipItem.formattedValue}`;
           }
         },
+      },
+      crosshair: {
+        lineColor: 'rgba(100, 116, 139, 0.6)',
+        lineWidth: 1,
+        lineDash: [4, 4],
       },
       legend: {
         display: baseConfig?.legend?.display ?? true,

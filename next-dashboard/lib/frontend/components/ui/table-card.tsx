@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 interface TableCardProps {
   title: string
+  subtitle?: string
   status?: DataStatus
   lastUpdated?: Date | string
   isEditable?: boolean
@@ -26,6 +27,7 @@ interface TableCardProps {
 
 export function TableCard({
   title,
+  subtitle,
   status,
   lastUpdated,
   isEditable = false,
@@ -47,22 +49,29 @@ export function TableCard({
       )}
     >
       <CardHeader className="flex flex-col space-y-4 pb-4">
-        <div className="flex flex-row items-center justify-between space-y-0">
-          <div className="flex items-center space-x-3">
-            <CardTitle className="text-lg font-semibold text-foreground">
+        <div className="flex flex-row items-start justify-between space-y-0 gap-3">
+          <div className="flex flex-col gap-1 min-w-0 flex-1">
+            <CardTitle className="text-lg font-semibold tracking-tight text-foreground leading-tight">
               {title}
             </CardTitle>
-            {status && (
-              <ModernStatusPill
-                status={status}
-                lastUpdated={lastUpdated}
-                size="sm"
-                showTimestamp={false}
-              />
+            {subtitle && (
+              <p className="text-sm text-muted-foreground leading-snug mt-0.5" title={subtitle}>
+                {subtitle}
+              </p>
             )}
+            <div className="flex items-center gap-2 mt-1">
+              {status && (
+                <ModernStatusPill
+                  status={status}
+                  lastUpdated={lastUpdated}
+                  size="sm"
+                  showTimestamp={false}
+                />
+              )}
+            </div>
           </div>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 shrink-0">
             {headerActions}
             {isEditable && onRemove && (
               <Button
