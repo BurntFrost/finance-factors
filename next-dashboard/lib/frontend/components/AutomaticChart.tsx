@@ -87,7 +87,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
   onDataPointClick,
   onDataPointHover,
   showInteractiveControls = false,
-  showFooterRefresh = false,
+  showFooterRefresh: _showFooterRefresh = false,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);

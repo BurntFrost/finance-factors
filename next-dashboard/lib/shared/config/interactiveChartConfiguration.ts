@@ -44,6 +44,15 @@ export interface InteractiveChartOptions extends ChartOptions {
       mode: 'index' | 'dataset' | 'point' | 'nearest' | 'x' | 'y';
       intersect: boolean;
       position: 'average' | 'nearest';
+      backgroundColor?: string;
+      titleColor?: string;
+      bodyColor?: string;
+      borderColor?: string;
+      borderWidth?: number;
+      cornerRadius?: number;
+      padding?: number;
+      displayColors?: boolean;
+      boxPadding?: number;
       callbacks?: {
         title?: (tooltipItems: TooltipItem<any>[]) => string | string[];
         label?: (tooltipItem: TooltipItem<any>) => string | string[];

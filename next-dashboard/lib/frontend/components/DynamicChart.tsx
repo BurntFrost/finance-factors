@@ -222,8 +222,6 @@ const DynamicChart = memo(function DynamicChart({
   }, [type, dataType, enableZoom, enablePan, enableCrossfilter, onDataPointClick, onDataPointHover, config]);
 
   const renderChart = () => {
-    const options = chartOptions;
-
     const commonProps = {
       ref: setChartRef,
       data,
