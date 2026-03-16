@@ -39,6 +39,54 @@
   line-height: 1.35;
 }
 
+/* Data summary: key values at a glance; encourages hover for exact values */
+.dataSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-top: 0.5rem;
+  padding: 0.375rem 0.5rem;
+  background: #f8fafc;
+  border-radius: 0.375rem;
+  border: 1px solid #e2e8f0;
+  font-size: 0.8125rem;
+  color: #475569;
+}
+
+.dataSummaryItem {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.dataSummaryLabel {
+  font-weight: 500;
+  color: #64748b;
+}
+
+.dataSummaryValue {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dataSummaryMeta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.dataSummaryDivider {
+  color: #cbd5e1;
+  user-select: none;
+}
+
+.dataSummaryHint {
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: #94a3b8;
+}
+
 .actions {
   display: flex;
   align-items: center;

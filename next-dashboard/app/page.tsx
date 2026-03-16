@@ -234,10 +234,10 @@ export default function Home() {
                 enableRealTime={enableRealTime}
                 showRealTimeIndicator={enableRealTime}
                 // Enhanced interactive features enabled by default
-                enableZoom={true}
-                enablePan={true}
+                enableZoom={false}
+                enablePan={false}
                 enableCrossfilter={false}
-                showInteractiveControls={true}
+                showInteractiveControls={false}
                 onDataPointClick={(dataPoint, chart) => {
                   console.log(`Chart ${chart.id} data point clicked:`, dataPoint, chart);
                 }}

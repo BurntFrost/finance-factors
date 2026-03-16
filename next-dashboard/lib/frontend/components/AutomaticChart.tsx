@@ -8,9 +8,8 @@
  * visual indicators and retry functionality.
  */
 
-import React, { Suspense, useRef, useCallback, useState, memo } from 'react';
+import React, { Suspense, useRef, useCallback, useState, useMemo, memo } from 'react';
 import type { Chart } from 'chart.js';
-import { ZoomIn, ZoomOut, Hand, Home } from 'lucide-react';
 import { useAutomaticDataSource } from '@/frontend/hooks/useAutomaticDataSource';
 // import { useWebSocket } from '@/backend/services/websocketService'; // Temporarily disabled for SSR
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
@@ -22,15 +21,14 @@ import ExportMenu from './ExportMenu';
 import ChartSkeleton from './ChartSkeleton';
 import DataFetchErrorBoundary from './DataFetchErrorBoundary';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
-import {
-  resetChartZoom,
-  zoomChartIn,
-  zoomChartOut,
-  toggleChartPan
-} from '@/shared/config/interactiveChartConfiguration';
 import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
 import { formatLastUpdatedTime } from '@/frontend/lib/utils';
 import styles from './AutomaticChart.module.css';
+
+function formatSummaryValue(value: number): string {
+  if (Number.isInteger(value)) return String(value);
+  return value.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 0 });
+}
 
 // Lazy load the chart component for better performance
 const DynamicChart = React.lazy(() => import('./DynamicChart'));
@@ -59,8 +57,9 @@ export interface AutomaticChartProps {
   enableCrossfilter?: boolean;
   onDataPointClick?: (dataPoint: any, chart: Chart) => void;
   onDataPointHover?: (dataPoint: any, chart: Chart) => void;
+  /** When false, zoom/pan/reset buttons are hidden and chart interaction is hover-only (tooltips). */
   showInteractiveControls?: boolean;
-  // Footer control
+  /** When false, footer refresh button is hidden. Last updated and source still shown. */
   showFooterRefresh?: boolean;
 }
 
@@ -82,23 +81,19 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
   enableRealTime = false,
   showRealTimeIndicator = false,
   // Enhanced interactive features with defaults
-  enableZoom = true,
-  enablePan = true,
+  enableZoom = false,
+  enablePan = false,
   enableCrossfilter = false,
   onDataPointClick,
   onDataPointHover,
-  showInteractiveControls = true,
-  // Footer control with default
-  showFooterRefresh = true,
+  showInteractiveControls = false,
+  showFooterRefresh = false,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);
   const dynamicChartRef = useRef<Chart | null>(null);
   const [currentChartType, setCurrentChartType] = useState(chartType);
   const [isChangingVisualization, setIsChangingVisualization] = useState(false);
-
-  // Interactive chart state (zoom in/out are direct actions; pan is toggled)
-  const [isPanEnabled, setIsPanEnabled] = useState(enablePan);
   const [selectedDataPoints, setSelectedDataPoints] = useState<any[]>([]);
 
   // Use WebSocket for real-time data if enabled (temporarily disabled for SSR)
@@ -190,32 +185,33 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
     }
   }, [onDataPointHover]);
 
-  // Interactive controls handlers
-  const handleResetZoom = useCallback(() => {
-    if (dynamicChartRef.current) {
-      resetChartZoom(dynamicChartRef.current);
-    }
-  }, []);
-
-  const handleZoomIn = useCallback(() => {
-    if (dynamicChartRef.current) {
-      zoomChartIn(dynamicChartRef.current);
-    }
-  }, []);
-
-  const handleZoomOut = useCallback(() => {
-    if (dynamicChartRef.current) {
-      zoomChartOut(dynamicChartRef.current);
-    }
-  }, []);
-
-  const handleTogglePan = useCallback(() => {
-    if (dynamicChartRef.current) {
-      const newPanState = !isPanEnabled;
-      setIsPanEnabled(newPanState);
-      toggleChartPan(dynamicChartRef.current, newPanState);
-    }
-  }, [isPanEnabled]);
+  // Data summary for at-a-glance understanding (line/bar time series)
+  const dataSummary = useMemo(() => {
+    if (!displayData?.datasets?.length || !displayData.labels?.length) return null;
+    const ds = displayData.datasets[0];
+    const values = (ds?.data ?? []).filter((v): v is number => typeof v === 'number');
+    if (values.length === 0) return null;
+    const labels = displayData.labels;
+    const latest = values[values.length - 1];
+    const first = values[0];
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const latestLabel = labels[labels.length - 1];
+    const firstLabel = labels[0];
+    const pctChange = typeof first === 'number' && first !== 0
+      ? (((latest - first) / first) * 100).toFixed(1)
+      : null;
+    const seriesLabel = ds?.label ?? 'Value';
+    return {
+      seriesLabel,
+      latest,
+      latestLabel: String(latestLabel ?? ''),
+      min,
+      max,
+      firstLabel: String(firstLabel ?? ''),
+      pctChange: pctChange != null ? parseFloat(pctChange) : null,
+    };
+  }, [displayData]);
 
   // Handle visualization type changes
   const handleVisualizationChange = React.useCallback(async (newVisualization: VisualizationType) => {
@@ -346,62 +342,44 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
               {CHART_PLAIN_DESCRIPTIONS[dataType]}
             </p>
           )}
+          {/* Data summary: key values at a glance; hover chart for exact values */}
+          {dataSummary && (currentChartType === 'line' || currentChartType === 'bar') && (
+            <div className={styles.dataSummary} role="status" aria-live="polite">
+              <span className={styles.dataSummaryItem}>
+                <span className={styles.dataSummaryLabel}>Latest</span>
+                <span className={styles.dataSummaryValue}>{formatSummaryValue(dataSummary.latest)}</span>
+                {dataSummary.latestLabel && (
+                  <span className={styles.dataSummaryMeta}>({dataSummary.latestLabel})</span>
+                )}
+              </span>
+              <span className={styles.dataSummaryDivider} aria-hidden>·</span>
+              <span className={styles.dataSummaryItem}>
+                <span className={styles.dataSummaryLabel}>Range</span>
+                <span className={styles.dataSummaryValue}>{formatSummaryValue(dataSummary.min)} – {formatSummaryValue(dataSummary.max)}</span>
+              </span>
+              {dataSummary.pctChange != null && (
+                <>
+                  <span className={styles.dataSummaryDivider} aria-hidden>·</span>
+                  <span className={styles.dataSummaryItem}>
+                    <span className={styles.dataSummaryLabel}>Change</span>
+                    <span className={styles.dataSummaryValue}>
+                      {dataSummary.pctChange >= 0 ? '+' : ''}{dataSummary.pctChange}% since {dataSummary.firstLabel}
+                    </span>
+                  </span>
+                </>
+              )}
+              <span className={styles.dataSummaryHint}>Hover over the chart for exact values.</span>
+            </div>
+          )}
         </div>
         
         <div className={styles.actions}>
-          {/* Interactive controls */}
-          {showInteractiveControls && displayData && (
-            <div className={styles.interactiveControls} title={`${enableZoom ? CHART_CONTROL_COPY.zoomHint + '. ' : ''}${CHART_CONTROL_COPY.panHint}.`}>
-              {enableZoom && (
-                <>
-                  <button
-                    type="button"
-                    className={styles.controlButton}
-                    onClick={handleZoomIn}
-                    title={`${CHART_CONTROL_COPY.zoomIn}. ${CHART_CONTROL_COPY.zoomHint}`}
-                    aria-label={CHART_CONTROL_COPY.zoomIn}
-                  >
-                    <ZoomIn className={styles.controlIcon} aria-hidden />
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.controlButton}
-                    onClick={handleZoomOut}
-                    title={`${CHART_CONTROL_COPY.zoomOut}. ${CHART_CONTROL_COPY.zoomHint}`}
-                    aria-label={CHART_CONTROL_COPY.zoomOut}
-                  >
-                    <ZoomOut className={styles.controlIcon} aria-hidden />
-                  </button>
-                </>
-              )}
-              <button
-                type="button"
-                className={`${styles.controlButton} ${isPanEnabled ? styles.active : ''}`}
-                onClick={handleTogglePan}
-                title={`${isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}. ${CHART_CONTROL_COPY.panHint}`}
-                aria-label={isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}
-              >
-                <Hand className={styles.controlIcon} aria-hidden />
-              </button>
-              {(enableZoom || isPanEnabled) && (
-                <button
-                  type="button"
-                  className={styles.controlButton}
-                  onClick={handleResetZoom}
-                  title={CHART_CONTROL_COPY.resetView}
-                  aria-label={CHART_CONTROL_COPY.resetView}
-                >
-                  <Home className={styles.controlIcon} aria-hidden />
-                </button>
-              )}
-              {enableCrossfilter && selectedDataPoints.length > 0 && (
-                <span className={styles.selectionIndicator}>
-                  {selectedDataPoints.length} selected
-                </span>
-              )}
-            </div>
+          {/* Crossfilter selection feedback */}
+          {enableCrossfilter && selectedDataPoints.length > 0 && (
+            <span className={styles.selectionIndicator} role="status" aria-live="polite">
+              {selectedDataPoints.length} selected
+            </span>
           )}
-
           {/* Real-time status indicator */}
           {enableRealTime && showRealTimeIndicator && (
             <RealTimeStatusIndicator
@@ -483,8 +461,8 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
                 onVisualizationChange={showVisualizationSwitcher ? handleVisualizationChange : undefined}
                 onRemove={onRemove}
                 isChangingVisualization={isChangingVisualization}
-                enableZoom={enableZoom}
-                enablePan={isPanEnabled}
+                enableZoom={showInteractiveControls ? enableZoom : false}
+                enablePan={showInteractiveControls ? enablePan : false}
                 enableCrossfilter={enableCrossfilter}
                 onDataPointClick={handleDataPointClick}
                 onDataPointHover={handleDataPointHover}
@@ -520,31 +498,17 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
         )}
       </div>
 
-      {/* Footer with data source info and refresh button */}
-      {displayData && showFooterRefresh && (
+      {/* Footer: data source and last updated (no refresh button) */}
+      {displayData && (
         <div className={styles.footer}>
           <div className={styles.dataInfo}>
             <span className={styles.timestamp}>
               Last updated: {formatLastUpdatedTime(lastUpdated)}
             </span>
-
             <span className={styles.source}>
               {displayStatus === 'historical-fallback' ? 'Source: Sample data' : 'Source: Up-to-date data'}
             </span>
           </div>
-
-          {/* Unified refresh/retry button in footer */}
-          <button
-            className={styles.footerRefreshButton}
-            onClick={handleRefresh}
-            disabled={isLoading}
-            title={displayStatus === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
-            aria-label={displayStatus === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
-          >
-            <span className={isLoading ? styles.spinning : ''}>
-              🔄
-            </span>
-          </button>
         </div>
       )}
     </div>

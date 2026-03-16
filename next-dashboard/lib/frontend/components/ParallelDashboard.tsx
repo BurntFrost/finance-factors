@@ -81,10 +81,10 @@ const ChartSlot = memo(function ChartSlot({
             showVisualizationSwitcher={true}
             enableRealTime={enableRealTime}
             showRealTimeIndicator={enableRealTime}
-            enableZoom={true}
-            enablePan={true}
+            enableZoom={false}
+            enablePan={false}
             enableCrossfilter={false}
-            showInteractiveControls={true}
+            showInteractiveControls={false}
           />
         ) : (
           <div className={styles.loadingState}>

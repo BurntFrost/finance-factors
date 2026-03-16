@@ -160,15 +160,12 @@ const DynamicElementRenderer = React.memo(function DynamicElementRenderer({ elem
             }}
             enableRealTime={true}
             showRealTimeIndicator={true}
-            // Enhanced interactive features enabled by default
-            enableZoom={true}
-            enablePan={true}
+            enableZoom={false}
+            enablePan={false}
             enableCrossfilter={false}
-            showInteractiveControls={true}
-
+            showInteractiveControls={false}
             onDataPointClick={(dataPoint, chart) => {
               console.log('Data point clicked:', dataPoint, chart);
-              // Could add custom click handling here
             }}
           />
         );
@@ -202,12 +199,10 @@ const DynamicElementRenderer = React.memo(function DynamicElementRenderer({ elem
           }}
           enableRealTime={true}
           showRealTimeIndicator={true}
-          // Enhanced interactive features enabled by default
-          enableZoom={true}
-          enablePan={true}
-          enableCrossfilter={true}
-          showInteractiveControls={true}
-
+          enableZoom={false}
+          enablePan={false}
+          enableCrossfilter={false}
+          showInteractiveControls={false}
           onDataPointClick={(dataPoint, chart) => {
             console.log('Data point clicked:', dataPoint, chart);
             if (handleDataPointClick) {
