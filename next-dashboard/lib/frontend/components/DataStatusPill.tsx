@@ -3,6 +3,7 @@
 import React from 'react';
 import styles from './DataStatusPill.module.css';
 import { EnhancedDataSourceStatus, DataSourceConfigManager } from '@/shared/config/dualDataSourceConfig';
+import { STATUS_PLAIN_COPY } from '@/shared/constants/plainLanguageCopy';
 
 export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd' | EnhancedDataSourceStatus;
 
@@ -24,144 +25,49 @@ export default function DataStatusPill({
   showDetails = true
 }: DataStatusPillProps) {
   const getStatusConfig = (status: DataStatus) => {
+    const plain = STATUS_PLAIN_COPY[status];
+    const base = (label: string, icon: string, color: string, description: string) =>
+      ({ label: plain?.label ?? label, icon, color, description: plain?.description ?? description });
+
     switch (status) {
-      // Enhanced live API statuses
       case 'live-fred':
-        return {
-          label: 'FRED Live',
-          icon: '🏦',
-          color: '#28a745',
-          description: 'Live data from Federal Reserve Economic Data (FRED)'
-        };
+        return base('FRED Live', '🏦', '#28a745', 'Up-to-date data from the Federal Reserve.');
       case 'live-bls':
-        return {
-          label: 'BLS Live',
-          icon: '📈',
-          color: '#28a745',
-          description: 'Live data from Bureau of Labor Statistics'
-        };
+        return base('BLS Live', '📈', '#28a745', 'Up-to-date data from the Bureau of Labor Statistics.');
       case 'live-census':
-        return {
-          label: 'Census Live',
-          icon: '🏛️',
-          color: '#28a745',
-          description: 'Live data from U.S. Census Bureau'
-        };
+        return base('Census Live', '🏛️', '#28a745', 'Up-to-date data from the U.S. Census Bureau.');
       case 'live-alpha-vantage':
-        return {
-          label: 'Alpha Vantage Live',
-          icon: '📊',
-          color: '#28a745',
-          description: 'Live financial data from Alpha Vantage'
-        };
+        return base('Alpha Vantage Live', '📊', '#28a745', 'Up-to-date financial data.');
       case 'live-world-bank':
-        return {
-          label: 'World Bank Live',
-          icon: '🌍',
-          color: '#28a745',
-          description: 'Live data from World Bank Open Data'
-        };
+        return base('World Bank Live', '🌍', '#28a745', 'Up-to-date data from the World Bank.');
       case 'live-oecd':
-        return {
-          label: 'OECD Live',
-          icon: '🏛️',
-          color: '#28a745',
-          description: 'Live data from OECD Statistics'
-        };
-      // Fallback statuses
+        return base('OECD Live', '🏛️', '#28a745', 'Up-to-date data from OECD.');
       case 'fallback-cached':
-        return {
-          label: 'Cached Data',
-          icon: '💾',
-          color: '#17a2b8',
-          description: 'Using cached data from previous API calls'
-        };
+        return base('Cached', '💾', '#17a2b8', 'Showing recently saved data.');
       case 'fallback-historical':
-        return {
-          label: 'Historical Data',
-          icon: '📊',
-          color: '#ffc107',
-          description: 'Using historical data generator as fallback'
-        };
+        return base('Sample data', '📊', '#ffc107', 'Showing sample data so you can still explore.');
       case 'fallback-synthetic':
-        return {
-          label: 'Synthetic Data',
-          icon: '🔧',
-          color: '#fd7e14',
-          description: 'Using synthetic data for demonstration'
-        };
-      // Degraded states
+        return base('Sample data', '🔧', '#fd7e14', 'Showing sample data for demonstration.');
       case 'degraded-partial':
-        return {
-          label: 'Partial Data',
-          icon: '⚠️',
-          color: '#ffc107',
-          description: 'Some data sources unavailable, using available sources'
-        };
+        return base('Partial', '⚠️', '#ffc107', 'Some sources unavailable; showing what we have.');
       case 'circuit-breaker-open':
-        return {
-          label: 'Service Unavailable',
-          icon: '🚫',
-          color: '#dc3545',
-          description: 'API temporarily unavailable, circuit breaker active'
-        };
+        return base('Temporarily unavailable', '🚫', '#dc3545', 'Data source is briefly paused; try again soon.');
       case 'rate-limited':
-        return {
-          label: 'Rate Limited',
-          icon: '⏱️',
-          color: '#fd7e14',
-          description: 'API rate limit exceeded, retrying with backoff'
-        };
-      // Legacy compatibility
+        return base('Slowed', '⏱️', '#fd7e14', 'Too many requests; we\'ll retry shortly.');
       case 'recent':
-        return {
-          label: 'Live Data',
-          icon: '🟢',
-          color: '#28a745',
-          description: 'Recently updated data'
-        };
+        return base('Up to date', '🟢', '#28a745', 'Data was updated recently.');
       case 'historical':
-        return {
-          label: 'Historical Data',
-          icon: '📊',
-          color: '#ffc107',
-          description: 'Real historical financial data for analysis'
-        };
+        return base('Sample data', '📊', '#ffc107', 'Sample data for exploration.');
       case 'world-bank':
-        return {
-          label: 'World Bank Data',
-          icon: '🌍',
-          color: '#17a2b8',
-          description: 'Global economic data from World Bank Open Data'
-        };
+        return base('World Bank Data', '🌍', '#17a2b8', 'Global economic data from World Bank.');
       case 'oecd':
-        return {
-          label: 'OECD Data',
-          icon: '🏛️',
-          color: '#6f42c1',
-          description: 'High-quality economic data from OECD Statistics'
-        };
+        return base('OECD Data', '🏛️', '#6f42c1', 'Economic data from OECD.');
       case 'stale':
-        return {
-          label: 'Outdated',
-          icon: '🔴',
-          color: '#dc3545',
-          description: 'Data may be outdated'
-        };
+        return base('Outdated', '🔴', '#dc3545', 'This data may be old.');
       case 'loading':
-        return {
-          label: 'Loading...',
-          icon: '⏳',
-          color: '#6c757d',
-          description: 'Data is being loaded'
-        };
+        return base('Loading…', '⏳', '#6c757d', 'Fetching data…');
       default:
-        return {
-          label: 'Unknown',
-          icon: '❓',
-          color: '#6c757d',
-          description: 'Data status unknown'
-        };
+        return base('Unknown', '❓', '#6c757d', 'Data status unknown.');
     }
   };
 

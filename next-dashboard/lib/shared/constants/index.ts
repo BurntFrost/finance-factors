@@ -36,3 +36,13 @@ export {
   THEME_COLORS,
   SEMANTIC_COLORS,
 } from './colors';
+
+// Plain-language copy for accessible, non-expert UX
+export {
+  DASHBOARD_COPY,
+  CHART_PLAIN_DESCRIPTIONS,
+  DATA_SOURCE_PLAIN_COPY,
+  CHART_CONTROL_COPY,
+  ERROR_COPY,
+  STATUS_PLAIN_COPY,
+} from './plainLanguageCopy';

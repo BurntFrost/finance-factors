@@ -25,9 +25,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Finance Factor Dashboard",
-  description: "Interactive dashboard showing finance factors including house prices and household income trends over time",
-  keywords: "finance, dashboard, house prices, income, trends, analytics",
+  title: "Finance Factors Dashboard",
+  description: "See how the economy and costs that affect you change over time. House prices, income, inflation, and more in plain language.",
+  keywords: "finance, dashboard, house prices, income, inflation, cost of living, trends, economy, personal finance",
   authors: [{ name: "Finance Factors Team" }],
   robots: "index, follow",
 };

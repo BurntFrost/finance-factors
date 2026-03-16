@@ -20,6 +20,7 @@ import { useViewMode } from '@/frontend/context/ViewModeContext';
 // import { useCrossfilter } from '@/frontend/context/CrossfilterContext'; // Temporarily disabled
 import { generateHistoricalData, generateElementTitle, generateHistoricalDataByType, generateElementTitleByType } from '@/shared/utils';
 import { DataType, VisualizationType } from '@/shared/types/dashboard';
+import { DASHBOARD_COPY } from '@/shared/constants/plainLanguageCopy';
 import styles from './page.module.css';
 
 // Define the hardcoded charts
@@ -122,7 +123,10 @@ export default function Home() {
             </Suspense>
           </HydrationSafeWrapper>
         </div>
-        <h1>Finance Factor Dashboard</h1>
+        <div className={styles.titleBlock}>
+          <h1>{DASHBOARD_COPY.title}</h1>
+          <p className={styles.subtitle}>{DASHBOARD_COPY.subtitle}</p>
+        </div>
         <div className={styles.headerContent}>
           <Suspense fallback={<div className="h-10 bg-gray-200 rounded-lg animate-pulse w-48"></div>}>
             <DashboardTabBar
@@ -138,18 +142,26 @@ export default function Home() {
               showRealTimeIndicator={true}
             />
           </Suspense>
-          <div className={styles.performanceToggle}>
+          <div className={styles.performanceToggle} title={DASHBOARD_COPY.fasterLoadingTooltip}>
             <label>
               <input
                 type="checkbox"
                 checked={useParallelFetching}
                 onChange={(e) => setUseParallelFetching(e.target.checked)}
+                aria-label={DASHBOARD_COPY.fasterLoadingTooltip}
               />
-              Parallel Fetching
+              {DASHBOARD_COPY.fasterLoading}
             </label>
           </div>
         </div>
       </div>
+
+      <section className={styles.howToUse} aria-labelledby="how-to-use-heading">
+        <h2 id="how-to-use-heading" className={styles.howToUseTitle}>
+          {DASHBOARD_COPY.howToUseTitle}
+        </h2>
+        <p className={styles.howToUseBlurb}>{DASHBOARD_COPY.howToUseBlurb}</p>
+      </section>
 
       {/* Enhanced Dashboard Layout with Parallel Fetching or Drag & Drop */}
       {useParallelFetching ? (

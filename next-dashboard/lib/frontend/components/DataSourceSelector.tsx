@@ -10,6 +10,7 @@
 import React, { useState } from 'react';
 import { DataSourceType, DATA_SOURCE_CONFIGS } from '@/shared/types/dataSource';
 import { useExtendedDataSourceContext } from '@/frontend/context/ExtendedDataSourceContext';
+import { DATA_SOURCE_PLAIN_COPY } from '@/shared/constants/plainLanguageCopy';
 import styles from './DataSourceSelector.module.css';
 
 interface DataSourceSelectorProps {
@@ -57,16 +58,17 @@ export default function DataSourceSelector({
   return (
     <div className={`${styles.container} ${styles[size]} ${className}`}>
       <div className={styles.label}>
-        Data Source
+        Data
       </div>
       
       <div 
         className={`${styles.segmentedControl} ${disabled ? styles.disabled : ''}`}
         role="radiogroup"
-        aria-label="Select data source"
+        aria-label="Choose data source: sample or up-to-date"
       >
         {sources.map((source) => {
           const config = DATA_SOURCE_CONFIGS[source];
+          const plain = DATA_SOURCE_PLAIN_COPY[source];
           const isActive = state.currentSource === source;
           const isLoading = isTransitioning && isActive;
           
@@ -76,11 +78,11 @@ export default function DataSourceSelector({
               type="button"
               role="radio"
               aria-checked={isActive}
-              aria-label={`Switch to ${config.name}`}
+              aria-label={`Switch to ${plain.name}`}
               className={`${styles.segment} ${isActive ? styles.active : ''} ${isLoading ? styles.loading : ''}`}
               onClick={() => handleSourceChange(source)}
               disabled={disabled || isTransitioning}
-              title={config.description}
+              title={plain.description}
             >
               {showIcons && (
                 <span className={styles.icon} aria-hidden="true">
@@ -94,7 +96,7 @@ export default function DataSourceSelector({
               
               {showLabels && (
                 <span className={styles.text}>
-                  {config.name}
+                  {plain.name}
                 </span>
               )}
               

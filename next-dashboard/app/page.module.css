@@ -52,10 +52,53 @@
   margin: 0;
 }
 
+.titleBlock {
+  text-align: center;
+}
+
+.titleBlock h1 {
+  margin: 0;
+  color: var(--foreground);
+  font-size: 1.75rem;
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--text-secondary, #6c757d);
+  font-weight: 400;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .header h1 {
   margin: 0;
   color: var(--foreground);
   text-align: center;
+}
+
+/* How to use blurb */
+.howToUse {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--background-secondary, #f8f9fa);
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e9ecef);
+}
+
+.howToUseTitle {
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.howToUseBlurb {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #6c757d);
 }
 
 /* Dashboard grid layout */

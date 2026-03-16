@@ -10,6 +10,7 @@
 import React, { useState, useCallback, memo, lazy, Suspense } from 'react';
 import { useStandardDashboardData } from '@/frontend/hooks/useParallelDashboardData';
 import { ChartData } from '@/shared/types/dashboard';
+import { DASHBOARD_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
 import styles from './ParallelDashboard.module.css';
 
 // Lazy load chart component
@@ -58,9 +59,9 @@ const ChartSlot = memo(function ChartSlot({
       <Suspense fallback={<div className={styles.chartSkeleton}><div className={styles.skeletonHeader}></div><div className={styles.skeletonChart}></div></div>}>
         {chartError ? (
           <div className={styles.errorState}>
-            <p>Failed to load data</p>
+            <p>{ERROR_COPY.unableToLoad}</p>
             <p className={styles.errorMessage}>{chartError}</p>
-            <button onClick={() => onRefreshSingle(chart.dataType)} className={styles.retryButton}>Retry</button>
+            <button onClick={() => onRefreshSingle(chart.dataType)} className={styles.retryButton}>{ERROR_COPY.tryAgain}</button>
           </div>
         ) : chartData ? (
           <AutomaticChart
@@ -151,7 +152,7 @@ export default function ParallelDashboard({
             />
           </div>
           <span className={styles.progressText}>
-            Loading dashboard data... {progress.completed}/{progress.total} ({progress.percentage}%)
+            {DASHBOARD_COPY.loadingCharts} {progress.completed}/{progress.total} ({progress.percentage}%)
           </span>
         </div>
       )}
@@ -163,19 +164,18 @@ export default function ParallelDashboard({
           disabled={isAnyLoading}
           className={styles.refreshButton}
         >
-          {isAnyLoading ? 'Refreshing...' : 'Refresh All Data'}
+          {isAnyLoading ? 'Refreshing…' : DASHBOARD_COPY.refreshAll}
         </button>
         
         {hasAnyError && (
           <div className={styles.errorSummary}>
-            ⚠️ Some data sources failed to load
+            ⚠️ {ERROR_COPY.someSourcesFailed}
           </div>
         )}
         
         <div className={styles.stats}>
           <span>Charts: {visibleCharts.size}</span>
-          <span>Parallel Fetching: ✅</span>
-          <span>Real-time: {enableRealTime ? '✅' : '❌'}</span>
+          <span>Auto-refresh: {enableRealTime ? 'On' : 'Off'}</span>
         </div>
       </div>
 
@@ -198,16 +198,13 @@ export default function ParallelDashboard({
           ))}
       </div>
 
-      {/* Performance Info */}
+      {/* Technical details (collapsed by default for non-expert users) */}
       <div className={styles.performanceInfo}>
         <details>
-          <summary>Performance Details</summary>
+          <summary>Technical details</summary>
           <div className={styles.performanceDetails}>
-            <p><strong>Parallel Fetching:</strong> Enabled</p>
-            <p><strong>Stagger Delay:</strong> {staggerDelay}ms</p>
-            <p><strong>Refresh Interval:</strong> {refreshInterval ? `${refreshInterval / 1000}s` : 'Disabled'}</p>
-            <p><strong>Charts Loaded:</strong> {Object.keys(data).filter(key => data[key] !== null).length}/{Object.keys(data).length}</p>
-            <p><strong>Errors:</strong> {Object.values(errors).filter(error => error !== null).length}</p>
+            <p><strong>Charts loaded:</strong> {Object.keys(data).filter(key => data[key] !== null).length} of {Object.keys(data).length}</p>
+            <p><strong>Refresh:</strong> {refreshInterval ? `every ${refreshInterval / 60000} min` : 'manual only'}</p>
           </div>
         </details>
       </div>

@@ -26,6 +26,7 @@ import {
   toggleChartZoom,
   toggleChartPan
 } from '@/shared/config/interactiveChartConfiguration';
+import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
 import styles from './AutomaticChart.module.css';
 
 // Lazy load the chart component for better performance
@@ -320,7 +321,14 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
 
       {/* Chart header */}
       <div className={styles.header}>
-        <h3 className={styles.title}>{title}</h3>
+        <div className={styles.titleBlock}>
+          <h3 className={styles.title}>{title}</h3>
+          {CHART_PLAIN_DESCRIPTIONS[dataType] && (
+            <p className={styles.plainSubtitle} title={CHART_PLAIN_DESCRIPTIONS[dataType]}>
+              {CHART_PLAIN_DESCRIPTIONS[dataType]}
+            </p>
+          )}
+        </div>
         
         <div className={styles.actions}>
           {/* Interactive controls */}
@@ -329,24 +337,24 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
               <button
                 className={`${styles.controlButton} ${isZoomEnabled ? styles.active : ''}`}
                 onClick={handleToggleZoom}
-                title={`${isZoomEnabled ? 'Disable' : 'Enable'} zoom`}
-                aria-label={`${isZoomEnabled ? 'Disable' : 'Enable'} chart zoom`}
+                title={isZoomEnabled ? CHART_CONTROL_COPY.zoomOn : CHART_CONTROL_COPY.zoomOff}
+                aria-label={isZoomEnabled ? CHART_CONTROL_COPY.zoomOn : CHART_CONTROL_COPY.zoomOff}
               >
                 🔍
               </button>
               <button
                 className={`${styles.controlButton} ${isPanEnabled ? styles.active : ''}`}
                 onClick={handleTogglePan}
-                title={`${isPanEnabled ? 'Disable' : 'Enable'} pan`}
-                aria-label={`${isPanEnabled ? 'Disable' : 'Enable'} chart pan`}
+                title={isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}
+                aria-label={isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}
               >
                 ✋
               </button>
               <button
                 className={styles.controlButton}
                 onClick={handleResetZoom}
-                title="Reset zoom and pan"
-                aria-label="Reset chart zoom and pan"
+                title={CHART_CONTROL_COPY.resetView}
+                aria-label={CHART_CONTROL_COPY.resetView}
               >
                 🏠
               </button>
@@ -373,8 +381,8 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
             <button
               className={styles.removeButton}
               onClick={onRemove}
-              title="Remove chart"
-              aria-label="Remove chart"
+              title={CHART_CONTROL_COPY.removeChart}
+              aria-label={CHART_CONTROL_COPY.removeChart}
             >
               🗑️ Remove
             </button>
@@ -382,8 +390,8 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
 
           {/* Status indicator in header */}
           {status === 'historical-fallback' && !enableRealTime && (
-            <span className={styles.fallbackBadge} title="Showing historical data">
-              Historical Data
+            <span className={styles.fallbackBadge} title="Showing sample data">
+              Sample data
             </span>
           )}
 
@@ -412,14 +420,17 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
           <div className={styles.errorState}>
             <div className={styles.errorIcon}>⚠️</div>
             <div className={styles.errorMessage}>
-              <h4>Unable to load chart data</h4>
+              <h4>{ERROR_COPY.unableToLoad}</h4>
               <p>{error.message}</p>
+              {status === 'historical-fallback' && (
+                <p className={styles.errorHint}>{ERROR_COPY.willUseSample}</p>
+              )}
               <button
                 className={styles.retryButton}
                 onClick={handleRefresh}
                 disabled={isLoading}
               >
-                Try Again
+                {ERROR_COPY.tryAgain}
               </button>
             </div>
           </div>
@@ -459,14 +470,14 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
           <div className={styles.noDataState}>
             <div className={styles.noDataIcon}>📊</div>
             <div className={styles.noDataMessage}>
-              <h4>No data available</h4>
-              <p>Unable to load chart data at this time.</p>
+              <h4>{ERROR_COPY.noDataAvailable}</h4>
+              <p>{ERROR_COPY.noDataHint}</p>
               <button
                 className={styles.retryButton}
                 onClick={handleRefresh}
                 disabled={isLoading}
               >
-                Try Loading Data
+                {ERROR_COPY.tryLoadingData}
               </button>
             </div>
           </div>
@@ -484,7 +495,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
             )}
 
             <span className={styles.source}>
-              {status === 'historical-fallback' ? 'Source: Historical Data' : 'Source: Live API Data'}
+              {status === 'historical-fallback' ? 'Source: Sample data' : 'Source: Up-to-date data'}
             </span>
           </div>
 
@@ -493,8 +504,8 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
             className={styles.footerRefreshButton}
             onClick={handleRefresh}
             disabled={isLoading}
-            title={status === 'historical-fallback' ? 'Retry live data' : 'Refresh data'}
-            aria-label={status === 'historical-fallback' ? 'Retry fetching live data' : 'Refresh chart data'}
+            title={status === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
+            aria-label={status === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
           >
             <span className={isLoading ? styles.spinning : ''}>
               🔄

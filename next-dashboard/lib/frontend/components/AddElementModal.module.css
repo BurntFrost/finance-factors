@@ -221,6 +221,14 @@
   line-height: 1.4;
 }
 
+.plainMeaning {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #888;
+  font-style: italic;
+  line-height: 1.35;
+}
+
 .selectedDataType {
   display: flex;
   align-items: center;

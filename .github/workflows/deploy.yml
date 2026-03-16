@@ -11,6 +11,11 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+# Cancel in-progress runs for the same branch (e.g. rapid pushes)
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -28,6 +33,14 @@ jobs:
           cache: 'npm'
           cache-dependency-path: next-dashboard/package-lock.json
 
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: next-dashboard/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('next-dashboard/package-lock.json', 'next-dashboard/next.config.ts') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
 
@@ -35,7 +48,7 @@ jobs:
         run: npm run lint
 
       - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+        run: npm install --global vercel@14
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=${{ github.event_name == 'push' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
@@ -48,48 +61,64 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "Deploying to production..."
-            DEPLOYMENT_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+            RAW=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
           else
             echo "Deploying preview for PR..."
-            DEPLOYMENT_URL=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+            RAW=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
           fi
+          DEPLOYMENT_URL=$(echo "$RAW" | tail -1 | xargs)
           echo "deployment_url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
           echo "Deployment URL: $DEPLOYMENT_URL"
 
       - name: Test Deployment
-        if: github.event_name == 'push'  # Only test production deployments
+        if: github.event_name == 'push'
         run: |
-          echo "Waiting for deployment to be ready..."
-          sleep 30
-
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment_url }}"
-
-          if [ -n "$DEPLOYMENT_URL" ]; then
-            echo "Testing deployment at: $DEPLOYMENT_URL"
-
-            # Test main page
-            MAIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
-
-            if [ "$MAIN_RESPONSE" = "200" ]; then
-              echo "✅ Main page accessible"
-            else
-              echo "⚠️  Main page test failed (HTTP $MAIN_RESPONSE)"
-            fi
-
-            # Test API health endpoint
-            HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/proxy/health" || echo "000")
-
-            if [ "$HEALTH_RESPONSE" = "200" ]; then
-              echo "✅ API proxy health check passed"
-            else
-              echo "⚠️  API proxy health check failed (HTTP $HEALTH_RESPONSE)"
-            fi
-
-            echo "🎉 Deployment completed successfully!"
-            echo "🔗 Live URL: $DEPLOYMENT_URL"
-          else
-            echo "⚠️  Could not determine deployment URL for testing"
+          if [ -z "$DEPLOYMENT_URL" ]; then
+            echo "::error::Could not determine deployment URL"
+            exit 1
           fi
+
+          echo "Waiting for deployment to be ready..."
+          MAX_ATTEMPTS=15
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
+            if [ "$CODE" = "200" ]; then
+              echo "Deployment ready after ${ATTEMPT} attempts"
+              break
+            fi
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "::error::Deployment did not return 200 after ${MAX_ATTEMPTS} attempts (last HTTP $CODE)"
+              exit 1
+            fi
+            sleep 5
+          done
+
+          echo "Testing deployment at: $DEPLOYMENT_URL"
+          MAIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
+          HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/proxy/health" || echo "000")
+
+          FAILED=0
+          if [ "$MAIN_RESPONSE" != "200" ]; then
+            echo "::error::Main page failed (HTTP $MAIN_RESPONSE)"
+            FAILED=1
+          else
+            echo "✅ Main page accessible"
+          fi
+          if [ "$HEALTH_RESPONSE" != "200" ]; then
+            echo "::error::API proxy health check failed (HTTP $HEALTH_RESPONSE)"
+            FAILED=1
+          else
+            echo "✅ API proxy health check passed"
+          fi
+
+          if [ $FAILED -eq 1 ]; then
+            exit 1
+          fi
+          echo "🎉 Deployment completed successfully!"
+          echo "🔗 Live URL: $DEPLOYMENT_URL"
 
       - name: Comment PR
         if: github.event_name == 'pull_request'

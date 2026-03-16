@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { DataType, VisualizationType } from '@/shared/types/dashboard';
 import { DATA_TYPES, getSuitableVisualizations } from '@/shared/config/elementTypes';
+import { CHART_PLAIN_DESCRIPTIONS } from '@/shared/constants/plainLanguageCopy';
 import styles from './AddElementModal.module.css';
 
 interface AddElementModalProps {
@@ -124,6 +125,9 @@ export default function AddElementModal({ isOpen, onClose, onElementCreate }: Ad
                     <div className={styles.optionContent}>
                       <h3 className={styles.optionName}>{dataType.name}</h3>
                       <p className={styles.optionDescription}>{dataType.description}</p>
+                      {CHART_PLAIN_DESCRIPTIONS[dataType.id] && (
+                        <p className={styles.plainMeaning}>What it means: {CHART_PLAIN_DESCRIPTIONS[dataType.id]}</p>
+                      )}
                     </div>
                   </button>
                 ))}
