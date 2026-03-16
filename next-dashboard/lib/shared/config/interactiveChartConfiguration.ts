@@ -134,6 +134,15 @@ export function getInteractiveChartOptions(
         mode: 'index',
         intersect: false,
         position: 'nearest',
+        backgroundColor: 'rgba(30, 41, 59, 0.95)',
+        titleColor: 'rgb(248, 250, 252)',
+        bodyColor: 'rgb(248, 250, 252)',
+        borderColor: 'rgba(248, 250, 252, 0.12)',
+        borderWidth: 1,
+        cornerRadius: 8,
+        padding: 12,
+        displayColors: true,
+        boxPadding: 6,
         callbacks: customTooltip && baseConfig ? {
           title: function(tooltipItems: TooltipItem<any>[]) {
             try {
