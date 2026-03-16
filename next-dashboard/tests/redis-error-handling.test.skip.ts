@@ -4,7 +4,7 @@
  * Comprehensive test suite for Redis error scenarios and fallback mechanisms.
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { redisErrorLogger, RedisErrorType, RedisOperationType, RedisErrorSeverity } from '../lib/backend/lib/redis-error-logger';
 import { redisFallbackService } from '../lib/backend/lib/redis-fallback-service';
 import { redisHealthMonitor } from '../lib/backend/lib/redis-health-monitor';
@@ -303,7 +303,7 @@ describe('Integration Tests', () => {
     for (let i = 0; i < 5; i++) {
       try {
         await executeRedisCommand(() => Promise.reject(new Error('Redis failed')));
-      } catch (error) {
+      } catch (_error) {
         // Expected to fail
       }
     }

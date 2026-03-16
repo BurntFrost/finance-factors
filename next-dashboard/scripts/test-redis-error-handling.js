@@ -82,7 +82,7 @@ async function testErrorLogging() {
       { error: new Error('OOM out of memory'), expectedType: 'memory_error' },
     ];
     
-    for (const { error, expectedType } of testErrors) {
+    for (const { error, expectedType: _expectedType } of testErrors) {
       redisErrorLogger.logError(error, {
         operation: 'get',
         key: 'test_key',

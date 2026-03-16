@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DashboardElement } from '@/shared/types/dashboard';
 import { dashboardLayouts, chartDimensions } from '@/shared/utils/localStorage';
 import { useDashboard } from '@/frontend/context/DashboardContext';
@@ -36,17 +36,11 @@ export default function DashboardLayoutManager({
   onLayoutSave,
 }: DashboardLayoutManagerProps) {
   const isEditMode = useIsEditMode();
-  const [savedLayouts, setSavedLayouts] = useState<Array<{ id: string; name: string; updatedAt: Date }>>([]);
+  const [savedLayouts, setSavedLayouts] = useState(() => dashboardLayouts.getLayoutNames());
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [newLayoutName, setNewLayoutName] = useState('');
   const [selectedLayoutId, setSelectedLayoutId] = useState<string | null>(null);
-
-  // Load saved layouts on mount
-  useEffect(() => {
-    const layouts = dashboardLayouts.getLayoutNames();
-    setSavedLayouts(layouts);
-  }, []);
 
   const handleSaveLayout = useCallback(() => {
     if (!newLayoutName.trim()) return;

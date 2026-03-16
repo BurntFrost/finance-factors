@@ -36,7 +36,7 @@ function checkDependency(packageName) {
     const packageJsonPath = path.join(__dirname, '..', 'package.json');
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     return packageJson.dependencies[packageName] || packageJson.devDependencies[packageName];
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }

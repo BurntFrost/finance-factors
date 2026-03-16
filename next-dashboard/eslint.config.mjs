@@ -9,6 +9,7 @@ const eslintConfig = [
       "prisma/generated/**/*",
       "node_modules/**/*",
       ".next/**/*",
+      ".vercel/**/*",
       "out/**/*"
     ]
   },

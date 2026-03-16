@@ -25,7 +25,7 @@ try {
       }
     });
   }
-} catch (error) {
+} catch (_error) {
   console.log('No .env.local file found, using environment variables');
 }
 
@@ -194,7 +194,7 @@ async function testAPI(apiName, config) {
           return { success: false, error: message };
         }
         
-      } catch (parseError) {
+      } catch (_parseError) {
         console.log(`${colors.red}❌ Invalid JSON response${colors.reset}`);
         console.log(`   Response: ${response.data.substring(0, 200)}...`);
         return { success: false, error: 'Invalid JSON response' };
@@ -224,7 +224,7 @@ async function main() {
   // Summary
   console.log(`\n${colors.bold}${colors.blue}Summary:${colors.reset}`);
   
-  const configured = Object.entries(APIs).filter(([name, config]) => config.apiKey).length;
+  const configured = Object.entries(APIs).filter(([_name, config]) => config.apiKey).length;
   const successful = Object.values(results).filter(r => r.success).length;
   const total = Object.keys(APIs).length;
   

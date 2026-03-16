@@ -131,6 +131,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 /**
  * Hook for throttling function calls
  */
+/* eslint-disable react-hooks/use-memo -- cast needed for generic callback type */
 export function useThrottle<T extends (...args: any[]) => any>(
   callback: T,
   delay: number
@@ -141,7 +142,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
   return useCallback(
     ((...args: Parameters<T>) => {
       const now = Date.now();
-      
+
       if (now - lastCallRef.current >= delay) {
         lastCallRef.current = now;
         return callback(...args);
@@ -156,6 +157,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
     [callback, delay]
   );
 }
+/* eslint-enable react-hooks/use-memo */
 
 /**
  * Hook for memoizing expensive calculations with dependency tracking
@@ -212,44 +214,46 @@ export function useComponentLifecycle(
 /**
  * Hook for preventing unnecessary re-renders with shallow comparison
  */
+/* eslint-disable react-hooks/refs -- ref-based shallow comparison is fundamental to this hook's memoization */
 export function useShallowMemo<T extends Record<string, any>>(obj: T): T {
   const prevRef = useRef<T>(obj);
-  
-  return useMemo(() => {
-    // Shallow comparison
-    const keys = Object.keys(obj);
-    const prevKeys = Object.keys(prevRef.current);
-    
-    if (keys.length !== prevKeys.length) {
-      prevRef.current = obj;
-      return obj;
-    }
-    
+
+  const prev = prevRef.current;
+  const keys = Object.keys(obj);
+  const prevKeys = Object.keys(prev);
+
+  let hasChanged = keys.length !== prevKeys.length;
+  if (!hasChanged) {
     for (const key of keys) {
-      if (obj[key] !== prevRef.current[key]) {
-        prevRef.current = obj;
-        return obj;
+      if (obj[key] !== prev[key]) {
+        hasChanged = true;
+        break;
       }
     }
-    
-    return prevRef.current;
-  }, [obj]);
+  }
+
+  if (hasChanged) {
+    prevRef.current = obj;
+  }
+
+  return hasChanged ? obj : prev;
 }
+/* eslint-enable react-hooks/refs */
 
 /**
  * Hook for optimizing callback functions with stable references
  */
+/* eslint-disable react-hooks/use-memo -- cast needed for generic callback type */
 export function useStableCallback<T extends (...args: any[]) => any>(
   callback: T
 ): T {
   const callbackRef = useRef<T>(callback);
-  
+
   // Update the ref when callback changes
   useEffect(() => {
     callbackRef.current = callback;
   });
-  
-  // Return a stable callback that always calls the latest version
+
   return useCallback(
     ((...args: Parameters<T>) => {
       return callbackRef.current(...args);
@@ -257,6 +261,7 @@ export function useStableCallback<T extends (...args: any[]) => any>(
     []
   );
 }
+/* eslint-enable react-hooks/use-memo */
 
 /**
  * Hook for batch state updates to prevent multiple re-renders

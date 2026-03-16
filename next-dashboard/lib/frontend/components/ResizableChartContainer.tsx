@@ -286,31 +286,27 @@ export function useChartDimensions(
   initialWidth: number = 400,
   initialHeight: number = 300
 ) {
-  const [dimensions, setDimensions] = useState({
-    width: initialWidth,
-    height: initialHeight,
+  const [dimensions, setDimensions] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const key = `chart-dimensions-${elementId}`;
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // Fall through to defaults
+        }
+      }
+    }
+    return { width: initialWidth, height: initialHeight };
   });
 
   const updateDimensions = useCallback((width: number, height: number) => {
     setDimensions({ width, height });
-    
+
     // Save to localStorage for persistence
     const key = `chart-dimensions-${elementId}`;
     localStorage.setItem(key, JSON.stringify({ width, height }));
-  }, [elementId]);
-
-  // Load saved dimensions on mount
-  useEffect(() => {
-    const key = `chart-dimensions-${elementId}`;
-    const saved = localStorage.getItem(key);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setDimensions(parsed);
-      } catch (error) {
-        console.warn('Failed to parse saved dimensions:', error);
-      }
-    }
   }, [elementId]);
 
   return {

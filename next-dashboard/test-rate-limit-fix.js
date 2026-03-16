@@ -86,7 +86,7 @@ async function testRateLimitHandling() {
   // Test 2: Rapid requests to trigger rate limiting
   console.log('\n🚀 Test 2: Rapid requests to test rate limit handling...');
   
-  const rapidResults = [];
+  const _rapidResults = [];
   const testEndpoint = '/api/proxy/data?dataType=house-prices';
   
   // Make 5 rapid requests

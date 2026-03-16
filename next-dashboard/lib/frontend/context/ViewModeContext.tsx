@@ -59,12 +59,9 @@ const VIEW_MODE_STORAGE_KEY = 'finance-dashboard-view-mode';
 export function ViewModeProvider({ children }: { children: ReactNode }) {
   // Initialize state with default mode (always start with 'live' to avoid hydration issues)
   const [state, setState] = useState<ViewModeState>(() => createStateFromMode('live'));
-  const [, setIsHydrated] = useState(false);
-
   // Load from localStorage after hydration to prevent hydration mismatches
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing view mode from localStorage after hydration */
   useEffect(() => {
-    setIsHydrated(true);
-
     // Try to load from localStorage on client side after hydration
     try {
       const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
@@ -83,6 +80,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
       setState(createStateFromMode('live', false));
     }
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Set view mode
   const setViewMode = useCallback((mode: ViewMode) => {

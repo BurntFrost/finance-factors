@@ -90,6 +90,7 @@ export default function ChartRegistration() {
 
   useEffect(() => {
     if (getChartRegistered()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing with external global registration state
       setIsRegistered(true);
       return;
     }

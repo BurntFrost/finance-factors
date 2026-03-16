@@ -187,12 +187,13 @@ export default function EnhancedInteractiveChart({
     dataType: dataType || 'unknown',
     title,
     data,
-    config,
+    config: config ? { ...config } : config,
     isRealData: data.isRealData || false,
     dataSource: data.dataSource || 'Unknown',
     createdAt: new Date(),
     updatedAt: new Date(),
     lastUpdated: data.lastUpdated,
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
   }), [type, dataType, title, data, config]);
 
   // Handle export completion

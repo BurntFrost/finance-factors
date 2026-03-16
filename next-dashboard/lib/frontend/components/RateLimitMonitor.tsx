@@ -34,7 +34,8 @@ export function RateLimitMonitor({
 
   // Auto-refresh effect
   useEffect(() => {
-    refreshData(); // Initial load
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data fetch from external monitoring API
+    refreshData();
 
     if (autoRefresh) {
       const interval = setInterval(refreshData, refreshInterval);

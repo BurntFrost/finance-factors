@@ -226,7 +226,7 @@ async function main() {
     
     console.log(`Testing with ${testDataTypes.length} data types: ${testDataTypes.join(', ')}\n`);
     
-    const results = await comparePerformance(testDataTypes);
+    const _results = await comparePerformance(testDataTypes);
     
     console.log('\n🏆 TEST COMPLETED SUCCESSFULLY!');
     

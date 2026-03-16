@@ -7,7 +7,7 @@
  * Tests feature toggles and API endpoint availability
  */
 
-const { spawn } = require('child_process');
+const { spawn: _spawn } = require('child_process');
 const path = require('path');
 
 // Colors for console output

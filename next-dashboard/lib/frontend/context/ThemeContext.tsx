@@ -81,24 +81,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Start with light mode to avoid hydration issues
     return createStateFromTheme('light');
   });
-  const [, setIsHydrated] = useState(false);
-
   // Load from localStorage after hydration to prevent hydration mismatches
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing theme state from localStorage after hydration */
   useEffect(() => {
-    setIsHydrated(true);
-
-    // Try to load from localStorage on client side after hydration
     try {
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
       let themeToApply: Theme;
-      
+
       if (saved && (saved === 'light' || saved === 'dark')) {
         themeToApply = saved as Theme;
       } else {
         // If no saved preference, use system preference
         themeToApply = getSystemPreference();
       }
-      
+
       setState(createStateFromTheme(themeToApply, false));
       applyThemeToDocument(themeToApply);
     } catch (error) {
@@ -109,6 +105,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       applyThemeToDocument(systemTheme);
     }
   }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Set theme
   const setTheme = useCallback((theme: Theme) => {

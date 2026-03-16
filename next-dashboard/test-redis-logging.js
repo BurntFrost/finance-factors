@@ -8,7 +8,7 @@
  */
 
 const { spawn } = require('child_process');
-const path = require('path');
+const _path = require('path');
 
 // Colors for console output
 const colors = {
@@ -82,7 +82,7 @@ async function testRedisLogging() {
     });
 
     await new Promise((resolve) => {
-      devTest.on('close', (code) => {
+      devTest.on('close', (_code) => {
         if (devOutput.includes('Redis is disabled')) {
           logSuccess('Development mode correctly shows Redis debug messages');
         } else {
@@ -138,7 +138,7 @@ async function testRedisLogging() {
     });
 
     await new Promise((resolve) => {
-      prodTest.on('close', (code) => {
+      prodTest.on('close', (_code) => {
         if (!prodOutput.includes('Redis is disabled')) {
           logSuccess('Production mode correctly suppresses Redis debug messages');
         } else {

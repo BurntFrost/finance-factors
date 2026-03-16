@@ -16,7 +16,7 @@ async function testDatabase() {
     
     // Test 1: Basic connection
     console.log('1. Testing basic connection...');
-    const result = await prisma.$queryRaw`SELECT 1 as test`;
+    const _result = await prisma.$queryRaw`SELECT 1 as test`;
     console.log('   ✅ Basic connection successful');
     
     // Test 2: Check if tables exist

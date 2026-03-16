@@ -21,6 +21,7 @@ export default function AddElementModal({ isOpen, onClose, onElementCreate }: Ad
   // Reset modal state when opened
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting form state when modal opens is intentional
       setCurrentStep('data-type');
       setSelectedDataType(null);
       setSelectedCategory(null);

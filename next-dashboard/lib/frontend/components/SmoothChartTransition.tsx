@@ -23,9 +23,6 @@ export default function SmoothChartTransition({
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Start with fade out
-    setTransitionPhase('fadeOut');
-
     // After half the duration, switch to fade in
     timeoutRef.current = setTimeout(() => {
       setTransitionPhase('fadeIn');

@@ -12,8 +12,8 @@ async function verifyCacheConfiguration() {
   console.log('🔍 Verifying Cache Configuration...\n');
 
   let allConfigsCorrect = true;
-  const expectedTtl = 24 * 60 * 60; // 24 hours in seconds
-  const expectedTtlMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+  const _expectedTtl = 24 * 60 * 60; // 24 hours in seconds
+  const _expectedTtlMs = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
   try {
     // Check environment variables first
@@ -54,7 +54,7 @@ async function verifyCacheConfiguration() {
         console.log('   ❌ Redis cache API_RESPONSE TTL is not set to 24 hours');
         allConfigsCorrect = false;
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️  Could not read redis-cache.ts file');
     }
 
@@ -67,7 +67,7 @@ async function verifyCacheConfiguration() {
         console.log('   ❌ Proxy CACHE_CONFIG TTL is not set to 24 hours');
         allConfigsCorrect = false;
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️  Could not read proxy types file');
     }
 
@@ -80,7 +80,7 @@ async function verifyCacheConfiguration() {
         console.log('   ❌ API endpoints API_RESPONSE TTL is not set to 24 hours');
         allConfigsCorrect = false;
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️  Could not read api-endpoints file');
     }
 
@@ -94,7 +94,7 @@ async function verifyCacheConfiguration() {
         console.log('   ❌ Data sources cache TTL values are not all set to 24 hours');
         allConfigsCorrect = false;
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️  Could not read data-sources config file');
     }
 
@@ -107,7 +107,7 @@ async function verifyCacheConfiguration() {
         console.log('   ❌ Main proxy route TTL is not set to 24 hours');
         allConfigsCorrect = false;
       }
-    } catch (error) {
+    } catch (_error) {
       console.log('   ⚠️  Could not read proxy route file');
     }
 

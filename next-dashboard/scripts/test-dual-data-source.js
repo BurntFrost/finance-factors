@@ -59,7 +59,7 @@ function makeRequest(url, options = {}) {
             data: jsonData,
             headers: res.headers,
           });
-        } catch (error) {
+        } catch (_error) {
           resolve({
             status: res.statusCode,
             data: data,
@@ -136,7 +136,7 @@ async function runValidationTests() {
     });
     
     if (response.status === 200 && response.data.success) {
-      const { systemHealth, results, recommendations } = response.data;
+      const { systemHealth, results: _results, recommendations } = response.data;
       
       log(`✅ Validation completed`, 'green');
       log(`   Overall Health: ${systemHealth.overall}`, 

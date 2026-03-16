@@ -5,7 +5,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 console.log('🔍 Verifying 24-Hour Cache Configuration...\n');
 
@@ -49,7 +49,7 @@ for (const check of filesToCheck) {
       console.log(`❌ ${check.description}: INCORRECT`);
       allCorrect = false;
     }
-  } catch (error) {
+  } catch (_error) {
     console.log(`⚠️  ${check.description}: FILE NOT FOUND`);
     allCorrect = false;
   }
