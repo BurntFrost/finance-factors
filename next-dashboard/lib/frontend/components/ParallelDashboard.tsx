@@ -54,6 +54,7 @@ interface ChartSlotProps {
 
 const ChartSlot = memo(function ChartSlot({
   chart, chartData, chartError, chartLastUpdated,
+  dataSourceStatusFromParent,
   enableRealTime, refreshInterval, onRemove, onRefreshSingle,
 }: ChartSlotProps) {
   return (
