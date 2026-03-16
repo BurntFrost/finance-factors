@@ -10,6 +10,7 @@
 import React, { useState, useCallback, memo, lazy, Suspense } from 'react';
 import { useStandardDashboardData } from '@/frontend/hooks/useParallelDashboardData';
 import { ChartData } from '@/shared/types/dashboard';
+import { formatLastUpdatedTime } from '@/frontend/lib/utils';
 import { DASHBOARD_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
 import styles from './ParallelDashboard.module.css';
 
@@ -88,9 +89,9 @@ const ChartSlot = memo(function ChartSlot({
             <p>Loading {chart.title}...</p>
           </div>
         )}
-        {chartLastUpdated && (
+        {chartLastUpdated != null && (
           <div className={styles.chartFooter}>
-            <small>Last updated: {chartLastUpdated.toLocaleTimeString()}</small>
+            <small>Last updated: {formatLastUpdatedTime(chartLastUpdated)}</small>
           </div>
         )}
       </Suspense>

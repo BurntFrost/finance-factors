@@ -27,6 +27,7 @@ import {
   toggleChartPan
 } from '@/shared/config/interactiveChartConfiguration';
 import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
+import { formatLastUpdatedTime } from '@/frontend/lib/utils';
 import styles from './AutomaticChart.module.css';
 
 // Lazy load the chart component for better performance
@@ -122,7 +123,14 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
 
   // Determine which data to use - WebSocket data takes priority, then fetched data, then fallback data
   const rawDisplayData = enableRealTime && wsData ? wsData : (data || fallbackData);
-  const _displayStatus = enableRealTime && wsConnected ? 'live' : (fallbackData && !data ? 'live-fred' : status);
+  // When we have display data but hook is still "loading" (e.g. fallbackData passed, autoFetch false), don't show spinner
+  const displayStatus =
+    enableRealTime && wsConnected
+      ? 'live'
+      : status === 'loading' && rawDisplayData && !isLoading
+        ? (fallbackData ? 'historical-fallback' : 'live')
+        : status;
+  const _displayStatus = displayStatus;
   const _displayError = enableRealTime ? _wsError : error?.message;
 
   // Adapt data for the current chart type
@@ -308,7 +316,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
       {/* Data source indicator */}
       {showIndicator && (
         <DataSourceIndicator
-          status={status}
+          status={displayStatus}
           lastUpdated={lastUpdated}
           lastLiveAttempt={lastLiveAttempt}
           onRetry={handleRetry}
@@ -389,7 +397,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
           )}
 
           {/* Status indicator in header */}
-          {status === 'historical-fallback' && !enableRealTime && (
+          {displayStatus === 'historical-fallback' && !enableRealTime && (
             <span className={styles.fallbackBadge} title="Showing sample data">
               Sample data
             </span>
@@ -488,14 +496,12 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
       {displayData && showFooterRefresh && (
         <div className={styles.footer}>
           <div className={styles.dataInfo}>
-            {lastUpdated && (
-              <span className={styles.timestamp}>
-                Updated: {lastUpdated.toLocaleTimeString()}
-              </span>
-            )}
+            <span className={styles.timestamp}>
+              Last updated: {formatLastUpdatedTime(lastUpdated)}
+            </span>
 
             <span className={styles.source}>
-              {status === 'historical-fallback' ? 'Source: Sample data' : 'Source: Up-to-date data'}
+              {displayStatus === 'historical-fallback' ? 'Source: Sample data' : 'Source: Up-to-date data'}
             </span>
           </div>
 
@@ -504,8 +510,8 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
             className={styles.footerRefreshButton}
             onClick={handleRefresh}
             disabled={isLoading}
-            title={status === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
-            aria-label={status === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
+            title={displayStatus === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
+            aria-label={displayStatus === 'historical-fallback' ? CHART_CONTROL_COPY.retryLiveData : CHART_CONTROL_COPY.refreshData}
           >
             <span className={isLoading ? styles.spinning : ''}>
               🔄

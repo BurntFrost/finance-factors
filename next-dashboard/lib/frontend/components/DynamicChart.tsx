@@ -98,19 +98,25 @@ const DynamicChart = memo(function DynamicChart({
   // Use chart error handler
   useChartErrorHandler();
 
-  // Chart ready callback to capture chart instance - moved to top level
+  // Notify parent when chart instance is available (callback ref runs when ref is set)
   const handleChartReady = useCallback((chart: any) => {
-    if (onChartReady) {
+    if (onChartReady && chart) {
       onChartReady(chart);
     }
   }, [onChartReady]);
 
-  // Ensure the chart instance is provided once the component is ready
-  useEffect(() => {
-    if (chartRef.current && isChartReady) {
-      handleChartReady(chartRef.current);
-    }
-  }, [isChartReady, handleChartReady]);
+  // Callback ref so we run onChartReady as soon as the chart instance is assigned.
+  // Ref assignment can happen after isChartReady; refs don't trigger effects, so
+  // the previous effect-based approach left dynamicChartRef null and zoom/pan did nothing.
+  const setChartRef = useCallback(
+    (instance: any) => {
+      chartRef.current = instance;
+      if (instance) {
+        handleChartReady(instance);
+      }
+    },
+    [handleChartReady]
+  );
 
   // Wait for Chart.js to be properly registered
   useEffect(() => {
@@ -219,12 +225,9 @@ const DynamicChart = memo(function DynamicChart({
     const options = chartOptions;
 
     const commonProps = {
-      ref: chartRef,
+      ref: setChartRef,
       data,
-      options: {
-        ...options,
-        onReady: handleChartReady,
-      },
+      options: chartOptions,
     };
 
     switch (type) {

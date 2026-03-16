@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Badge } from "./badge"
-import { cn, formatDisplayDate, isRecentDate } from "@/lib/utils"
+import { cn, formatDisplayDate, isRecentDate, parseSafeDate } from "@/lib/utils"
 
 export type DataStatus = 'recent' | 'historical' | 'stale' | 'loading' | 'world-bank' | 'oecd'
 
@@ -93,16 +93,15 @@ export function ModernStatusPill({
 
 // Helper function to determine status from data freshness
 export function getDataStatus(lastUpdated?: Date | string, isRealData?: boolean): DataStatus {
-  if (!lastUpdated) return 'loading'
+  const updateDate = parseSafeDate(lastUpdated)
+  if (!updateDate) return 'loading'
   if (!isRealData) return 'historical'
-  
-  const updateDate = typeof lastUpdated === 'string' ? new Date(lastUpdated) : lastUpdated
-  
+
   if (isRecentDate(updateDate)) return 'recent'
-  
+
   const now = new Date()
   const diffInHours = (now.getTime() - updateDate.getTime()) / (1000 * 60 * 60)
-  
+
   if (diffInHours <= 168) return 'historical' // Within a week
   return 'stale'
 }

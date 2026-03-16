@@ -142,44 +142,49 @@ class DualDataSourceMonitor {
   }
 
   /**
-   * Log a monitoring event
+   * Log a monitoring event. Never throws - monitoring must not crash the app.
    */
   logEvent(eventData: Omit<MonitoringEvent, 'id' | 'timestamp'>): void {
-    const event: MonitoringEvent = {
-      id: this.generateEventId(),
-      timestamp: new Date(),
-      ...eventData,
-    };
+    try {
+      const event: MonitoringEvent = {
+        id: this.generateEventId(),
+        timestamp: new Date(),
+        ...eventData,
+      };
 
-    // Add to event history
-    this.events.unshift(event);
-    
-    // Limit history size
-    if (this.events.length > this.maxEventHistory) {
-      this.events = this.events.slice(0, this.maxEventHistory);
-    }
+      // Add to event history
+      this.events.unshift(event);
 
-    // Update performance metrics
-    this.updatePerformanceMetrics(event);
+      // Limit history size
+      if (this.events.length > this.maxEventHistory) {
+        this.events = this.events.slice(0, this.maxEventHistory);
+      }
 
-    // Check for alerts
-    this.checkAlerts(event);
+      // Update performance metrics
+      this.updatePerformanceMetrics(event);
 
-    // Log to console with appropriate level
-    this.logToConsole(event);
+      // Check for alerts
+      this.checkAlerts(event);
 
-    // Record performance metric
-    if (event.duration) {
-      performanceMonitor.recordMetric(
-        `${event.type}_duration`,
-        event.duration,
-        'ms',
-        {
-          provider: event.provider || 'unknown',
-          dataType: event.dataType,
-          success: event.success.toString(),
-        }
-      );
+      // Log to console with appropriate level
+      this.logToConsole(event);
+
+      // Record performance metric
+      if (event.duration !== undefined) {
+        performanceMonitor.recordMetric(
+          `${event.type}_duration`,
+          event.duration,
+          'ms',
+          {
+            provider: event.provider || 'unknown',
+            dataType: event.dataType,
+            success: event.success.toString(),
+          }
+        );
+      }
+    } catch (monitoringError) {
+      // Monitoring must never crash the app - log and swallow
+      console.error('[DualDataSourceMonitor] logEvent failed:', monitoringError instanceof Error ? monitoringError.message : String(monitoringError));
     }
   }
 
@@ -206,8 +211,9 @@ class DualDataSourceMonitor {
 
   /**
    * Log API health check result
+   * @param duration - Optional duration in ms of the request that triggered this update
    */
-  logApiHealthCheck(provider: string, dataType: string, health: ProviderHealth): void {
+  logApiHealthCheck(provider: string, dataType: string, health: ProviderHealth, duration?: number): void {
     const severity = health.status === 'healthy' ? EventSeverity.INFO :
                     health.status === 'degraded' ? EventSeverity.WARNING :
                     health.status === 'rate-limited' ? EventSeverity.WARNING :
@@ -228,6 +234,7 @@ class DualDataSourceMonitor {
         lastSuccess: health.lastSuccess?.toISOString(),
         lastFailure: health.lastFailure?.toISOString(),
       },
+      duration,
       success: health.status === 'healthy',
     });
   }
@@ -400,43 +407,47 @@ class DualDataSourceMonitor {
   }
 
   /**
-   * Trigger an alert
+   * Trigger an alert. Never throws - alerts must not crash the app.
    */
   private triggerAlert(config: AlertConfig, eventCount: number, triggerEvent: MonitoringEvent): void {
-    const alertMessage = `ALERT: ${config.type} threshold exceeded - ${eventCount} events in ${config.timeWindow / 1000}s`;
+    try {
+      const alertMessage = `ALERT: ${config.type} threshold exceeded - ${eventCount} events in ${config.timeWindow / 1000}s`;
 
-    console.warn(`🚨 ${config.severity.toUpperCase()} ALERT:`, {
-      type: config.type,
-      threshold: config.threshold,
-      actual: eventCount,
-      timeWindow: config.timeWindow,
-      triggerEvent: {
-        id: triggerEvent.id,
-        provider: triggerEvent.provider,
-        dataType: triggerEvent.dataType,
-        message: triggerEvent.message,
-      },
-    });
-
-    // Log alert as monitoring event
-    this.logEvent({
-      type: MonitoringEventType.PERFORMANCE_ALERT,
-      severity: config.severity,
-      dataType: 'monitoring',
-      message: alertMessage,
-      metadata: {
-        alertType: config.type,
+      console.warn(`🚨 ${config.severity.toUpperCase()} ALERT:`, {
+        type: config.type,
         threshold: config.threshold,
-        actualCount: eventCount,
+        actual: eventCount,
         timeWindow: config.timeWindow,
-        triggerEventId: triggerEvent.id,
-      },
-      success: false,
-    });
+        triggerEvent: {
+          id: triggerEvent.id,
+          provider: triggerEvent.provider,
+          dataType: triggerEvent.dataType,
+          message: triggerEvent.message,
+        },
+      });
 
-    // In production, you might want to send to external alerting service
-    if (process.env.NODE_ENV === 'production') {
-      this.sendExternalAlert(config, eventCount, triggerEvent);
+      // Log alert as monitoring event
+      this.logEvent({
+        type: MonitoringEventType.PERFORMANCE_ALERT,
+        severity: config.severity,
+        dataType: 'monitoring',
+        message: alertMessage,
+        metadata: {
+          alertType: config.type,
+          threshold: config.threshold,
+          actualCount: eventCount,
+          timeWindow: config.timeWindow,
+          triggerEventId: triggerEvent.id,
+        },
+        success: false,
+      });
+
+      // In production, you might want to send to external alerting service
+      if (process.env.NODE_ENV === 'production') {
+        this.sendExternalAlert(config, eventCount, triggerEvent);
+      }
+    } catch (alertError) {
+      console.error('[DualDataSourceMonitor] triggerAlert failed:', alertError instanceof Error ? alertError.message : String(alertError));
     }
   }
 
@@ -765,8 +776,8 @@ export const dualDataSourceMonitor = new DualDataSourceMonitor();
 export const logFailoverEvent = (event: FailoverEvent) =>
   dualDataSourceMonitor.logFailoverEvent(event);
 
-export const logApiHealthCheck = (provider: string, dataType: string, health: ProviderHealth) =>
-  dualDataSourceMonitor.logApiHealthCheck(provider, dataType, health);
+export const logApiHealthCheck = (provider: string, dataType: string, health: ProviderHealth, duration?: number) =>
+  dualDataSourceMonitor.logApiHealthCheck(provider, dataType, health, duration);
 
 export const logDataSourceSwitch = (dataType: string, fromSource: string, toSource: string, reason: string) =>
   dualDataSourceMonitor.logDataSourceSwitch(dataType, fromSource, toSource, reason);

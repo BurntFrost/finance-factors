@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAutomaticDataSource as useAutomaticDataSourceContext } from '@/frontend/context/AutomaticDataSourceContext';
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
 import { ChartData, TableData, SummaryCardData } from '@/shared/types/dashboard';
+import { parseSafeDate } from '@/frontend/lib/utils';
 
 export interface UseAutomaticDataSourceOptions {
   dataType: string;
@@ -85,7 +86,8 @@ export function useAutomaticDataSource<T = unknown>({
       if (response.success && response.data) {
         setData(response.data);
         retryCountRef.current = 0; // Reset retry backoff on success
-        setLocalLastUpdated(response.timestamp || new Date());
+        const ts = parseSafeDate(response.timestamp);
+        setLocalLastUpdated(ts ?? new Date());
         // Derive status from response source/metadata
         const isFallback = response.metadata?.isFallback === true;
         setLocalStatus(isFallback ? 'historical-fallback' : 'live');

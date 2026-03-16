@@ -74,27 +74,46 @@ export function debounce<T extends (...args: any[]) => any>(
  */
 export function isRecentDate(date: Date | string): boolean {
   const targetDate = typeof date === 'string' ? new Date(date) : date;
+  if (Number.isNaN(targetDate.getTime())) return false;
   const now = new Date();
   const diffInHours = (now.getTime() - targetDate.getTime()) / (1000 * 60 * 60);
   return diffInHours <= 24;
 }
 
 /**
- * Format a date for display in the dashboard
+ * Parse a value to a valid Date or null (avoids "Invalid Date" from JSON-deserialized strings).
  */
-export function formatDisplayDate(date: Date | string): string {
+export function parseSafeDate(value: Date | string | null | undefined): Date | null {
+  if (value == null) return null;
+  const d = typeof value === 'string' ? new Date(value) : value;
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+/**
+ * Format a date for display in the dashboard. Returns fallback for invalid dates.
+ */
+export function formatDisplayDate(date: Date | string, fallback = '—'): string {
   const targetDate = typeof date === 'string' ? new Date(date) : date;
-  
+  if (Number.isNaN(targetDate.getTime())) return fallback;
+
   if (isRecentDate(targetDate)) {
     return targetDate.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
   }
-  
+
   return targetDate.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
     year: targetDate.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
   });
+}
+
+/**
+ * Format a timestamp for "Last updated" (time only). Returns fallback for invalid dates.
+ */
+export function formatLastUpdatedTime(date: Date | string | null | undefined, fallback = '—'): string {
+  const d = parseSafeDate(date);
+  return d ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : fallback;
 }

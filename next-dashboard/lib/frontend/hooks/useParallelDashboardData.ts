@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAutomaticDataSource as useAutomaticDataSourceContext } from '@/frontend/context/AutomaticDataSourceContext';
 import { DataFetchOptions, ApiResponse } from '@/shared/types/dataSource';
 import { ChartData } from '@/shared/types/dashboard';
+import { parseSafeDate } from '@/frontend/lib/utils';
 
 export interface DashboardDataRequest {
   dataType: string;
@@ -90,7 +91,8 @@ export function useParallelDashboardData<T = ChartData>(
 
       if (response.success && response.data) {
         setData(prev => ({ ...prev, [dataType]: response.data }));
-        setLastUpdated(prev => ({ ...prev, [dataType]: response.timestamp }));
+        const ts = parseSafeDate(response.timestamp);
+        setLastUpdated(prev => ({ ...prev, [dataType]: ts ?? new Date() }));
         console.log(`✅ Parallel fetch completed for ${dataType}:`, {
           source: response.source,
           timestamp: response.timestamp,

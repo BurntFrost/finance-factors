@@ -308,6 +308,10 @@ export function AutomaticDataSourceProvider({
   const batchedUpdatesRef = useRef<AutomaticDataSourceAction[]>([]);
   const batchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Rolling window of last N request results per provider for actual success-rate percentage
+  const RECENT_RESULTS_WINDOW = 100;
+  const recentRequestResultsRef = useRef<Map<string, boolean[]>>(new Map());
+
   // Debounced dispatch to batch rapid updates into a single state transition
   const debouncedDispatch = useCallback((action: AutomaticDataSourceAction) => {
     batchedUpdatesRef.current.push(action);
@@ -363,20 +367,29 @@ export function AutomaticDataSourceProvider({
     return stateRef.current.cache.get(key)?.data as T || null;
   }, [isCacheValid]); // Stable: reads from stateRef
 
-  // Update provider health tracking
+  // Update provider health tracking (successRate = percentage over last RECENT_RESULTS_WINDOW requests)
   const updateProviderHealth = useCallback((provider: string, success: boolean, responseTime?: number, error?: string) => {
     const currentHealth = stateRef.current.providerHealth.get(provider);
     const now = new Date();
 
-    // Calculate success rate over last 100 requests (simplified)
-    const successRate = currentHealth ?
-      (success ? Math.min(100, currentHealth.successRate + 1) : Math.max(0, currentHealth.successRate - 2)) :
-      (success ? 100 : 0);
+    // Rolling window: record this result and compute actual success percentage
+    let recent = recentRequestResultsRef.current.get(provider);
+    if (!recent) {
+      recent = [];
+      recentRequestResultsRef.current.set(provider, recent);
+    }
+    recent.push(success);
+    if (recent.length > RECENT_RESULTS_WINDOW) {
+      recent.shift();
+    }
+    const successRate = recent.length === 0
+      ? (success ? 100 : 0)
+      : Math.round((recent.filter(Boolean).length / recent.length) * 100);
 
     // Update average response time
-    const avgResponseTime = currentHealth && responseTime ?
-      (currentHealth.averageResponseTime * 0.8 + responseTime * 0.2) :
-      (responseTime || currentHealth?.averageResponseTime || 0);
+    const avgResponseTime = currentHealth && responseTime !== undefined
+      ? (currentHealth.averageResponseTime * 0.8 + responseTime * 0.2)
+      : (responseTime ?? currentHealth?.averageResponseTime ?? 0);
 
     // Determine health status
     let status: 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open' = 'healthy';
@@ -396,20 +409,24 @@ export function AutomaticDataSourceProvider({
       provider,
       status,
       lastChecked: now,
-      lastSuccess: success ? now : (currentHealth?.lastSuccess || null),
-      lastFailure: success ? (currentHealth?.lastFailure || null) : now,
-      consecutiveFailures: success ? 0 : (currentHealth?.consecutiveFailures || 0) + 1,
+      lastSuccess: success ? now : (currentHealth?.lastSuccess ?? null),
+      lastFailure: success ? (currentHealth?.lastFailure ?? null) : now,
+      consecutiveFailures: success ? 0 : (currentHealth?.consecutiveFailures ?? 0) + 1,
       averageResponseTime: avgResponseTime,
       successRate,
-      circuitBreakerState: circuitBreaker?.state || 'closed',
-      nextRetryTime: circuitBreaker?.nextRetryTime || null,
+      circuitBreakerState: circuitBreaker?.state ?? 'closed',
+      nextRetryTime: circuitBreaker?.nextRetryTime ?? null,
       rateLimitResetTime: null, // Will be set if rate limit detected
     };
 
     debouncedDispatch({ type: 'SET_PROVIDER_HEALTH', payload: { provider, health: updatedHealth } });
 
-    // Log health check to monitoring system
-    logApiHealthCheck(provider, 'unknown', updatedHealth);
+    // Log health check to monitoring system (never let monitoring crash the app)
+    try {
+      logApiHealthCheck(provider, 'unknown', updatedHealth, responseTime);
+    } catch {
+      // Swallow - monitoring must not break health updates
+    }
 
     // Update degraded providers set
     if (status === 'degraded' || status === 'unavailable') {
@@ -691,7 +708,17 @@ export function AutomaticDataSourceProvider({
     options: DataFetchOptions
   ): Promise<ApiResponse<T> | null> => {
     const { dataType } = options;
-    const providersToTry = DataSourceConfigManager.getProvidersToTryForDataType(dataType);
+    let providersToTry: string[];
+    try {
+      providersToTry = DataSourceConfigManager.getProvidersToTryForDataType(dataType);
+      if (!Array.isArray(providersToTry) || providersToTry.length === 0) {
+        console.warn(`No providers configured for data type ${dataType}`);
+        return null;
+      }
+    } catch (configError) {
+      console.warn('Failed to get providers for data type:', configError instanceof Error ? configError.message : configError);
+      return null;
+    }
     const startTime = Date.now();
 
     console.info(`Attempting to fetch ${dataType} from providers in parallel: ${providersToTry.join(', ')}`);
@@ -744,32 +771,44 @@ export function AutomaticDataSourceProvider({
     }> = [];
 
     results.forEach((promiseResult, index) => {
-      if (promiseResult.status === 'fulfilled') {
-        const { provider, result, isConfiguredProvider, responseTime, error } = promiseResult.value;
+      const fallbackProvider = providersToTry[index] ?? 'UNKNOWN';
+      const responseTime = Date.now() - startTime;
+      try {
+        if (promiseResult.status === 'fulfilled') {
+          const value = promiseResult.value;
+          const provider = value?.provider ?? fallbackProvider;
+          const { result, isConfiguredProvider, responseTime: rTime, error } = value ?? {};
 
-        if (result && result.success) {
-          successfulResults.push({
-            provider,
-            result,
-            index,
-            isConfiguredProvider,
-            responseTime,
-          });
+          if (result && result.success) {
+            successfulResults.push({
+              provider,
+              result,
+              index,
+              isConfiguredProvider: Boolean(isConfiguredProvider),
+              responseTime: typeof rTime === 'number' ? rTime : responseTime,
+            });
+          } else {
+            failedResults.push({
+              provider,
+              error: error ?? result?.error ?? 'Unknown error',
+              index,
+              responseTime: typeof rTime === 'number' ? rTime : responseTime,
+            });
+          }
         } else {
           failedResults.push({
-            provider,
-            error: error || result?.error || 'Unknown error',
+            provider: fallbackProvider,
+            error: promiseResult.reason instanceof Error ? promiseResult.reason.message : String(promiseResult.reason ?? 'Promise rejected'),
             index,
             responseTime,
           });
         }
-      } else {
-        const provider = providersToTry[index];
+      } catch (e) {
         failedResults.push({
-          provider,
-          error: promiseResult.reason?.message || 'Promise rejected',
+          provider: fallbackProvider,
+          error: e instanceof Error ? e.message : 'Unknown error',
           index,
-          responseTime: Date.now() - startTime,
+          responseTime,
         });
       }
     });
@@ -790,7 +829,7 @@ export function AutomaticDataSourceProvider({
       // Log successful parallel fetch
       console.info(`Parallel fetch succeeded for ${dataType} using ${bestResult.provider} (${bestResult.responseTime}ms) - ${successfulResults.length}/${providersToTry.length} providers succeeded`);
 
-      // Log failover if not using primary provider
+      // Log failover if not using primary provider (logging must not crash the app)
       if (bestResult.index > 0) {
         const duration = bestResult.responseTime;
         const fromProvider = providersToTry[0]; // Primary provider
@@ -805,13 +844,15 @@ export function AutomaticDataSourceProvider({
           success: true,
         };
 
-        // Log to monitoring system
-        logFailoverEvent(failoverEvent);
-        logDataSourceSwitch(dataType, fromProvider, bestResult.provider,
-          bestResult.isConfiguredProvider ? 'Primary provider failed, using configured secondary (parallel)' :
-          'All configured providers failed, using intelligent fallback (parallel)');
-
         debouncedDispatch({ type: 'ADD_FAILOVER_EVENT', payload: failoverEvent });
+        try {
+          logFailoverEvent(failoverEvent);
+          logDataSourceSwitch(dataType, fromProvider, bestResult.provider,
+            bestResult.isConfiguredProvider ? 'Primary provider failed, using configured secondary (parallel)' :
+            'All configured providers failed, using intelligent fallback (parallel)');
+        } catch {
+          // Swallow - monitoring must not break data flow
+        }
         console.info(`Parallel failover from ${fromProvider} to ${bestResult.provider} for ${dataType}`);
       }
 
@@ -841,7 +882,7 @@ export function AutomaticDataSourceProvider({
     return null;
   }, [attemptLiveDataFromProvider, debouncedDispatch]);
 
-  // Fetch historical data as fallback
+  // Fetch historical data as fallback (never throw - return error response to avoid crashing app)
   const fetchHistoricalData = useCallback(async <T = unknown>(
     options: DataFetchOptions
   ): Promise<ApiResponse<T>> => {
@@ -864,7 +905,16 @@ export function AutomaticDataSourceProvider({
         },
       };
     } catch (error) {
-      throw new Error(`Failed to generate historical data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('Historical data fallback failed:', message);
+      return {
+        data: null as T,
+        success: false,
+        error: `Failed to generate historical data: ${message}`,
+        timestamp: new Date(),
+        source: 'Historical Data Generator (Fallback)',
+        metadata: { isFallback: true, reason: 'Fallback generator failed' },
+      };
     }
   }, [debouncedDispatch]);
 
@@ -997,17 +1047,21 @@ export function AutomaticDataSourceProvider({
 
       console.info(`Falling back to historical data: ${fallbackReason}`);
 
-      // Log fallback event
-      rateLimitLogger.logEvent({
-        provider,
-        dataType,
-        eventType: 'fallback_triggered',
-        success: true,
-        metadata: {
-          fallbackReason,
-          circuitBreakerState: circuitBreaker?.state,
-        },
-      });
+      // Log fallback event (never let logging crash the app)
+      try {
+        rateLimitLogger.logEvent({
+          provider,
+          dataType,
+          eventType: 'fallback_triggered',
+          success: true,
+          metadata: {
+            fallbackReason,
+            circuitBreakerState: circuitBreaker?.state,
+          },
+        });
+      } catch {
+        // Swallow
+      }
 
       const historicalResponse = await fetchHistoricalData<T>(options);
 
@@ -1132,22 +1186,30 @@ export function AutomaticDataSourceProvider({
     return stateRef.current.circuitBreakers;
   }, []);
 
-  // Get monitoring data
+  // Get monitoring data (never throw - return safe defaults on failure)
   const getMonitoringData = useCallback(() => {
-    return {
-      events: rateLimitLogger.getRecentEvents(100),
-      patterns: rateLimitLogger.getPatterns(),
-      stats: rateLimitLogger.getRateLimitStats(),
-      report: rateLimitLogger.generateReport(),
-    };
+    try {
+      return {
+        events: rateLimitLogger.getRecentEvents(100),
+        patterns: rateLimitLogger.getPatterns(),
+        stats: rateLimitLogger.getRateLimitStats(),
+        report: rateLimitLogger.generateReport(),
+      };
+    } catch {
+      return { events: [], patterns: new Map(), stats: {}, report: 'Monitoring data unavailable.' };
+    }
   }, []);
 
-  // Enhanced dual data source methods - stable via stateRef
+  // Enhanced dual data source methods - stable via stateRef (never throw)
   const getProviderHealth = useCallback((provider?: string): Map<string, ProviderHealth> | ProviderHealth | null => {
-    if (provider) {
-      return stateRef.current.providerHealth.get(provider) || null;
+    try {
+      const health = stateRef.current?.providerHealth;
+      if (!health || typeof health.get !== 'function') return provider ? null : new Map();
+      if (provider) return health.get(provider) ?? null;
+      return health;
+    } catch {
+      return provider ? null : new Map();
     }
-    return stateRef.current.providerHealth;
   }, []);
 
   const getFailoverEvents = useCallback((limit: number = 50): FailoverEvent[] => {
@@ -1185,8 +1247,12 @@ export function AutomaticDataSourceProvider({
   }, [debouncedDispatch]); // Stable: reads from stateRef
 
   const getProviderStatus = useCallback((provider: string): 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open' => {
-    const health = stateRef.current.providerHealth.get(provider);
-    return health?.status || 'unavailable';
+    try {
+      const health = stateRef.current?.providerHealth?.get(provider);
+      return (health?.status as 'healthy' | 'degraded' | 'unavailable' | 'rate-limited' | 'circuit-open') ?? 'unavailable';
+    } catch {
+      return 'unavailable';
+    }
   }, []);
 
   // Batch fetch multiple data types in parallel

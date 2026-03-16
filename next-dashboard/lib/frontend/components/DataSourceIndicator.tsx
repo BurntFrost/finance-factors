@@ -119,11 +119,13 @@ export default function DataSourceIndicator({
     }
   }, [onRetry, isRetrying]);
 
-  const formatTime = useCallback((date: Date | null): string => {
-    if (!date) return 'Never';
+  const formatTime = useCallback((date: Date | string | null): string => {
+    if (date == null) return 'Never';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    if (Number.isNaN(d.getTime())) return '—';
 
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
+    const diff = now.getTime() - d.getTime();
     const minutes = Math.floor(diff / (1000 * 60));
 
     if (minutes < 1) return 'Just now';
