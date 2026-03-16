@@ -72,6 +72,8 @@ jobs:
 
       - name: Test Deployment
         if: github.event_name == 'push'
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
           DEPLOYMENT_URL="${{ steps.deploy.outputs.deployment_url }}"
           if [ -z "$DEPLOYMENT_URL" ]; then
@@ -79,11 +81,17 @@ jobs:
             exit 1
           fi
 
+          # Optional: bypass Vercel Deployment Protection in CI (401 without this)
+          CURL_OPTS=()
+          if [ -n "$VERCEL_AUTOMATION_BYPASS_SECRET" ]; then
+            CURL_OPTS+=(-H "x-vercel-protection-bypass: $VERCEL_AUTOMATION_BYPASS_SECRET")
+          fi
+
           echo "Waiting for deployment to be ready..."
           MAX_ATTEMPTS=15
           ATTEMPT=0
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            CODE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
+            CODE=$(curl -s -o /dev/null -w "%{http_code}" "${CURL_OPTS[@]}" "$DEPLOYMENT_URL" || echo "000")
             if [ "$CODE" = "200" ]; then
               echo "Deployment ready after ${ATTEMPT} attempts"
               break
@@ -91,14 +99,15 @@ jobs:
             ATTEMPT=$((ATTEMPT + 1))
             if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
               echo "::error::Deployment did not return 200 after ${MAX_ATTEMPTS} attempts (last HTTP $CODE)"
+              echo "::notice::If you use Vercel Deployment Protection, add VERCEL_AUTOMATION_BYPASS_SECRET to GitHub Secrets (Project → Settings → Deployment Protection → Bypass for Automation)"
               exit 1
             fi
             sleep 5
           done
 
           echo "Testing deployment at: $DEPLOYMENT_URL"
-          MAIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL" || echo "000")
-          HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOYMENT_URL/api/proxy/health" || echo "000")
+          MAIN_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${CURL_OPTS[@]}" "$DEPLOYMENT_URL" || echo "000")
+          HEALTH_RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${CURL_OPTS[@]}" "$DEPLOYMENT_URL/api/proxy/health" || echo "000")
 
           FAILED=0
           if [ "$MAIN_RESPONSE" != "200" ]; then
