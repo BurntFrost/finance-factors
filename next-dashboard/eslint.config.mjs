@@ -1,18 +1,9 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
+import nextConfig from "eslint-config-next";
+import tseslint from "@typescript-eslint/eslint-plugin";
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...nextConfig,
   {
-    // Exclude generated files from linting
     ignores: [
       "app/generated/**/*",
       "prisma/generated/**/*",
@@ -22,6 +13,9 @@ const eslintConfig = [
     ]
   },
   {
+    plugins: {
+      "@typescript-eslint": tseslint,
+    },
     rules: {
       "@typescript-eslint/no-unused-vars": [
         "warn",
@@ -33,7 +27,6 @@ const eslintConfig = [
       ],
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-require-imports": "off",
-      // Disable problematic rules for generated files and type definitions
       "@typescript-eslint/no-empty-object-type": "off",
       "@typescript-eslint/no-unnecessary-type-constraint": "off",
       "@typescript-eslint/no-wrapper-object-types": "off",

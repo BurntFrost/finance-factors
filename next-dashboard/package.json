@@ -7,7 +7,7 @@
     "build": "next build",
     "build:analyze": "ANALYZE=true next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "test": "jest",
     "test:watch": "jest --watch",
     "deploy": "echo 'Deployment is handled automatically by GitHub Actions. Push to main branch to deploy to Vercel.'",
@@ -91,7 +91,6 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
     "@next/bundle-analyzer": "^16.1.6",
     "@tailwindcss/postcss": "^4.2.1",
     "@testing-library/jest-dom": "^6.9.1",
