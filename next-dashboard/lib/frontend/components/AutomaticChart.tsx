@@ -10,6 +10,7 @@
 
 import React, { Suspense, useRef, useCallback, useState, memo } from 'react';
 import type { Chart } from 'chart.js';
+import { ZoomIn, ZoomOut, Hand, Home } from 'lucide-react';
 import { useAutomaticDataSource } from '@/frontend/hooks/useAutomaticDataSource';
 // import { useWebSocket } from '@/backend/services/websocketService'; // Temporarily disabled for SSR
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
@@ -23,7 +24,8 @@ import DataFetchErrorBoundary from './DataFetchErrorBoundary';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
 import {
   resetChartZoom,
-  toggleChartZoom,
+  zoomChartIn,
+  zoomChartOut,
   toggleChartPan
 } from '@/shared/config/interactiveChartConfiguration';
 import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
@@ -92,8 +94,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
   const [currentChartType, setCurrentChartType] = useState(chartType);
   const [isChangingVisualization, setIsChangingVisualization] = useState(false);
 
-  // Interactive chart state
-  const [isZoomEnabled, setIsZoomEnabled] = useState(enableZoom);
+  // Interactive chart state (zoom in/out are direct actions; pan is toggled)
   const [isPanEnabled, setIsPanEnabled] = useState(enablePan);
   const [selectedDataPoints, setSelectedDataPoints] = useState<any[]>([]);
 
@@ -191,13 +192,17 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
     }
   }, []);
 
-  const handleToggleZoom = useCallback(() => {
+  const handleZoomIn = useCallback(() => {
     if (dynamicChartRef.current) {
-      const newZoomState = !isZoomEnabled;
-      setIsZoomEnabled(newZoomState);
-      toggleChartZoom(dynamicChartRef.current, newZoomState);
+      zoomChartIn(dynamicChartRef.current);
     }
-  }, [isZoomEnabled]);
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (dynamicChartRef.current) {
+      zoomChartOut(dynamicChartRef.current);
+    }
+  }, []);
 
   const handleTogglePan = useCallback(() => {
     if (dynamicChartRef.current) {
@@ -341,31 +346,49 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
         <div className={styles.actions}>
           {/* Interactive controls */}
           {showInteractiveControls && displayData && (
-            <div className={styles.interactiveControls}>
+            <div className={styles.interactiveControls} title={`${enableZoom ? CHART_CONTROL_COPY.zoomHint + '. ' : ''}${CHART_CONTROL_COPY.panHint}.`}>
+              {enableZoom && (
+                <>
+                  <button
+                    type="button"
+                    className={styles.controlButton}
+                    onClick={handleZoomIn}
+                    title={`${CHART_CONTROL_COPY.zoomIn}. ${CHART_CONTROL_COPY.zoomHint}`}
+                    aria-label={CHART_CONTROL_COPY.zoomIn}
+                  >
+                    <ZoomIn className={styles.controlIcon} aria-hidden />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.controlButton}
+                    onClick={handleZoomOut}
+                    title={`${CHART_CONTROL_COPY.zoomOut}. ${CHART_CONTROL_COPY.zoomHint}`}
+                    aria-label={CHART_CONTROL_COPY.zoomOut}
+                  >
+                    <ZoomOut className={styles.controlIcon} aria-hidden />
+                  </button>
+                </>
+              )}
               <button
-                className={`${styles.controlButton} ${isZoomEnabled ? styles.active : ''}`}
-                onClick={handleToggleZoom}
-                title={isZoomEnabled ? CHART_CONTROL_COPY.zoomOn : CHART_CONTROL_COPY.zoomOff}
-                aria-label={isZoomEnabled ? CHART_CONTROL_COPY.zoomOn : CHART_CONTROL_COPY.zoomOff}
-              >
-                🔍
-              </button>
-              <button
+                type="button"
                 className={`${styles.controlButton} ${isPanEnabled ? styles.active : ''}`}
                 onClick={handleTogglePan}
-                title={isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}
+                title={`${isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}. ${CHART_CONTROL_COPY.panHint}`}
                 aria-label={isPanEnabled ? CHART_CONTROL_COPY.panOn : CHART_CONTROL_COPY.panOff}
               >
-                ✋
+                <Hand className={styles.controlIcon} aria-hidden />
               </button>
-              <button
-                className={styles.controlButton}
-                onClick={handleResetZoom}
-                title={CHART_CONTROL_COPY.resetView}
-                aria-label={CHART_CONTROL_COPY.resetView}
-              >
-                🏠
-              </button>
+              {(enableZoom || isPanEnabled) && (
+                <button
+                  type="button"
+                  className={styles.controlButton}
+                  onClick={handleResetZoom}
+                  title={CHART_CONTROL_COPY.resetView}
+                  aria-label={CHART_CONTROL_COPY.resetView}
+                >
+                  <Home className={styles.controlIcon} aria-hidden />
+                </button>
+              )}
               {enableCrossfilter && selectedDataPoints.length > 0 && (
                 <span className={styles.selectionIndicator}>
                   {selectedDataPoints.length} selected
@@ -455,7 +478,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
                 onVisualizationChange={showVisualizationSwitcher ? handleVisualizationChange : undefined}
                 onRemove={onRemove}
                 isChangingVisualization={isChangingVisualization}
-                enableZoom={isZoomEnabled}
+                enableZoom={enableZoom}
                 enablePan={isPanEnabled}
                 enableCrossfilter={enableCrossfilter}
                 onDataPointClick={handleDataPointClick}

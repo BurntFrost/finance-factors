@@ -45,6 +45,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Set theme before first paint to avoid flash and align with ThemeProvider */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var k='finance-dashboard-theme';var s=typeof document!=='undefined'&&document.documentElement;if(!s)return;try{var v=localStorage.getItem(k);var theme=(v==='dark'||v==='light')?v:(typeof window!=='undefined'&&window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');s.setAttribute('data-theme',theme);s.classList.add(theme);s.classList.remove(theme==='dark'?'light':'dark');}catch(e){}})();`,
+          }}
+        />
         {/* Preconnect to external domains for better performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

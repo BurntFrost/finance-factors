@@ -177,7 +177,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .enhancedChart {
     background: var(--background-primary-dark, #1f2937);
     border-color: var(--border-color-dark, #374151);

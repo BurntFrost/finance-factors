@@ -12,7 +12,7 @@ export const DASHBOARD_COPY = {
   fasterLoadingTooltip: 'Load all charts at once for a quicker experience',
   howToUseTitle: 'How to use',
   howToUseBlurb:
-    'Scroll through the charts below to explore trends. Use the Data toggle (top right) to switch between sample data and up-to-date numbers from government sources. Each chart has a short “what it means” line under the title; use the 🔍 and ✋ buttons to zoom or pan, and Add element to add more charts.',
+    'Scroll through the charts below to explore trends. Use the Data toggle (top right) to switch between sample data and up-to-date numbers from government sources. Each chart has a short “what it means” line under the title; use the zoom (±) and hand buttons, or Ctrl+scroll / pinch to zoom and drag to pan on a trackpad, and Add element to add more charts.',
 } as const;
 
 /** One-line "what this means" for each data type, for tooltips and Add Element modal */
@@ -54,9 +54,13 @@ export const DATA_SOURCE_PLAIN_COPY = {
 /** Chart control labels (zoom, pan, reset) for tooltips and aria-labels */
 export const CHART_CONTROL_COPY = {
   zoom: 'Zoom in or out on the chart',
+  zoomIn: 'Zoom in',
+  zoomOut: 'Zoom out',
+  zoomHint: 'Pinch or Ctrl+scroll to zoom on trackpad',
   zoomOn: 'Zoom is on — scroll to zoom',
   zoomOff: 'Turn on zoom — scroll to zoom in or out',
   pan: 'Drag the chart to move around',
+  panHint: 'Drag with pointer or trackpad to pan',
   panOn: 'Pan is on — drag to move',
   panOff: 'Turn on pan — drag to move the chart',
   resetView: 'Reset zoom and position',

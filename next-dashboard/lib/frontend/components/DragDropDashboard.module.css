@@ -290,8 +290,8 @@
   }
 }
 
-/* Dark Mode Support */
-@media (prefers-color-scheme: dark) {
+/* Dark Mode Support - follows app theme (data-theme), not system preference */
+:global([data-theme="dark"]) {
   .dashboard {
     background: var(--background-primary-dark, #1f2937);
   }

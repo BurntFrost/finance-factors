@@ -216,7 +216,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .segmentedControl {
     background: var(--background-secondary-dark, #2a2a2a);
     border-color: var(--border-color-dark, #404040);

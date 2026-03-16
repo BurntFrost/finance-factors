@@ -74,32 +74,33 @@ function applyThemeToDocument(theme: Theme) {
   }
 }
 
+// Read theme from DOM (set by inline script before paint) to avoid hydration mismatch
+function getInitialTheme(): Theme {
+  if (typeof document === 'undefined') return 'light';
+  const attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'dark' || attr === 'light') return attr;
+  return 'light';
+}
+
 // Provider component
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Initialize state with system preference or light mode
-  const [state, setState] = useState<ThemeState>(() => {
-    // Start with light mode to avoid hydration issues
-    return createStateFromTheme('light');
-  });
-  // Load from localStorage after hydration to prevent hydration mismatches
-  /* eslint-disable react-hooks/set-state-in-effect -- syncing theme state from localStorage after hydration */
+  // Initialize from DOM (inline script sets data-theme before first paint)
+  const [state, setState] = useState<ThemeState>(() =>
+    createStateFromTheme(getInitialTheme())
+  );
+  // Sync from localStorage after hydration only if DOM was not already set by script
+  /* eslint-disable react-hooks/set-state-in-effect -- one-time sync after hydration */
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      let themeToApply: Theme;
-
-      if (saved && (saved === 'light' || saved === 'dark')) {
-        themeToApply = saved as Theme;
-      } else {
-        // If no saved preference, use system preference
-        themeToApply = getSystemPreference();
+      const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+      const fromDom = getInitialTheme();
+      const themeToApply =
+        saved && (saved === 'light' || saved === 'dark') ? saved : fromDom;
+      if (themeToApply !== fromDom) {
+        setState(createStateFromTheme(themeToApply, false));
+        applyThemeToDocument(themeToApply);
       }
-
-      setState(createStateFromTheme(themeToApply, false));
-      applyThemeToDocument(themeToApply);
-    } catch (error) {
-      console.warn('Failed to load theme from localStorage:', error);
-      // On error, use system preference
+    } catch {
       const systemTheme = getSystemPreference();
       setState(createStateFromTheme(systemTheme, false));
       applyThemeToDocument(systemTheme);

@@ -178,7 +178,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .dropdownMenu {
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);

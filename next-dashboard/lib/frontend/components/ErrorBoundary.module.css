@@ -176,7 +176,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .errorBoundary {
     background: var(--error-background-dark, #2d1b1b);
     border-color: var(--error-border-dark, #5c2626);

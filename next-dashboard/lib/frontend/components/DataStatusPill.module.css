@@ -198,7 +198,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .provider {
     border-left-color: rgba(255, 255, 255, 0.1);
   }

@@ -326,8 +326,8 @@
   padding: 1rem;
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* Dark mode - follows app theme */
+:global([data-theme="dark"]) {
   .exportButton,
   .bulkExportButton {
     background: var(--background-secondary-dark, #111827);

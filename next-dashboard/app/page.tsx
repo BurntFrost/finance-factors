@@ -115,7 +115,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
+      <header className={styles.header} role="banner">
         <div className={styles.headerLeft}>
           <HydrationSafeWrapper fallback={<div className="w-12 h-8 bg-gray-200 rounded-lg animate-pulse"></div>}>
             <Suspense fallback={<div className="w-12 h-8 bg-gray-200 rounded-lg animate-pulse"></div>}>
@@ -142,19 +142,21 @@ export default function Home() {
               showRealTimeIndicator={true}
             />
           </Suspense>
-          <div className={styles.performanceToggle} title={DASHBOARD_COPY.fasterLoadingTooltip}>
-            <label>
+          <div className={styles.performanceToggle} role="group" aria-labelledby="perf-toggle-label">
+            <label id="perf-toggle-label" htmlFor="perf-toggle">
               <input
+                id="perf-toggle"
                 type="checkbox"
                 checked={useParallelFetching}
                 onChange={(e) => setUseParallelFetching(e.target.checked)}
-                aria-label={DASHBOARD_COPY.fasterLoadingTooltip}
+                aria-describedby="perf-toggle-desc"
               />
-              {DASHBOARD_COPY.fasterLoading}
+              <span>{DASHBOARD_COPY.fasterLoading}</span>
             </label>
+            <span id="perf-toggle-desc" className="sr-only">{DASHBOARD_COPY.fasterLoadingTooltip}</span>
           </div>
         </div>
-      </div>
+      </header>
 
       <section className={styles.howToUse} aria-labelledby="how-to-use-heading">
         <h2 id="how-to-use-heading" className={styles.howToUseTitle}>
@@ -163,6 +165,7 @@ export default function Home() {
         <p className={styles.howToUseBlurb}>{DASHBOARD_COPY.howToUseBlurb}</p>
       </section>
 
+      <main id="dashboard-main" className={styles.main} aria-label="Dashboard charts and data">
       {/* Enhanced Dashboard Layout with Parallel Fetching or Drag & Drop */}
       {useParallelFetching ? (
         <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
@@ -276,6 +279,7 @@ export default function Home() {
           />
         </Suspense>
       )}
+      </main>
     </div>
   );
 }

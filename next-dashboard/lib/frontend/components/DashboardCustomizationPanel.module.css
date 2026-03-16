@@ -536,8 +536,8 @@
   border-color: var(--accent-hover, #2563eb);
 }
 
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
+/* Dark mode - follows app theme */
+:global([data-theme="dark"]) {
   .panel {
     background: var(--background-primary-dark, #1f2937);
   }

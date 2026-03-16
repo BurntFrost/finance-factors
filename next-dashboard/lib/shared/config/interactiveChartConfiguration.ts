@@ -9,6 +9,7 @@ export interface InteractiveChartOptions extends ChartOptions {
       pan?: {
         enabled: boolean;
         mode: 'x' | 'y' | 'xy';
+        threshold?: number;
         rangeMin?: {
           x?: number;
           y?: number;
@@ -22,6 +23,7 @@ export interface InteractiveChartOptions extends ChartOptions {
         wheel?: {
           enabled: boolean;
           speed?: number;
+          modifierKey?: 'ctrl' | 'alt' | 'shift' | 'meta';
         };
         pinch?: {
           enabled: boolean;
@@ -101,6 +103,7 @@ export function getInteractiveChartOptions(
         pan: {
           enabled: enablePan,
           mode: 'x',
+          threshold: 5,
           rangeMin: {
             x: undefined,
           },
@@ -111,7 +114,8 @@ export function getInteractiveChartOptions(
         zoom: {
           wheel: {
             enabled: enableZoom,
-            speed: 0.1,
+            speed: 0.07,
+            modifierKey: 'ctrl',
           },
           pinch: {
             enabled: enableZoom,
@@ -298,5 +302,29 @@ export function toggleChartPan(chart: Chart, enabled: boolean): void {
   if (chart && chart.options?.plugins?.zoom) {
     chart.options.plugins.zoom.pan!.enabled = enabled;
     chart.update('none');
+  }
+}
+
+/** Zoom scale factor for zoom-in (e.g. 1.25 = 25% in) */
+const ZOOM_IN_FACTOR = 1.25;
+
+/** Zoom scale factor for zoom-out (e.g. 0.8 = 20% out) */
+const ZOOM_OUT_FACTOR = 0.8;
+
+/**
+ * Zoom the chart in by a fixed factor (button-triggered).
+ */
+export function zoomChartIn(chart: Chart): void {
+  if (chart && typeof (chart as any).zoom === 'function') {
+    (chart as any).zoom(ZOOM_IN_FACTOR, 'zoom');
+  }
+}
+
+/**
+ * Zoom the chart out by a fixed factor (button-triggered).
+ */
+export function zoomChartOut(chart: Chart): void {
+  if (chart && typeof (chart as any).zoom === 'function') {
+    (chart as any).zoom(ZOOM_OUT_FACTOR, 'zoom');
   }
 }

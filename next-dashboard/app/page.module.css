@@ -1,7 +1,7 @@
 .container {
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   font-family: var(--font-geist-sans), Arial, sans-serif;
-  max-width: 1400px; /* Increased for better 2-column layout */
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -9,8 +9,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 2rem;
-  gap: 1rem;
+  margin-bottom: 1.75rem;
+  gap: 1.25rem;
   position: relative;
   width: 100%;
 }
@@ -26,79 +26,109 @@
 .headerContent {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
+/* Switch-style "Faster loading" control - theme-aware, clear affordance */
 .performanceToggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
-  font-size: 0.875rem;
+  padding: 0.375rem 0.75rem;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius, 0.5rem);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground-secondary);
+  min-height: 2.5rem;
 }
 
 .performanceToggle label {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
   cursor: pointer;
-  color: #495057;
+  color: inherit;
+  user-select: none;
 }
 
 .performanceToggle input[type="checkbox"] {
   margin: 0;
+  width: 1rem;
+  height: 1rem;
+  accent-color: hsl(var(--primary));
+}
+
+.performanceToggle:focus-within {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .performanceToggle {
+    transition: none;
+  }
 }
 
 .titleBlock {
   text-align: center;
+  padding: 0 1rem;
 }
 
 .titleBlock h1 {
   margin: 0;
-  color: var(--foreground);
-  font-size: 1.75rem;
+  color: hsl(var(--foreground));
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .subtitle {
-  margin: 0.25rem 0 0;
-  font-size: 0.9375rem;
-  color: var(--text-secondary, #6c757d);
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  color: var(--foreground-secondary);
   font-weight: 400;
   max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.45;
 }
 
 .header h1 {
   margin: 0;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
   text-align: center;
 }
 
-/* How to use blurb */
+.main {
+  outline: none;
+}
+
+/* How to use - subtle card, content-first */
 .howToUse {
   margin-bottom: 1.5rem;
   padding: 1rem 1.25rem;
-  background: var(--background-secondary, #f8f9fa);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e9ecef);
+  background: var(--background-secondary);
+  border-radius: var(--radius, 0.5rem);
+  border: 1px solid var(--border-color);
 }
 
 .howToUseTitle {
-  margin: 0 0 0.5rem;
-  font-size: 0.9375rem;
+  margin: 0 0 0.375rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .howToUseBlurb {
   margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: var(--text-secondary, #6c757d);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--foreground-secondary);
 }
 
 /* Dashboard grid layout */
@@ -122,14 +152,10 @@
 }
 
 .chartContainer {
-  margin-bottom: 0; /* Remove bottom margin since grid handles spacing */
-  /* Improve chart container performance */
-  contain: layout style;
-  will-change: transform;
-  /* Ensure charts fill their grid cell properly */
+  margin-bottom: 0;
+  contain: layout;
   width: 100%;
   min-height: 300px;
-  /* Ensure proper flex behavior for grid items */
   display: flex;
   flex-direction: column;
 }
@@ -142,16 +168,16 @@
   justify-content: center;
   align-items: center;
   min-height: 200px;
-  background: var(--background-secondary, #f8f9fa);
-  border-radius: 8px;
-  border: 1px solid var(--border-color, #e9ecef);
+  background: var(--background-secondary);
+  border-radius: var(--radius, 0.5rem);
+  border: 1px solid var(--border-color);
 }
 
 .loadingSpinner {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-secondary, #6c757d);
+  color: var(--foreground-secondary);
   font-size: 0.875rem;
 }
 
@@ -166,13 +192,19 @@
   to { transform: rotate(360deg); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .loadingSpinner::before {
+    animation: none;
+  }
+}
+
 .errorContainer {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 200px;
   background: var(--error-background, #fef2f2);
-  border-radius: 8px;
+  border-radius: var(--radius, 0.5rem);
   border: 1px solid var(--error-border, #fecaca);
 }
 
@@ -189,21 +221,23 @@
 
 .retryButton {
   padding: 0.5rem 1rem;
-  background: var(--primary-color, #007bff);
-  color: white;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius, 0.5rem);
   cursor: pointer;
   font-size: 0.875rem;
-  transition: background-color 0.2s ease;
+  font-weight: 500;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 
 .retryButton:hover {
-  background: var(--primary-color-hover, #0056b3);
+  opacity: 0.9;
+  filter: brightness(1.05);
 }
 
-.retryButton:focus {
-  outline: 2px solid var(--primary-color, #007bff);
+.retryButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
 

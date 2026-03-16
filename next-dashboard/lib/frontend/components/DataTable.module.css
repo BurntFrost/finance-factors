@@ -192,7 +192,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .tableContainer {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
@@ -317,7 +317,7 @@
 }
 
 /* Dark mode support for loading overlay */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .loadingOverlay {
     background: rgba(0, 0, 0, 0.8);
   }

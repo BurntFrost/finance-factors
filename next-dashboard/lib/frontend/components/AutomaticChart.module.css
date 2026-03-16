@@ -81,6 +81,12 @@
   border-color: #2563eb;
 }
 
+.controlIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
 .controlButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -496,7 +502,7 @@
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
+:global([data-theme="dark"]) {
   .container,
   .compactContainer {
     background: #1f2937;

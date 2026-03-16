@@ -6,19 +6,19 @@
   margin: 0 auto;
 }
 
-/* Loading Progress */
+/* Loading Progress - theme-aware */
 .loadingProgress {
   margin-bottom: 1rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border-left: 4px solid #007bff;
+  background: var(--background-secondary);
+  border-radius: var(--radius, 0.5rem);
+  border-left: 4px solid hsl(var(--primary));
 }
 
 .progressBar {
   width: 100%;
   height: 8px;
-  background: #e9ecef;
+  background: var(--background-tertiary);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 0.5rem;
@@ -26,54 +26,61 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #007bff, #0056b3);
-  transition: width 0.3s ease;
+  background: hsl(var(--primary));
+  transition: width 0.2s ease;
 }
 
 .progressText {
   font-size: 0.875rem;
-  color: #495057;
+  color: var(--foreground-secondary);
   font-weight: 500;
 }
 
-/* Dashboard Controls */
+/* Dashboard Controls - theme-aware */
 .controls {
   display: flex;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius, 0.5rem);
+  box-shadow: var(--shadow-sm);
 }
 
 .refreshButton {
   padding: 0.5rem 1rem;
-  background: #28a745;
-  color: white;
+  background: hsl(var(--success));
+  color: hsl(var(--success-foreground));
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius, 0.5rem);
   cursor: pointer;
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: opacity 0.2s ease, filter 0.2s ease;
 }
 
 .refreshButton:hover:not(:disabled) {
-  background: #218838;
+  opacity: 0.95;
+  filter: brightness(1.05);
+}
+
+.refreshButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .refreshButton:disabled {
-  background: #6c757d;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .errorSummary {
-  color: #dc3545;
+  color: hsl(var(--destructive));
   font-weight: 500;
   padding: 0.25rem 0.5rem;
-  background: #f8d7da;
-  border-radius: 4px;
+  background: hsl(var(--destructive) / 0.1);
+  border-radius: var(--radius, 0.5rem);
 }
 
 .stats {
@@ -81,16 +88,16 @@
   gap: 1rem;
   margin-left: auto;
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--foreground-secondary);
 }
 
 .stats span {
   padding: 0.25rem 0.5rem;
-  background: #f8f9fa;
-  border-radius: 4px;
+  background: var(--background-secondary);
+  border-radius: var(--radius, 0.5rem);
 }
 
-/* Dashboard Grid */
+/* Dashboard Grid - theme-aware */
 .dashboardGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
@@ -99,15 +106,16 @@
 }
 
 .chartContainer {
-  background: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius, 0.5rem);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
-  transition: box-shadow 0.2s;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .chartContainer:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .chartWrapper {
@@ -116,21 +124,21 @@
   flex-direction: column;
 }
 
-/* Chart Header */
+/* Chart Header - theme-aware */
 .chartHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #e9ecef;
-  background: #f8f9fa;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-secondary);
 }
 
 .chartTitle {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #212529;
+  color: hsl(var(--foreground));
 }
 
 .chartStatus {
@@ -140,18 +148,18 @@
 }
 
 .successIndicator {
-  color: #28a745;
+  color: hsl(var(--success));
   font-size: 0.875rem;
 }
 
 .errorIndicator {
-  color: #dc3545;
+  color: hsl(var(--destructive));
   font-size: 0.875rem;
   cursor: help;
 }
 
 .loadingIndicator {
-  color: #ffc107;
+  color: hsl(var(--warning));
   font-size: 0.875rem;
 }
 
@@ -161,20 +169,26 @@
   border: none;
   cursor: pointer;
   padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  border-radius: var(--radius, 0.5rem);
+  transition: background-color 0.2s ease;
 }
 
 .refreshSingleButton:hover {
-  background: #e9ecef;
+  background: var(--background-tertiary);
+}
+
+.refreshSingleButton:focus-visible,
+.removeButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .removeButton:hover {
-  background: #f8d7da;
-  color: #dc3545;
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
 }
 
-/* Chart States */
+/* Chart States - theme-aware */
 .errorState {
   flex: 1;
   display: flex;
@@ -183,27 +197,34 @@
   justify-content: center;
   padding: 2rem;
   text-align: center;
-  color: #6c757d;
+  color: var(--foreground-secondary);
 }
 
 .errorMessage {
   font-size: 0.875rem;
-  color: #dc3545;
+  color: hsl(var(--destructive));
   margin: 0.5rem 0;
 }
 
 .retryButton {
   padding: 0.5rem 1rem;
-  background: #dc3545;
-  color: white;
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius, 0.5rem);
   cursor: pointer;
   margin-top: 0.5rem;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
 }
 
 .retryButton:hover {
-  background: #c82333;
+  opacity: 0.9;
+}
+
+.retryButton:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
 }
 
 .loadingState {
@@ -213,14 +234,14 @@
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: #6c757d;
+  color: var(--foreground-secondary);
 }
 
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #007bff;
+  border: 3px solid var(--background-tertiary);
+  border-top-color: hsl(var(--primary));
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -231,19 +252,35 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Chart Footer */
+@media (prefers-reduced-motion: reduce) {
+  .progressFill {
+    transition: none;
+  }
+  .spinner {
+    animation: none;
+    border-top-color: hsl(var(--primary));
+    border-color: hsl(var(--primary) / 0.3);
+  }
+  .skeletonHeader,
+  .skeletonChart {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+/* Chart Footer - theme-aware */
 .chartFooter {
   padding: 0.5rem 1rem;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+  background: var(--background-secondary);
+  border-top: 1px solid var(--border-color);
   text-align: right;
 }
 
 .chartFooter small {
-  color: #6c757d;
+  color: var(--foreground-secondary);
 }
 
-/* Chart Skeleton */
+/* Chart Skeleton - theme-aware */
 .chartSkeleton {
   padding: 1rem;
   height: 400px;
@@ -251,16 +288,16 @@
 
 .skeletonHeader {
   height: 24px;
-  background: #e9ecef;
-  border-radius: 4px;
+  background: var(--background-tertiary);
+  border-radius: var(--radius, 0.5rem);
   margin-bottom: 1rem;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeletonChart {
   height: 300px;
-  background: #e9ecef;
-  border-radius: 4px;
+  background: var(--background-tertiary);
+  border-radius: var(--radius, 0.5rem);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -269,30 +306,31 @@
   50% { opacity: 0.5; }
 }
 
-/* Performance Info */
+/* Performance Info - theme-aware */
 .performanceInfo {
   margin-top: 2rem;
   padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  background: var(--background-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius, 0.5rem);
 }
 
 .performanceInfo summary {
   cursor: pointer;
   font-weight: 500;
-  color: #495057;
+  color: hsl(var(--foreground));
 }
 
 .performanceDetails {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #dee2e6;
+  border-top: 1px solid var(--border-color);
 }
 
 .performanceDetails p {
   margin: 0.25rem 0;
   font-size: 0.875rem;
-  color: #6c757d;
+  color: var(--foreground-secondary);
 }
 
 /* Responsive Design */
