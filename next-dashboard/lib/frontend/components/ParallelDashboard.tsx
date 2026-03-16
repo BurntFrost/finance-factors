@@ -7,7 +7,7 @@
  * for improved performance while maintaining the existing user experience.
  */
 
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, useCallback, memo, lazy, Suspense } from 'react';
 import { useStandardDashboardData } from '@/frontend/hooks/useParallelDashboardData';
 import { ChartData } from '@/shared/types/dashboard';
 import styles from './ParallelDashboard.module.css';
@@ -38,6 +38,65 @@ const CHART_CONFIGS = [
   { id: 'treasury-2y', dataType: 'treasury-2y', title: '2-Year Treasury Yield' },
 ];
 
+interface ChartSlotProps {
+  chart: typeof CHART_CONFIGS[number];
+  chartData: ChartData | null;
+  chartError: string | null;
+  chartLastUpdated: Date | null;
+  enableRealTime: boolean;
+  refreshInterval?: number;
+  onRemove: (chartId: string) => void;
+  onRefreshSingle: (dataType: string) => void;
+}
+
+const ChartSlot = memo(function ChartSlot({
+  chart, chartData, chartError, chartLastUpdated,
+  enableRealTime, refreshInterval, onRemove, onRefreshSingle,
+}: ChartSlotProps) {
+  return (
+    <div className={styles.chartContainer}>
+      <Suspense fallback={<div className={styles.chartSkeleton}><div className={styles.skeletonHeader}></div><div className={styles.skeletonChart}></div></div>}>
+        {chartError ? (
+          <div className={styles.errorState}>
+            <p>Failed to load data</p>
+            <p className={styles.errorMessage}>{chartError}</p>
+            <button onClick={() => onRefreshSingle(chart.dataType)} className={styles.retryButton}>Retry</button>
+          </div>
+        ) : chartData ? (
+          <AutomaticChart
+            dataType={chart.dataType}
+            title={chart.title}
+            chartType="line"
+            height={400}
+            showIndicator={true}
+            indicatorPosition="top-right"
+            refreshInterval={enableRealTime ? refreshInterval : undefined}
+            fallbackData={chartData}
+            onRemove={() => onRemove(chart.id)}
+            showVisualizationSwitcher={true}
+            enableRealTime={enableRealTime}
+            showRealTimeIndicator={enableRealTime}
+            enableZoom={true}
+            enablePan={true}
+            enableCrossfilter={false}
+            showInteractiveControls={true}
+          />
+        ) : (
+          <div className={styles.loadingState}>
+            <div className={styles.spinner}></div>
+            <p>Loading {chart.title}...</p>
+          </div>
+        )}
+        {chartLastUpdated && (
+          <div className={styles.chartFooter}>
+            <small>Last updated: {chartLastUpdated.toLocaleTimeString()}</small>
+          </div>
+        )}
+      </Suspense>
+    </div>
+  );
+});
+
 export default function ParallelDashboard({
   enableRealTime = false,
   refreshInterval = 15 * 60 * 1000, // 15 minutes
@@ -67,13 +126,13 @@ export default function ParallelDashboard({
   });
 
   // Handler to remove charts
-  const handleRemoveChart = (chartId: string) => {
+  const handleRemoveChart = useCallback((chartId: string) => {
     setVisibleCharts(prev => {
       const newSet = new Set(prev);
       newSet.delete(chartId);
       return newSet;
     });
-  };
+  }, []);
 
   // Get loading progress
   const progress = getLoadingProgress();
@@ -124,77 +183,19 @@ export default function ParallelDashboard({
       <div className={styles.dashboardGrid}>
         {CHART_CONFIGS
           .filter(chart => visibleCharts.has(chart.id))
-          .map((chart) => {
-            const chartData = data[chart.dataType] as ChartData | null;
-            const chartError = errors[chart.dataType];
-            const chartLastUpdated = lastUpdated[chart.dataType];
-
-            return (
-              <div key={chart.id} className={styles.chartContainer}>
-                <Suspense 
-                  fallback={
-                    <div className={styles.chartSkeleton}>
-                      <div className={styles.skeletonHeader}></div>
-                      <div className={styles.skeletonChart}></div>
-                    </div>
-                  }
-                >
-                  {/* Chart Content - AutomaticChart provides its own header */}
-                    {chartError ? (
-                      <div className={styles.errorState}>
-                        <p>Failed to load data</p>
-                        <p className={styles.errorMessage}>{chartError}</p>
-                        <button 
-                          onClick={() => refreshSingle(chart.dataType)}
-                          className={styles.retryButton}
-                        >
-                          Retry
-                        </button>
-                      </div>
-                    ) : chartData ? (
-                      <AutomaticChart
-                        dataType={chart.dataType}
-                        title={chart.title}
-                        chartType="line"
-                        height={400}
-                        showIndicator={true}
-                        indicatorPosition="top-right"
-                        refreshInterval={enableRealTime ? refreshInterval : undefined}
-                        fallbackData={chartData}
-                        onRemove={() => handleRemoveChart(chart.id)}
-                        showVisualizationSwitcher={true}
-                        onVisualizationChange={(newType) => {
-                          console.log(`Chart ${chart.id} visualization changed to ${newType}`);
-                        }}
-                        enableRealTime={enableRealTime}
-                        showRealTimeIndicator={enableRealTime}
-                        enableZoom={true}
-                        enablePan={true}
-                        enableCrossfilter={false}
-                        showInteractiveControls={true}
-                        onDataPointClick={(dataPoint, chartInstance) => {
-                          console.log(`Chart ${chart.id} data point clicked:`, dataPoint, chartInstance);
-                        }}
-                      />
-                    ) : (
-                      <div className={styles.loadingState}>
-                        <div className={styles.spinner}></div>
-                        <p>Loading {chart.title}...</p>
-                      </div>
-                    )}
-
-                    {/* Chart Footer with Metadata */}
-                    {chartLastUpdated && (
-                      <div className={styles.chartFooter}>
-                        <small>
-                          Last updated: {chartLastUpdated.toLocaleTimeString()}
-                        </small>
-                      </div>
-                    )}
-                </Suspense>
-              </div>
-            );
-          })}
+          .map((chart) => (
+            <ChartSlot
+              key={chart.id}
+              chart={chart}
+              chartData={data[chart.dataType] as ChartData | null}
+              chartError={errors[chart.dataType]}
+              chartLastUpdated={lastUpdated[chart.dataType]}
+              enableRealTime={enableRealTime}
+              refreshInterval={refreshInterval}
+              onRemove={handleRemoveChart}
+              onRefreshSingle={refreshSingle}
+            />
+          ))}
       </div>
 
       {/* Performance Info */}

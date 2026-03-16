@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useRef, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useRef, useCallback, useMemo, ReactNode } from 'react';
 import { MultiChartCrossfilter, FilterState } from '@/shared/utils/crossfilter';
 import { ChartData } from '@/shared/types/dashboard';
 
@@ -22,13 +22,10 @@ interface CrossfilterProviderProps {
 }
 
 export function CrossfilterProvider({ children, enabled = true }: CrossfilterProviderProps) {
-  const multiCrossfilterRef = useRef<MultiChartCrossfilter | null>(null);
+  const multiCrossfilterRef = useRef<MultiChartCrossfilter | null>(
+    enabled ? new MultiChartCrossfilter() : null
+  );
   const activeFiltersRef = useRef<Map<string, FilterState>>(new Map());
-
-  // Initialize the multi-chart crossfilter
-  if (!multiCrossfilterRef.current && enabled) {
-    multiCrossfilterRef.current = new MultiChartCrossfilter();
-  }
 
   const registerChart = useCallback((
     chartId: string,
@@ -89,7 +86,7 @@ export function CrossfilterProvider({ children, enabled = true }: CrossfilterPro
     return new Map(activeFiltersRef.current);
   }, []);
 
-  const contextValue: CrossfilterContextType = {
+  const contextValue: CrossfilterContextType = useMemo(() => ({
     registerChart,
     unregisterChart,
     applyFilter,
@@ -97,7 +94,7 @@ export function CrossfilterProvider({ children, enabled = true }: CrossfilterPro
     clearChartFilter,
     isFilterActive,
     getActiveFilters,
-  };
+  }), [registerChart, unregisterChart, applyFilter, clearAllFilters, clearChartFilter, isFilterActive, getActiveFilters]);
 
   return (
     <CrossfilterContext.Provider value={contextValue}>
@@ -123,22 +120,17 @@ export function useChartCrossfilter(
   onDataUpdate?: (filteredData: ChartData) => void
 ) {
   const crossfilter = useCrossfilter();
-  const registeredRef = useRef(false);
 
   // Register chart with crossfilter system
   React.useEffect(() => {
-    if (!registeredRef.current && data.length > 0) {
+    if (data.length > 0) {
       crossfilter.registerChart(chartId, data, (filteredData) => {
         onDataUpdate?.(filteredData);
       });
-      registeredRef.current = true;
     }
 
     return () => {
-      if (registeredRef.current) {
-        crossfilter.unregisterChart(chartId);
-        registeredRef.current = false;
-      }
+      crossfilter.unregisterChart(chartId);
     };
   }, [chartId, data, crossfilter, onDataUpdate]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useReducer, useCallback, useMemo, ReactNode, useRef } from 'react';
 import { DashboardState, DashboardAction, DashboardElement } from '@/shared/types/dashboard';
 import { generateHistoricalDataByType, generateElementTitleByType } from '@/shared/utils/historicalDataGenerators';
 
@@ -118,7 +118,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   // Start counter from 100 to avoid conflicts with default elements
   const elementCounterRef = useRef(100);
 
-  const addElement = (element: Omit<DashboardElement, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addElement = useCallback((element: Omit<DashboardElement, 'id' | 'createdAt' | 'updatedAt'>) => {
     elementCounterRef.current += 1;
     const newElement: DashboardElement = {
       ...element,
@@ -130,33 +130,33 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
       dataSource: element.dataSource ?? 'Historical Data Generator'
     };
     dispatch({ type: 'ADD_ELEMENT', payload: newElement });
-  };
+  }, []);
 
-  const removeElement = (id: string) => {
+  const removeElement = useCallback((id: string) => {
     dispatch({ type: 'REMOVE_ELEMENT', payload: id });
-  };
+  }, []);
 
-  const updateElement = (id: string, updates: Partial<DashboardElement>) => {
+  const updateElement = useCallback((id: string, updates: Partial<DashboardElement>) => {
     dispatch({ type: 'UPDATE_ELEMENT', payload: { id, updates } });
-  };
+  }, []);
 
-  const reorderElements = (elements: DashboardElement[]) => {
+  const reorderElements = useCallback((elements: DashboardElement[]) => {
     dispatch({ type: 'REORDER_ELEMENTS', payload: elements });
-  };
+  }, []);
 
-  const setLayout = (layout: 'grid' | 'stack') => {
+  const setLayout = useCallback((layout: 'grid' | 'stack') => {
     dispatch({ type: 'SET_LAYOUT', payload: layout });
-  };
+  }, []);
 
-  const setLoading = (loading: boolean) => {
+  const setLoading = useCallback((loading: boolean) => {
     dispatch({ type: 'SET_LOADING', payload: loading });
-  };
+  }, []);
 
-  const setError = (error: string | undefined) => {
+  const setError = useCallback((error: string | undefined) => {
     dispatch({ type: 'SET_ERROR', payload: error });
-  };
+  }, []);
 
-  const contextValue: DashboardContextType = {
+  const contextValue: DashboardContextType = useMemo(() => ({
     state,
     dispatch,
     addElement,
@@ -166,7 +166,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     setLayout,
     setLoading,
     setError,
-  };
+  }), [state, addElement, removeElement, updateElement, reorderElements, setLayout, setLoading, setError]);
 
   return (
     <DashboardContext.Provider value={contextValue}>

@@ -49,6 +49,7 @@ export function useParallelDashboardData<T = ChartData>(
   );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true); // Track if this is initial load
+  const isInitialLoadRef = useRef(true); // Ref mirror to avoid callback identity changes
   const [errors, setErrors] = useState<Record<string, string | null>>(() =>
     requests.reduce((acc, req) => ({ ...acc, [req.dataType]: null }), {})
   );
@@ -121,11 +122,8 @@ export function useParallelDashboardData<T = ChartData>(
     setIsLoading(true);
 
     // Only show progress bar for initial load or user-triggered refreshes
-    if (isInitialLoad || isUserTriggered) {
-      // Keep isInitialLoad true during the fetch
-    } else {
-      // This is a background retry, don't show progress bar
-      setIsInitialLoad(false);
+    if (!isInitialLoadRef.current && !isUserTriggered) {
+      // Background retry — already marked as non-initial, no state change needed
     }
 
     console.log(`🚀 Starting parallel fetch for ${requests.length} data types:`,
@@ -152,15 +150,16 @@ export function useParallelDashboardData<T = ChartData>(
       console.log(`✨ Parallel fetch completed for all ${requests.length} data types`);
 
       // Mark initial load as complete after first successful fetch
-      if (isInitialLoad) {
+      if (isInitialLoadRef.current) {
         setIsInitialLoad(false);
+        isInitialLoadRef.current = false;
       }
     } catch (error) {
       console.error('💥 Error in parallel fetch:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [requests, fetchSingleData, staggerDelay, isInitialLoad]);
+  }, [requests, fetchSingleData, staggerDelay]); // isInitialLoad removed — read from ref
 
   // Function to refresh a single data type
   const refreshSingle = useCallback(async (dataType: string): Promise<void> => {
@@ -175,14 +174,17 @@ export function useParallelDashboardData<T = ChartData>(
     await fetchAllData(true); // Mark as user-triggered to show progress bar
   }, [fetchAllData]);
 
-  // Function to get loading progress
+  // Function to get loading progress — uses ref to avoid rebuilding on every loadingStates change
+  const loadingStatesRef = useRef(loadingStates);
+  loadingStatesRef.current = loadingStates;
+
   const getLoadingProgress = useCallback(() => {
     const total = requests.length;
-    const completed = Object.values(loadingStates).filter(loading => !loading).length;
+    const completed = Object.values(loadingStatesRef.current).filter(loading => !loading).length;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 100;
-    
+
     return { completed, total, percentage };
-  }, [requests.length, loadingStates]);
+  }, [requests.length]);
 
   // Auto-fetch on mount
   useEffect(() => {
@@ -191,13 +193,19 @@ export function useParallelDashboardData<T = ChartData>(
     }
   }, [autoFetch, fetchAllData]);
 
-  // Set up refresh interval
+  // Keep refs for values used in interval to avoid teardown/rebuild on every render
+  const fetchAllDataRef = useRef(fetchAllData);
+  fetchAllDataRef.current = fetchAllData;
+  const isAnyLoadingRef = useRef(isAnyLoading);
+  isAnyLoadingRef.current = isAnyLoading;
+
+  // Set up refresh interval — only depends on refreshInterval value
   useEffect(() => {
     if (refreshInterval && refreshInterval > 0) {
       refreshIntervalRef.current = setInterval(() => {
-        if (isMountedRef.current && !isAnyLoading) {
+        if (isMountedRef.current && !isAnyLoadingRef.current) {
           console.log(`🔄 Auto-refreshing dashboard data (interval: ${refreshInterval}ms)`);
-          fetchAllData(false); // Automatic refresh, don't show progress bar
+          fetchAllDataRef.current(false);
         }
       }, refreshInterval);
 
@@ -208,7 +216,7 @@ export function useParallelDashboardData<T = ChartData>(
         }
       };
     }
-  }, [refreshInterval, fetchAllData, isAnyLoading]);
+  }, [refreshInterval]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -234,26 +242,27 @@ export function useParallelDashboardData<T = ChartData>(
   };
 }
 
+// Static array of standard dashboard requests — module-scoped to avoid re-creation on every render
+const STANDARD_REQUESTS: DashboardDataRequest[] = [
+  { dataType: 'house-prices' },
+  { dataType: 'salary-income' },
+  { dataType: 'inflation-cpi' },
+  { dataType: 'core-inflation' },
+  { dataType: 'fed-balance-sheet' },
+  { dataType: 'federal-funds-rate' },
+  { dataType: 'unemployment-rate' },
+  { dataType: 'gdp-growth' },
+  { dataType: 'money-supply-m1' },
+  { dataType: 'money-supply-m2' },
+  { dataType: 'treasury-10y' },
+  { dataType: 'treasury-2y' },
+];
+
 // Predefined hook for common dashboard data types
 export function useStandardDashboardData(options?: {
   autoFetch?: boolean;
   refreshInterval?: number;
   staggerDelay?: number;
 }): ParallelDashboardResult<ChartData> {
-  const standardRequests: DashboardDataRequest[] = [
-    { dataType: 'house-prices' },
-    { dataType: 'salary-income' },
-    { dataType: 'inflation-cpi' },
-    { dataType: 'core-inflation' },
-    { dataType: 'fed-balance-sheet' },
-    { dataType: 'federal-funds-rate' },
-    { dataType: 'unemployment-rate' },
-    { dataType: 'gdp-growth' },
-    { dataType: 'money-supply-m1' },
-    { dataType: 'money-supply-m2' },
-    { dataType: 'treasury-10y' },
-    { dataType: 'treasury-2y' },
-  ];
-
-  return useParallelDashboardData(standardRequests, options);
+  return useParallelDashboardData(STANDARD_REQUESTS, options);
 }

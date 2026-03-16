@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, lazy, useRef, useState, useCallback, useEffect } from 'react';
+import React, { Suspense, lazy, useRef, useState, useCallback, useEffect, useMemo, memo } from 'react';
 import { ChartData, VisualizationType } from '@/shared/types/dashboard';
 import { getDataStatus } from './ui/modern-status-pill';
 import { useIsEditMode } from '@/frontend/context/ViewModeContext';
@@ -72,7 +72,7 @@ const ChartSkeleton = () => (
 
 // These button components are now handled by ChartCard
 
-export default function DynamicChart({
+const DynamicChart = memo(function DynamicChart({
   type,
   data,
   title,
@@ -114,20 +114,20 @@ export default function DynamicChart({
 
   // Wait for Chart.js to be properly registered
   useEffect(() => {
+    let fallbackTimeoutId: NodeJS.Timeout | undefined;
     const checkChartRegistration = async () => {
       try {
-        // Import the wait function and wait for registration
         const { waitForChartJS } = await import('./ChartRegistration');
         await waitForChartJS();
         setIsChartReady(true);
       } catch (error) {
         console.error('Error waiting for Chart.js registration:', error);
-        // Fallback - assume it's ready after a delay
-        setTimeout(() => setIsChartReady(true), 2000);
+        fallbackTimeoutId = setTimeout(() => setIsChartReady(true), 2000);
       }
     };
 
     checkChartRegistration();
+    return () => { if (fallbackTimeoutId) clearTimeout(fallbackTimeoutId); };
   }, []);
 
   const handleRefresh = useCallback(async () => {
@@ -150,7 +150,7 @@ export default function DynamicChart({
     }
   }, [isRefreshing]);
 
-  const getChartOptions = () => {
+  const chartOptions = useMemo(() => {
     // Get axis configuration for the data type
     const axisConfig = getAxisConfig(dataType || '');
 
@@ -159,12 +159,8 @@ export default function DynamicChart({
       enableZoom,
       enablePan,
       enableCrossfilter,
-      onDataPointClick: onDataPointClick ? (dataPoint: any, chart: any) => {
-        onDataPointClick(dataPoint, chart);
-      } : undefined,
-      onDataPointHover: onDataPointHover ? (dataPoint: any, chart: any) => {
-        onDataPointHover(dataPoint, chart);
-      } : undefined,
+      onDataPointClick,
+      onDataPointHover,
       customTooltip: true,
     });
 
@@ -217,10 +213,10 @@ export default function DynamicChart({
     }
 
     return baseOptions;
-  };
+  }, [type, dataType, enableZoom, enablePan, enableCrossfilter, onDataPointClick, onDataPointHover, config]);
 
   const renderChart = () => {
-    const options = getChartOptions();
+    const options = chartOptions;
 
     const commonProps = {
       ref: chartRef,
@@ -310,4 +306,6 @@ export default function DynamicChart({
       </ChartCard>
     </ChartErrorBoundary>
   );
-}
+});
+
+export default DynamicChart;

@@ -8,7 +8,7 @@
  * visual indicators and retry functionality.
  */
 
-import React, { Suspense, useRef, useCallback, useState } from 'react';
+import React, { Suspense, useRef, useCallback, useState, memo } from 'react';
 import type { Chart } from 'chart.js';
 import { useAutomaticDataSource } from '@/frontend/hooks/useAutomaticDataSource';
 // import { useWebSocket } from '@/backend/services/websocketService'; // Temporarily disabled for SSR
@@ -58,7 +58,7 @@ export interface AutomaticChartProps {
   showFooterRefresh?: boolean;
 }
 
-function AutomaticChartInternal({
+const AutomaticChartInternal = memo(function AutomaticChartInternal({
   dataType,
   title,
   chartType = 'line',
@@ -87,8 +87,8 @@ function AutomaticChartInternal({
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);
   const dynamicChartRef = useRef<Chart | null>(null);
-  const [currentChartType, setCurrentChartType] = React.useState(chartType);
-  const [isChangingVisualization, setIsChangingVisualization] = React.useState(false);
+  const [currentChartType, setCurrentChartType] = useState(chartType);
+  const [isChangingVisualization, setIsChangingVisualization] = useState(false);
 
   // Interactive chart state
   const [isZoomEnabled, setIsZoomEnabled] = useState(enableZoom);
@@ -132,10 +132,8 @@ function AutomaticChartInternal({
 
   // Sync chartType prop with internal state
   React.useEffect(() => {
-    if (chartType !== currentChartType) {
-      setCurrentChartType(chartType);
-    }
-  }, [chartType, currentChartType]);
+    setCurrentChartType(chartType);
+  }, [chartType]);
 
   // Notify parent of data changes
   React.useEffect(() => {
@@ -143,6 +141,10 @@ function AutomaticChartInternal({
       onDataChange(data, status);
     }
   }, [data, status, onDataChange]);
+
+  const handleChartReadyCapture = useCallback((chart: any) => {
+    dynamicChartRef.current = chart;
+  }, []);
 
   // Interactive chart handlers
   const handleDataPointClick = useCallback((dataPoint: any, chart: Chart) => {
@@ -439,9 +441,7 @@ function AutomaticChartInternal({
                 enableCrossfilter={enableCrossfilter}
                 onDataPointClick={handleDataPointClick}
                 onDataPointHover={handleDataPointHover}
-                onChartReady={(chart) => {
-                  dynamicChartRef.current = chart;
-                }}
+                onChartReady={handleChartReadyCapture}
               />
               
               {/* Loading overlay for refresh */}
@@ -504,7 +504,7 @@ function AutomaticChartInternal({
       )}
     </div>
   );
-}
+});
 
 // Wrapped version with error boundary to prevent infinite loops
 export default function AutomaticChart(props: AutomaticChartProps) {

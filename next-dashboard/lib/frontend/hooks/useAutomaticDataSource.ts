@@ -31,35 +31,25 @@ export interface UseAutomaticDataSourceResult<T = unknown> {
   clearCache: () => void;
 }
 
-// Helper function to map enhanced status to basic status
-function mapEnhancedStatusToBasic(enhancedStatus: string): 'live' | 'historical-fallback' | 'loading' | 'error' {
-  if (enhancedStatus.startsWith('live-') || enhancedStatus === 'live') {
-    return 'live';
-  }
-  if (enhancedStatus.startsWith('fallback-') || enhancedStatus === 'historical-fallback') {
-    return 'historical-fallback';
-  }
-  if (enhancedStatus === 'loading') {
-    return 'loading';
-  }
-  // Default to error for unknown or error statuses
-  return 'error';
-}
-
 export function useAutomaticDataSource<T = unknown>({
   dataType,
   autoFetch = true,
   refreshInterval,
   retryOnError = true,
 }: UseAutomaticDataSourceOptions): UseAutomaticDataSourceResult<T> {
-  const { state, fetchData, clearCache, forceRetryLive } = useAutomaticDataSourceContext();
-  
+  const { fetchData, clearCache, forceRetryLive } = useAutomaticDataSourceContext();
+
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  
+  // Track status/timestamps locally per-hook to avoid subscribing to shared context state
+  const [localStatus, setLocalStatus] = useState<'live' | 'historical-fallback' | 'loading' | 'error'>('loading');
+  const [localLastUpdated, setLocalLastUpdated] = useState<Date | null>(null);
+  const [localLastLiveAttempt, setLocalLastLiveAttempt] = useState<Date | null>(null);
+
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const retryCountRef = useRef(0); // Track retry attempts for exponential backoff
 
   // Cleanup on unmount
   useEffect(() => {
@@ -72,13 +62,15 @@ export function useAutomaticDataSource<T = unknown>({
     };
   }, []);
 
-  // Fetch data function
+  // Fetch data function — derives status locally from response metadata
   const fetchDataInternal = useCallback(async (forceRefresh = false): Promise<void> => {
     if (!isMountedRef.current) return;
 
     try {
       setIsLoading(true);
+      setLocalStatus('loading');
       setError(null);
+      setLocalLastLiveAttempt(new Date());
 
       const options: DataFetchOptions = {
         dataType,
@@ -92,28 +84,28 @@ export function useAutomaticDataSource<T = unknown>({
 
       if (response.success && response.data) {
         setData(response.data);
-        setError(null);
+        retryCountRef.current = 0; // Reset retry backoff on success
+        setLocalLastUpdated(response.timestamp || new Date());
+        // Derive status from response source/metadata
+        const isFallback = response.metadata?.isFallback === true;
+        setLocalStatus(isFallback ? 'historical-fallback' : 'live');
       } else {
         const errorMessage = response.error || 'Failed to fetch data';
         setError(new Error(errorMessage));
-
-        // Don't clear data on error if we have existing data - use functional update to avoid dependency
-        setData(prevData => prevData || null);
+        setLocalStatus('error');
       }
     } catch (err) {
       if (!isMountedRef.current) return;
 
       const error = err instanceof Error ? err : new Error('Unknown error occurred');
       setError(error);
-
-      // Don't clear data on error if we have existing data - use functional update to avoid dependency
-      setData(prevData => prevData || null);
+      setLocalStatus('error');
     } finally {
       if (isMountedRef.current) {
         setIsLoading(false);
       }
     }
-  }, [dataType, fetchData]); // Removed 'data' dependency to prevent infinite loop
+  }, [dataType, fetchData]);
 
   // Refresh function
   const refresh = useCallback(async (): Promise<void> => {
@@ -140,7 +132,13 @@ export function useAutomaticDataSource<T = unknown>({
     }
   }, [dataType, autoFetch, fetchDataInternal]);
 
-  // Set up refresh interval with randomization to prevent synchronization
+  // Refs for values used inside interval to avoid teardown/rebuild
+  const fetchDataInternalRef = useRef(fetchDataInternal);
+  fetchDataInternalRef.current = fetchDataInternal;
+  const isLoadingRef = useRef(isLoading);
+  isLoadingRef.current = isLoading;
+
+  // Set up refresh interval with randomization — only rebuilds when interval value changes
   useEffect(() => {
     if (refreshInterval && refreshInterval > 0) {
       // Add random delay (±10% of interval) to prevent all components from refreshing simultaneously
@@ -152,8 +150,8 @@ export function useAutomaticDataSource<T = unknown>({
 
       const timeoutId = setTimeout(() => {
         refreshIntervalRef.current = setInterval(() => {
-          if (!isLoading) {
-            fetchDataInternal();
+          if (!isLoadingRef.current) {
+            fetchDataInternalRef.current();
           }
         }, randomizedInterval);
       }, initialDelay);
@@ -165,29 +163,33 @@ export function useAutomaticDataSource<T = unknown>({
         }
       };
     }
-  }, [refreshInterval, isLoading, fetchDataInternal]);
+  }, [refreshInterval]);
 
-  // Retry on error if enabled
+  // Retry on error with exponential backoff (5s, 10s, 20s, 40s, capped at 60s)
+  // Max 5 retries to prevent infinite retry storms across 12+ chart instances
+  const MAX_RETRIES = 5;
   useEffect(() => {
-    if (retryOnError && error && !isLoading) {
+    if (retryOnError && error && !isLoading && retryCountRef.current < MAX_RETRIES) {
+      const backoffDelay = Math.min(5000 * Math.pow(2, retryCountRef.current), 60000);
       const retryTimeout = setTimeout(() => {
-        if (isMountedRef.current && error) {
-          fetchDataInternal();
+        if (isMountedRef.current) {
+          retryCountRef.current += 1;
+          fetchDataInternalRef.current();
         }
-      }, 5000); // Retry after 5 seconds
+      }, backoffDelay);
 
       return () => clearTimeout(retryTimeout);
     }
-  }, [error, isLoading, retryOnError, fetchDataInternal]);
+  }, [error, isLoading, retryOnError]);
 
-  // Memoize the result to prevent unnecessary re-renders
+  // Memoize the result — all values are local state, no context state subscription
   return useMemo(() => ({
     data,
-    isLoading: isLoading, // Only use local loading state for individual refreshes
+    isLoading,
     error,
-    status: mapEnhancedStatusToBasic(state.status),
-    lastUpdated: state.lastUpdated,
-    lastLiveAttempt: state.lastLiveAttempt,
+    status: localStatus,
+    lastUpdated: localLastUpdated,
+    lastLiveAttempt: localLastLiveAttempt,
     refresh,
     forceRetryLive: handleForceRetryLive,
     clearCache: handleClearCache,
@@ -195,56 +197,13 @@ export function useAutomaticDataSource<T = unknown>({
     data,
     isLoading,
     error,
-    state.status,
-    state.lastUpdated,
-    state.lastLiveAttempt,
+    localStatus,
+    localLastUpdated,
+    localLastLiveAttempt,
     refresh,
     handleForceRetryLive,
     handleClearCache,
   ]);
-}
-
-// Hook for parallel fetching of multiple data types
-export function useParallelAutomaticDataSources<T = ChartData>(
-  dataTypes: string[],
-  options?: Omit<UseAutomaticDataSourceOptions, 'dataType'>
-) {
-  const results = useMemo(() => {
-    const resultsObj: Record<string, UseAutomaticDataSourceResult<T>> = {};
-
-    // Create individual hooks for each data type
-    dataTypes.forEach(dataType => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      resultsObj[dataType] = useAutomaticDataSource<T>({
-        ...options,
-        dataType,
-      });
-    });
-
-    return resultsObj;
-  }, [dataTypes, options]);
-
-  // Compute aggregate states
-  const isAnyLoading = Object.values(results).some(result => result.isLoading);
-  const hasAnyError = Object.values(results).some(result => result.error !== null);
-  const lastUpdatedAny = Object.values(results)
-    .map(result => result.lastUpdated)
-    .filter(date => date !== null)
-    .sort((a, b) => (b?.getTime() || 0) - (a?.getTime() || 0))[0] || null;
-
-  // Function to refresh all data sources in parallel
-  const refreshAll = useCallback(async () => {
-    const refreshPromises = Object.values(results).map(result => result.refresh());
-    await Promise.allSettled(refreshPromises);
-  }, [results]);
-
-  return {
-    ...results,
-    isAnyLoading,
-    hasAnyError,
-    refreshAll,
-    lastUpdatedAny,
-  };
 }
 
 // Specialized hooks for common data types
