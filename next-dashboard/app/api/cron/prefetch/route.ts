@@ -93,6 +93,8 @@ async function prefetchDataType(dataType: string): Promise<PrefetchResult> {
     return { dataType, status: 'skipped', reason: 'No endpoint config found' };
   }
 
+  // Must match the key format in app/api/proxy/data/route.ts (line 87)
+  // When no timeRange is provided, JSON.stringify(undefined) produces "undefined"
   const cacheKey = `api:${dataType}:${JSON.stringify(undefined)}`;
 
   let response;

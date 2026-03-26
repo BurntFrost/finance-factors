@@ -2,7 +2,7 @@
  * AI Insights API Route
  *
  * Generates plain-language insights about economic trends
- * using Vercel AI Gateway + Claude Haiku.
+ * using the Anthropic provider + Claude Haiku.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,6 +10,41 @@ import { generateText } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 
 export const maxDuration = 30;
+
+// --- Rate limiter (in-memory, per function instance) ---
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 10;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return true;
+  entry.count++;
+  return false;
+}
+
+// --- Allowed data types (prevents prompt injection) ---
+const VALID_DATA_TYPES = new Set([
+  'house-prices',
+  'salary-income',
+  'inflation-cpi',
+  'core-inflation',
+  'fed-balance-sheet',
+  'federal-funds-rate',
+  'unemployment-rate',
+  'gdp-growth',
+  'money-supply-m1',
+  'money-supply-m2',
+  'treasury-10y',
+  'treasury-2y',
+  'cost-of-living',
+  'food-prices',
+]);
 
 interface InsightRequestBody {
   dataType: string;
@@ -21,11 +56,21 @@ interface InsightRequestBody {
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Rate limit by IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+    if (isRateLimited(ip)) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const body: InsightRequestBody = await request.json();
     const { dataType, data } = body;
 
     if (!dataType || !data?.labels?.length || !data?.values?.length) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!VALID_DATA_TYPES.has(dataType)) {
+      return NextResponse.json({ error: 'Invalid dataType' }, { status: 400 });
     }
 
     if (data.labels.length !== data.values.length) {
@@ -46,7 +91,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .join(', ');
 
     const { text } = await generateText({
-      model: anthropic('claude-haiku-4-5-20251001'),
+      model: anthropic('claude-haiku-4.5-20251001'),
       system:
         'You are an economic data analyst writing plain-language summaries for a general audience. Be concise, factual, and avoid jargon. Do not use bullet points or headers. Write exactly 2-3 sentences.',
       prompt: `Describe the trend in this US economic dataset.\n\nIndicator: ${dataType}\nOverall change: ${pctChange}%\nData points (sampled): ${dataPoints}\n\nWrite a 2-3 sentence plain-language insight about what this data shows and what it might mean for everyday people.`,
