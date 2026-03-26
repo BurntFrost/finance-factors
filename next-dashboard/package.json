@@ -47,6 +47,7 @@
     "graphql:playground": "open http://localhost:3000/api/graphql"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^3.0.64",
     "@apollo/server": "^5.4.0",
     "@as-integrations/next": "^4.1.0",
     "@dnd-kit/core": "^6.3.1",

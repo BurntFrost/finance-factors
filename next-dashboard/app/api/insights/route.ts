@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateText } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
 
 export const maxDuration = 30;
 
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       .join(', ');
 
     const { text } = await generateText({
-      model: 'anthropic/claude-haiku-4.5',
+      model: anthropic('claude-haiku-4-5-20251001'),
       system:
         'You are an economic data analyst writing plain-language summaries for a general audience. Be concise, factual, and avoid jargon. Do not use bullet points or headers. Write exactly 2-3 sentences.',
       prompt: `Describe the trend in this US economic dataset.\n\nIndicator: ${dataType}\nOverall change: ${pctChange}%\nData points (sampled): ${dataPoints}\n\nWrite a 2-3 sentence plain-language insight about what this data shows and what it might mean for everyday people.`,
