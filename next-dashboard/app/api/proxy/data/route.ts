@@ -5,6 +5,8 @@
  * Handles CORS, rate limiting, caching, and API key security
  */
 
+export const maxDuration = 15;
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   ProxyApiResponse,

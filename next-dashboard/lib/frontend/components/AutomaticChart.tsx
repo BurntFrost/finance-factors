@@ -22,6 +22,7 @@ import ChartSkeleton from './ChartSkeleton';
 import DataFetchErrorBoundary from './DataFetchErrorBoundary';
 import { getChartConfig } from '@/shared/config/chartConfiguration';
 import { CHART_PLAIN_DESCRIPTIONS, CHART_CONTROL_COPY, ERROR_COPY } from '@/shared/constants/plainLanguageCopy';
+import ChartInsight from './ChartInsight';
 import styles from './AutomaticChart.module.css';
 
 function formatSummaryValue(value: number): string {
@@ -60,6 +61,8 @@ export interface AutomaticChartProps {
   showInteractiveControls?: boolean;
   /** When false, footer refresh button is hidden. Last updated and source still shown. */
   showFooterRefresh?: boolean;
+  /** Show AI insight button below chart. Default true. */
+  showInsight?: boolean;
 }
 
 const AutomaticChartInternal = memo(function AutomaticChartInternal({
@@ -87,6 +90,7 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
   onDataPointHover,
   showInteractiveControls = false,
   showFooterRefresh: _showFooterRefresh = false,
+  showInsight = true,
 }: AutomaticChartProps) {
   const isEditMode = useIsEditMode();
   const chartRef = useRef<HTMLDivElement>(null);
@@ -497,6 +501,18 @@ const AutomaticChartInternal = memo(function AutomaticChartInternal({
           </div>
         )}
       </div>
+
+      {/* AI Insight */}
+      {displayData && showInsight && (
+        <ChartInsight
+          dataType={dataType}
+          labels={(displayData.labels ?? []).map(String)}
+          values={
+            (displayData.datasets[0]?.data ?? [])
+              .filter((v): v is number => typeof v === 'number')
+          }
+        />
+      )}
 
       {/* Footer: data source only (last updated shown by refresh button when present) */}
       {displayData && (

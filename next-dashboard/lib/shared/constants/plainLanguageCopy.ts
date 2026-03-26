@@ -99,3 +99,13 @@ export const STATUS_PLAIN_COPY: Record<string, { label: string; description: str
   stale: { label: 'Outdated', description: 'This data may be old.' },
   loading: { label: 'Loading…', description: 'Fetching data…' },
 };
+
+/** AI insight section copy */
+export const INSIGHT_COPY = {
+  generateButton: '✦ What does this trend mean?',
+  generateAriaLabel: 'Generate AI insight about this chart',
+  sectionLabel: 'What does this mean?',
+  loading: 'Analyzing the trend…',
+  errorMessage: 'Could not generate an insight.',
+  retry: 'Try again',
+} as const;

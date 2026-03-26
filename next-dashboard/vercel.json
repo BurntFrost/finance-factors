@@ -5,5 +5,11 @@
   "ignoreCommand": "exit 0",
   "regions": [
     "iad1"
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/prefetch",
+      "schedule": "0 * * * *"
+    }
   ]
 }
