@@ -23,9 +23,6 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: next-dashboard
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -46,9 +43,11 @@ jobs:
             nextjs-${{ runner.os }}-
 
       - name: Install dependencies
+        working-directory: next-dashboard
         run: npm ci --prefer-offline --no-audit
 
       - name: Run linting
+        working-directory: next-dashboard
         run: npm run lint
 
       - name: Install Vercel CLI
