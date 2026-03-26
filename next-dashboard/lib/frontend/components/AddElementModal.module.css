@@ -22,7 +22,7 @@
 }
 
 .modalContent {
-  background: var(--background);
+  background: hsl(var(--background));
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   max-width: 800px;
@@ -56,7 +56,7 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .closeButton {
@@ -126,7 +126,7 @@
 
 .step.active .stepLabel,
 .step.completed .stepLabel {
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .stepConnector {
@@ -158,7 +158,7 @@
   font-size: 14px;
   font-weight: 500;
   transition: all 0.2s ease;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .categoryButton:hover {
@@ -185,7 +185,7 @@
   padding: 20px;
   border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  background: var(--background);
+  background: hsl(var(--background));
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
@@ -211,7 +211,7 @@
   margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .optionDescription {
@@ -247,7 +247,7 @@
   margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
-  color: var(--foreground);
+  color: hsl(var(--foreground));
 }
 
 .selectedDescription {
