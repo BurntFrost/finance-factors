@@ -9,6 +9,8 @@ import { CrossfilterProvider } from "@/frontend/context/CrossfilterContext";
 import ErrorBoundary from "@/frontend/components/ErrorBoundary";
 import { ToastProvider } from "@/frontend/components/ToastManager";
 import PerformanceMonitor from "@/frontend/components/PerformanceMonitor";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +74,8 @@ export default function RootLayout({
                     <DashboardProvider>
                       {children}
                       <PerformanceMonitor enabled={process.env.NODE_ENV === 'development'} />
+                      <Analytics />
+                      <SpeedInsights />
                     </DashboardProvider>
                   </CrossfilterProvider>
                 </AutomaticDataSourceProvider>
