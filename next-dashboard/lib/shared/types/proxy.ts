@@ -431,6 +431,89 @@ export const PROXY_API_ENDPOINTS: Record<string, ApiEndpointConfig> = {
     },
   },
 
+  // Investment ETFs — all use Alpha Vantage TIME_SERIES_MONTHLY
+  'sp500-index': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'SPY',
+      outputsize: 'full', // Need 20+ years for CAGR
+    },
+  },
+  'nasdaq-100': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'QQQ',
+      outputsize: 'full',
+    },
+  },
+  'sector-realestate': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'VNQ',
+      outputsize: 'full',
+    },
+  },
+  'sector-energy': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'XLE',
+      outputsize: 'full',
+    },
+  },
+  'sector-financials': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'XLF',
+      outputsize: 'full',
+    },
+  },
+  'sector-healthcare': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'XLV',
+      outputsize: 'full',
+    },
+  },
+  'gold': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'GLD',
+      outputsize: 'full',
+    },
+  },
+  'long-term-treasuries': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'TLT',
+      outputsize: 'full',
+    },
+  },
+  'emerging-markets': {
+    provider: 'ALPHA_VANTAGE',
+    endpoint: '/query',
+    params: {
+      function: 'TIME_SERIES_MONTHLY',
+      symbol: 'VWO',
+      outputsize: 'full',
+    },
+  },
+
   // World Bank API endpoints
   'world-bank-gdp-us': {
     provider: 'WORLD_BANK',
