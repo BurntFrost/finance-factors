@@ -9,11 +9,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fredProxyService } from '../../services/fred-proxy';
 import { blsProxyService } from '../../services/bls-proxy';
+import { alphaVantageProxyService } from '../../services/alpha-vantage-proxy';
 import { cache } from '@/backend/lib/advanced-cache';
 import { PROXY_API_ENDPOINTS } from '@/shared/types/proxy';
 import { isTraditionalApisEnabled } from '@/backend/lib/feature-toggles';
 
-export const maxDuration = 60;
+export const maxDuration = 300; // 5 minutes for staggered Alpha Vantage requests
 
 const DATA_TYPES = [
   'house-prices',
@@ -28,6 +29,18 @@ const DATA_TYPES = [
   'money-supply-m2',
   'treasury-10y',
   'treasury-2y',
+] as const;
+
+const INVESTMENT_DATA_TYPES = [
+  'sp500-index',
+  'nasdaq-100',
+  'sector-realestate',
+  'sector-energy',
+  'sector-financials',
+  'sector-healthcare',
+  'gold',
+  'long-term-treasuries',
+  'emerging-markets',
 ] as const;
 
 type PrefetchResult =
@@ -73,15 +86,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     };
   });
 
-  const cached = summary.filter((r) => r.status === 'cached').length;
-  const skipped = summary.filter((r) => r.status === 'skipped').length;
-  const errors = summary.filter((r) => r.status === 'error').length;
+  // Stagger investment fetches: one at a time, 15s apart (Alpha Vantage: 5 req/min)
+  const investmentResults: PrefetchResult[] = [];
+  for (const dataType of INVESTMENT_DATA_TYPES) {
+    const result = await prefetchDataType(dataType).catch((err) => ({
+      dataType,
+      status: 'error' as const,
+      error: err instanceof Error ? err.message : String(err),
+      durationMs: 0,
+    }));
+    investmentResults.push(result);
+
+    // Wait 15 seconds between requests (except after the last one)
+    if (dataType !== INVESTMENT_DATA_TYPES[INVESTMENT_DATA_TYPES.length - 1]) {
+      await new Promise((resolve) => setTimeout(resolve, 15_000));
+    }
+  }
+
+  const allResults = [...summary, ...investmentResults];
+
+  const cached = allResults.filter((r) => r.status === 'cached').length;
+  const skipped = allResults.filter((r) => r.status === 'skipped').length;
+  const errors = allResults.filter((r) => r.status === 'error').length;
 
   return NextResponse.json({
     success: true,
     totalDurationMs: Date.now() - startTime,
-    summary: { total: DATA_TYPES.length, cached, skipped, errors },
-    results: summary,
+    summary: { total: allResults.length, cached, skipped, errors },
+    results: allResults,
   });
 }
 
@@ -106,6 +138,10 @@ async function prefetchDataType(dataType: string): Promise<PrefetchResult> {
 
     case 'BLS':
       response = await blsProxyService.fetchSeries(dataType, {});
+      break;
+
+    case 'ALPHA_VANTAGE':
+      response = await alphaVantageProxyService.fetchSeries(dataType, {});
       break;
 
     default:
