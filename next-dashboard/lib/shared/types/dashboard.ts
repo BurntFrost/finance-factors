@@ -19,7 +19,7 @@ export interface DataType {
   name: string;
   description: string;
   icon: string;
-  category: 'financial' | 'economic' | 'personal';
+  category: 'financial' | 'economic' | 'personal' | 'investment';
 }
 
 // Visualization type for dashboard elements
