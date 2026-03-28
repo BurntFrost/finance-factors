@@ -1,0 +1,120 @@
+.container {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 1rem;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.th {
+  text-align: left;
+  padding: 0.75rem;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  border-bottom: 2px solid hsl(var(--border));
+  white-space: nowrap;
+  user-select: none;
+}
+
+.sortable {
+  cursor: pointer;
+}
+
+.sortable:hover {
+  color: hsl(var(--foreground));
+}
+
+.row {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.nameCell {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.assetName {
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.symbol {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-family: monospace;
+}
+
+.sparklineCell {
+  padding: 0.5rem 0.75rem;
+  width: 120px;
+}
+
+.sparkline {
+  display: block;
+}
+
+.sparklineSkeleton {
+  width: 100px;
+  height: 30px;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.returnCell {
+  padding: 0.75rem;
+  text-align: right;
+  font-family: monospace;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.positiveCell {
+  color: hsl(142 71% 45%);
+  background: hsl(142 71% 45% / 0.05);
+}
+
+.negativeCell {
+  color: hsl(0 84% 60%);
+  background: hsl(0 84% 60% / 0.05);
+}
+
+.cellSkeleton {
+  width: 60px;
+  height: 1rem;
+  border-radius: 4px;
+  background: hsl(var(--muted));
+  animation: pulse 1.5s ease-in-out infinite;
+  margin-left: auto;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
