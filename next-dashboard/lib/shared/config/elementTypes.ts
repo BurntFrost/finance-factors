@@ -142,6 +142,70 @@ export const DATA_TYPES: DataType[] = [
     description: '2-year Treasury constant maturity rate',
     icon: '📋',
     category: 'economic'
+  },
+  // Investment ETFs
+  {
+    id: 'sp500-index',
+    name: 'S&P 500',
+    description: 'S&P 500 index performance via SPY ETF',
+    icon: '📈',
+    category: 'investment'
+  },
+  {
+    id: 'nasdaq-100',
+    name: 'Nasdaq 100',
+    description: 'Nasdaq 100 index performance via QQQ ETF',
+    icon: '💻',
+    category: 'investment'
+  },
+  {
+    id: 'sector-realestate',
+    name: 'Real Estate (REITs)',
+    description: 'Real estate sector via VNQ ETF',
+    icon: '🏢',
+    category: 'investment'
+  },
+  {
+    id: 'sector-energy',
+    name: 'Energy Sector',
+    description: 'Energy sector via XLE ETF',
+    icon: '⛽',
+    category: 'investment'
+  },
+  {
+    id: 'sector-financials',
+    name: 'Financials Sector',
+    description: 'Financial sector via XLF ETF',
+    icon: '🏦',
+    category: 'investment'
+  },
+  {
+    id: 'sector-healthcare',
+    name: 'Healthcare Sector',
+    description: 'Healthcare sector via XLV ETF',
+    icon: '💊',
+    category: 'investment'
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    description: 'Gold price via GLD ETF',
+    icon: '🥇',
+    category: 'investment'
+  },
+  {
+    id: 'long-term-treasuries',
+    name: 'Long-Term Treasuries',
+    description: '20+ year Treasury bonds via TLT ETF',
+    icon: '🏛️',
+    category: 'investment'
+  },
+  {
+    id: 'emerging-markets',
+    name: 'Emerging Markets',
+    description: 'Emerging markets via VWO ETF',
+    icon: '🌍',
+    category: 'investment'
   }
 ];
 
@@ -153,7 +217,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Perfect for showing trends over time',
     icon: '📈',
     category: 'chart',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y', 'sp500-index', 'nasdaq-100', 'sector-realestate', 'sector-energy', 'sector-financials', 'sector-healthcare', 'gold', 'long-term-treasuries', 'emerging-markets']
   },
   {
     id: 'bar-chart',
@@ -161,7 +225,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Great for comparing values across categories',
     icon: '📊',
     category: 'chart',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y', 'sp500-index', 'nasdaq-100', 'sector-realestate', 'sector-energy', 'sector-financials', 'sector-healthcare', 'gold', 'long-term-treasuries', 'emerging-markets']
   },
   {
     id: 'pie-chart',
@@ -185,7 +249,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Display detailed data in tabular format',
     icon: '📋',
     category: 'data',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y', 'sp500-index', 'nasdaq-100', 'sector-realestate', 'sector-energy', 'sector-financials', 'sector-healthcare', 'gold', 'long-term-treasuries', 'emerging-markets']
   },
   {
     id: 'summary-card',
@@ -193,7 +257,7 @@ export const VISUALIZATION_TYPES: VisualizationType[] = [
     description: 'Show key metrics and single values',
     icon: '📄',
     category: 'widget',
-    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y']
+    suitableFor: ['house-prices', 'salary-income', 'cost-of-living', 'tuition-education', 'medical-costs', 'childcare-costs', 'transportation-costs', 'food-prices', 'utilities-costs', 'investment-returns', 'inflation-cpi', 'core-inflation', 'fed-balance-sheet', 'federal-funds-rate', 'unemployment-rate', 'gdp-growth', 'money-supply-m1', 'money-supply-m2', 'treasury-10y', 'treasury-2y', 'sp500-index', 'nasdaq-100', 'sector-realestate', 'sector-energy', 'sector-financials', 'sector-healthcare', 'gold', 'long-term-treasuries', 'emerging-markets']
   }
 ];
 

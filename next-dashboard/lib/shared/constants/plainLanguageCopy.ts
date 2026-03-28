@@ -37,6 +37,15 @@ export const CHART_PLAIN_DESCRIPTIONS: Record<string, string> = {
   'food-prices': 'How much groceries and food cost over time.',
   'utilities-costs': 'Bills for electricity, gas, water, and other utilities.',
   'investment-returns': 'How investments like stocks have performed over time.',
+  'sp500-index': 'How the S&P 500 (the 500 biggest US companies) has performed over time.',
+  'nasdaq-100': 'Performance of the 100 largest tech-heavy companies (Nasdaq).',
+  'sector-realestate': 'How real estate investment trusts (REITs) have performed.',
+  'sector-energy': 'Performance of oil, gas, and energy companies.',
+  'sector-financials': 'Performance of banks, insurance, and financial companies.',
+  'sector-healthcare': 'Performance of healthcare and pharmaceutical companies.',
+  'gold': 'Gold price over time — a traditional safe-haven investment.',
+  'long-term-treasuries': 'Long-term US government bond prices — moves opposite to interest rates.',
+  'emerging-markets': 'Stock market performance of developing economies worldwide.',
 };
 
 /** Data source labels and tooltips for non-experts */
