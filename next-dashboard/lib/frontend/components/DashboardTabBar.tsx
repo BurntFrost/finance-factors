@@ -47,6 +47,13 @@ const TAB_CONFIGS: TabConfig[] = [
     icon: '🔴',
     description: 'Interactive mode with data source editing',
   },
+  {
+    id: 'investments',
+    mode: 'investments',
+    label: 'Investments',
+    icon: '📈',
+    description: 'Market data, ETF performance, and economic comparisons',
+  },
 ];
 
 export default function DashboardTabBar({

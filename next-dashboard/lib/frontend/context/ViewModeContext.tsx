@@ -9,13 +9,14 @@
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 
-export type ViewMode = 'edit' | 'live' | 'preview';
+export type ViewMode = 'edit' | 'live' | 'preview' | 'investments';
 
 export interface ViewModeState {
   currentMode: ViewMode;
   isLiveViewMode: boolean;
   isEditMode: boolean;
   isPreviewMode: boolean;
+  isInvestmentsMode: boolean;
   lastChanged: Date | null;
 }
 
@@ -48,6 +49,7 @@ function createStateFromMode(mode: ViewMode, includeTimestamp: boolean = false):
     isLiveViewMode: mode === 'live',
     isEditMode: mode === 'edit',
     isPreviewMode: mode === 'preview',
+    isInvestmentsMode: mode === 'investments',
     lastChanged: includeTimestamp ? new Date() : null,
   };
 }
@@ -67,7 +69,7 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
       if (saved) {
         const savedMode = JSON.parse(saved) as ViewMode;
-        if (['edit', 'live', 'preview'].includes(savedMode)) {
+        if (['edit', 'live', 'preview', 'investments'].includes(savedMode)) {
           setState(createStateFromMode(savedMode, false)); // Don't include timestamp during hydration
         }
       } else {
