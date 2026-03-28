@@ -1,0 +1,88 @@
+.hero {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0 0 1rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  padding: 1.25rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.card.positive {
+  border-color: hsl(142 71% 45% / 0.3);
+}
+
+.card.negative {
+  border-color: hsl(0 84% 60% / 0.3);
+}
+
+.period {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5rem;
+}
+
+.cagr {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.positive .cagr {
+  color: hsl(142 71% 45%);
+}
+
+.negative .cagr {
+  color: hsl(0 84% 60%);
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.25rem;
+}
+
+.absolute {
+  font-size: 0.8rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid hsl(var(--border));
+}
+
+.skeleton {
+  height: 2.5rem;
+  border-radius: 6px;
+  background: hsl(var(--muted));
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
