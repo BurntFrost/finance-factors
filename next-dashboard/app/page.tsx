@@ -7,6 +7,7 @@ import HydrationSafeWrapper from '@/frontend/components/HydrationSafeWrapper';
 const DashboardTabBar = lazy(() => import('@/frontend/components/DashboardTabBar'));
 const DarkModeToggle = lazy(() => import('@/frontend/components/DarkModeToggle'));
 const ParallelDashboard = lazy(() => import('@/frontend/components/ParallelDashboard'));
+const InvestmentsSection = lazy(() => import('@/frontend/components/investments/InvestmentsSection'));
 
 import type { ElementType } from '@/frontend/components/AddElementDropdown';
 import { useDashboard } from '@/frontend/context/DashboardContext';
@@ -85,13 +86,18 @@ export default function Home() {
       </section>
 
       <main id="dashboard-main" className={styles.main} aria-label="Dashboard charts and data">
-        <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
-          <ParallelDashboard
-            staggerDelay={100}
-            showLoadingProgress={true}
-          />
-        </Suspense>
-
+        {_viewMode.state.isInvestmentsMode ? (
+          <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
+            <InvestmentsSection />
+          </Suspense>
+        ) : (
+          <Suspense fallback={<div className="grid grid-cols-2 gap-6 p-6"><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div><div className="h-96 bg-gray-200 rounded-lg animate-pulse"></div></div>}>
+            <ParallelDashboard
+              staggerDelay={100}
+              showLoadingProgress={true}
+            />
+          </Suspense>
+        )}
       </main>
     </div>
   );
