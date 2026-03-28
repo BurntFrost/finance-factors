@@ -386,6 +386,215 @@ export const CHART_CONFIGURATIONS: Record<string, DataTypeChartConfig> = {
       fallback: 'Historical Sample Data',
     },
   },
+
+  // ── Investment ETFs ──────────────────────────────────────────
+
+  'sp500-index': {
+    name: 'S&P 500',
+    description: 'S&P 500 index performance via SPY ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `S&P 500: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'SPDR S&P 500 ETF (SPY)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'nasdaq-100': {
+    name: 'Nasdaq 100',
+    description: 'Nasdaq 100 index performance via QQQ ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Nasdaq 100: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Invesco QQQ Trust (QQQ)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'sector-realestate': {
+    name: 'Real Estate (REITs)',
+    description: 'Real estate sector performance via VNQ ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `REITs: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Vanguard Real Estate ETF (VNQ)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'sector-energy': {
+    name: 'Energy Sector',
+    description: 'Energy sector performance via XLE ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Energy: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Energy Select Sector SPDR (XLE)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'sector-financials': {
+    name: 'Financials Sector',
+    description: 'Financial sector performance via XLF ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Financials: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Financial Select Sector SPDR (XLF)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'sector-healthcare': {
+    name: 'Healthcare Sector',
+    description: 'Healthcare sector performance via XLV ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Healthcare: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Health Care Select Sector SPDR (XLV)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'gold': {
+    name: 'Gold',
+    description: 'Gold price performance via GLD ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Gold: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'SPDR Gold Shares (GLD)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'long-term-treasuries': {
+    name: 'Long-Term Treasuries',
+    description: '20+ year Treasury bond performance via TLT ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `Treasuries: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'iShares 20+ Year Treasury Bond ETF (TLT)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
+
+  'emerging-markets': {
+    name: 'Emerging Markets',
+    description: 'Emerging markets performance via VWO ETF',
+    category: 'financial',
+    axes: {
+      x: { label: 'Time Period', type: 'time' },
+      y: {
+        label: 'Price',
+        unit: 'USD',
+        beginAtZero: false,
+        formatValue: formatters.currencyDetailed,
+      },
+    },
+    tooltip: {
+      title: (context) => `${context[0].label}`,
+      label: (context) => `EM: ${formatters.currencyDetailed(context.parsed.y ?? 0)}`,
+      afterLabel: (_context) => 'Vanguard FTSE Emerging Markets ETF (VWO)',
+    },
+    legend: { display: true, position: 'top' },
+    timePeriod: { default: 'Monthly', available: ['Monthly', 'Annual'] },
+    dataSource: { primary: 'Alpha Vantage API', fallback: 'Historical Sample Data' },
+  },
 };
 
 // Helper function to get chart configuration for a data type
