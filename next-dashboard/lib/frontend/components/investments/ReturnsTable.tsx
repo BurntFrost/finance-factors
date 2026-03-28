@@ -76,7 +76,7 @@ function Sparkline({ data }: { data: { date: string; value: number }[] }) {
   );
 }
 
-export default function ReturnsTable({ assets, isLoading }: ReturnsTableProps) {
+export default function ReturnsTable({ assets, isLoading: _isLoading }: ReturnsTableProps) {
   const [sortCol, setSortCol] = useState<SortColumn>('1Y');
   const [sortDir, setSortDir] = useState<SortDirection>('desc');
 
